@@ -2,7 +2,8 @@
 import copy
 from typing import Dict, List, Str
 
-from calculator import CalculatorSkeleton
+from .calculator import CalculatorSkeleton
+from . import chembridge
 
 
 MNDO_CMD = "mndo"
@@ -95,12 +96,12 @@ def MndoCalculator(CalculatorSkeleton):
         """
         """
 
-        atoms, _, charge = cheminfo.molobj_to_axyzc(molobj, atom_type="str")
+        atoms, _, charge = chembridge.molobj_to_axyzc(molobj, atom_type="str")
 
         # Create input
         txt = []
         for i in range(n_confs):
-            coord = cheminfo.molobj_to_coordinates(molobj, idx=i)
+            coord = chembridge.molobj_to_coordinates(molobj, idx=i)
             tx = get_input(atoms, coord, charge, title=f"{title}_Conf{i}", **input_options)
             txt.append(tx)
 

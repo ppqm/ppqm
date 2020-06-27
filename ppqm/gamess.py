@@ -1,4 +1,5 @@
 
+from . import chembridge
 
 GAMESS_CMD = "rungms"
 GAMESS_SCR = "~/scr/"
@@ -41,12 +42,12 @@ def GamessCalculator():
 
     def calculate(self, molobj, header):
 
-        atoms, _, charge = cheminfo.molobj_to_axyzc(molobj, atom_type="str")
+        atoms, _, charge = chembridge.molobj_to_axyzc(molobj, atom_type="str")
 
         # Create input
         txt = []
         for i in range(n_confs):
-            coord = cheminfo.molobj_to_coordinates(molobj, idx=i)
+            coord = chembridge.molobj_to_coordinates(molobj, idx=i)
             tx = get_input(atoms, coord, charge, title=f"{title}_Conf{i}", **input_options)
             txt.append(tx)
 
@@ -78,8 +79,8 @@ def prepare_atoms(atoms, coordinates):
     line = "{:2s}    {:2.1f}    {:f}     {:f}    {:f}"
 
     for atom, coord in zip(atoms, coordinates):
-        idx = cheminfo.atom_int(atom)
-        lines.append(line.format(atom, idx, *coord))
+        iat = chembrigde.int_atom(atom)
+        lines.append(line.format(atom, iat, *coord))
 
     lines = [" $data", "Title", "C1"] + lines + [" $end"]
 
