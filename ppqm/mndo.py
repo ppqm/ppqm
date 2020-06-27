@@ -4,7 +4,7 @@ from typing import Dict, List, Str
 
 from .calculator import CalculatorSkeleton
 from . import chembridge
-
+from . import linesio
 
 MNDO_CMD = "mndo"
 MNDO_ATOMLINE = "{atom:2s} {x} {opt_flag} {y} {opt_flag} {z} {opt_flag}"
@@ -239,7 +239,7 @@ def get_properties_1scf(lines):
     # Check if input coordiantes is internal
     # INPUT IN INTERNAL COORDINATES
     # INPUT IN CARTESIAN COORDINATES
-    idx = misc.get_index(lines, "INPUT IN")
+    idx = linesio.get_index(lines, "INPUT IN")
     line = lines[idx]
     is_internal = "INTERNAL" in line
 
@@ -249,7 +249,7 @@ def get_properties_1scf(lines):
         "IONIZATION ENERGY",
         "INPUT GEOMETRY"]
 
-    idx_keywords = misc.get_rev_indexes(lines, keywords)
+    idx_keywords = linesio.get_rev_indexes(lines, keywords)
 
     # SCF energy
     idx_core = idx_keywords[0]
@@ -289,7 +289,7 @@ def get_properties_1scf(lines):
 
     # eisol
     eisol = dict()
-    idxs = misc.get_indexes_with_stop(lines, "EISOL", "IDENTIFICATION")
+    idxs = linesio.get_indexes_with_stop(lines, "EISOL", "IDENTIFICATION")
     for idx in idxs:
         line = lines[idx]
         line = line.split()
@@ -298,7 +298,7 @@ def get_properties_1scf(lines):
         eisol[atom] = float(value) # ev
 
     # # Enthalpy of formation
-    idx_hof = misc.get_index(lines, "SCF HEAT OF FORMATION")
+    idx_hof = linesio.get_index(lines, "SCF HEAT OF FORMATION")
     line = lines[idx_hof]
     line = line.split("FORMATION")
     line = line[1]
@@ -339,7 +339,7 @@ def get_properties_1scf(lines):
         idx_y = 3
         idx_z = 4
 
-        idx_coord = misc.get_index(lines, "INITIAL CARTESIAN COORDINATES")
+        idx_coord = linesio.get_index(lines, "INITIAL CARTESIAN COORDINATES")
         idx_coord += 5
 
         j = idx_coord
@@ -401,7 +401,7 @@ def get_properties_optimize(lines):
     properties = {}
 
     # # Enthalpy of formation
-    idx_hof = misc.get_index(lines, "SCF HEAT OF FORMATION")
+    idx_hof = linesio.get_index(lines, "SCF HEAT OF FORMATION")
     line = lines[idx_hof]
     line = line.split("FORMATION")
     line = line[1]
@@ -411,7 +411,7 @@ def get_properties_optimize(lines):
     properties["h"] = value # kcal/mol
 
     # optimized coordinates
-    i = misc.get_rev_index(lines, 'CARTESIAN COORDINATES')
+    i = linesio.get_rev_index(lines, 'CARTESIAN COORDINATES')
     idx_atm = 1
     idx_x = 2
     idx_y = 3
@@ -419,7 +419,7 @@ def get_properties_optimize(lines):
     n_skip = 4
 
     if i < idx_hof:
-        i = misc.get_rev_index(lines, 'X-COORDINATE')
+        i = linesio.get_rev_index(lines, 'X-COORDINATE')
         idx_atm = 1
         idx_x = 2
         idx_y = 4

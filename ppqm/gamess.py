@@ -1,5 +1,6 @@
 
 from . import chembridge
+from . import linesio
 
 GAMESS_CMD = "rungms"
 GAMESS_SCR = "~/scr/"
@@ -256,7 +257,7 @@ def read_errors(lines):
     safeword = "NSERCH"
 
     key = "CHECK YOUR INPUT CHARGE AND MULTIPLICITY"
-    idx = misc.get_rev_index(lines, key, stoppattern=safeword)
+    idx = linesio.get_rev_index(lines, key, stoppattern=safeword)
     if idx is not None:
         line = lines[idx+1:idx+2]
         line = [x.strip().lower().capitalize() for x in line]
@@ -265,12 +266,12 @@ def read_errors(lines):
         msg["error"] = line + ". Only multiplicity 1 allowed."
         return msg
 
-    idx = misc.get_rev_index(lines, "FAILURE TO LOCATE STATIONARY POINT, TOO MANY STEPS TAKEN", stoppattern=safeword)
+    idx = linesio.get_rev_index(lines, "FAILURE TO LOCATE STATIONARY POINT, TOO MANY STEPS TAKEN", stoppattern=safeword)
     if idx is not None:
         msg["error"] = "Failed to optimize molecule, too many steps taken. <br /> Try to displace atoms and re-calculate."
         return msg
 
-    idx = misc.get_rev_index(lines, "FAILURE TO LOCATE STATIONARY POINT, SCF HAS NOT CONVERGED", stoppattern=safeword)
+    idx = linesio.get_rev_index(lines, "FAILURE TO LOCATE STATIONARY POINT, SCF HAS NOT CONVERGED", stoppattern=safeword)
     if idx is not None:
         msg["error"] = "Failed to optimize molecule, electrons too complicated. <br /> Try to displace atoms and re-calculate."
         return msg
@@ -289,23 +290,23 @@ def read_properties_coordinates(output):
 
     lines = output.split("\n")
 
-    idx = misc.get_index(lines, "TOTAL NUMBER OF ATOMS")
+    idx = linesio.get_index(lines, "TOTAL NUMBER OF ATOMS")
     line = lines[idx]
     line = line.split("=")
     n_atoms = int(line[-1])
 
-    idx = misc.get_rev_index(lines, "FAILURE TO LOCATE STATIONARY POINT, TOO MANY STEPS TAKEN", stoppattern="NSEARCH")
+    idx = linesio.get_rev_index(lines, "FAILURE TO LOCATE STATIONARY POINT, TOO MANY STEPS TAKEN", stoppattern="NSEARCH")
     if idx is not None:
         properties["error"] = "Failed to optimize molecule, too many steps taken. <br /> Try to displace atoms and re-calculate."
         return properties
 
-    idx = misc.get_rev_index(lines, "FAILURE TO LOCATE STATIONARY POINT, SCF HAS NOT CONVERGED", stoppattern="NESERCH")
+    idx = linesio.get_rev_index(lines, "FAILURE TO LOCATE STATIONARY POINT, SCF HAS NOT CONVERGED", stoppattern="NESERCH")
     if idx is not None:
         properties["error"] = "Failed to optimize molecule, electrons too complicated. <br /> Try to displace atoms and re-calculate."
         return properties
 
 
-    idx = misc.get_rev_index(lines, "EQUILIBRIUM GEOMETRY LOCATED")
+    idx = linesio.get_rev_index(lines, "EQUILIBRIUM GEOMETRY LOCATED")
     idx += 4
 
     coordinates = np.zeros((n_atoms, 3))
@@ -325,7 +326,7 @@ def read_properties_coordinates(output):
         coordinates[i][1] = y
         coordinates[i][2] = z
 
-    idx = misc.get_rev_index(lines, "HEAT OF FORMATION IS")
+    idx = linesio.get_rev_index(lines, "HEAT OF FORMATION IS")
     line = lines[idx]
     line = line.split()
     hof = float(line[4]) # kcal/mol
@@ -344,23 +345,23 @@ def read_properties_vibration(output):
     lines = output.split("\n")
 
     # Get number of atoms
-    idx = misc.get_index(lines, "TOTAL NUMBER OF ATOMS")
+    idx = linesio.get_index(lines, "TOTAL NUMBER OF ATOMS")
     line = lines[idx]
     line = line.split("=")
     n_atoms = int(line[-1])
 
     # Get heat of formation
-    idx = misc.get_rev_index(lines, "HEAT OF FORMATION IS")
+    idx = linesio.get_rev_index(lines, "HEAT OF FORMATION IS")
     line = lines[idx]
     line = line.split()
     hof = float(line[4]) # kcal/mol
 
     # Check linear
-    idx = misc.get_index(lines, "THIS MOLECULE IS RECOGNIZED AS BEING LINEAR")
+    idx = linesio.get_index(lines, "THIS MOLECULE IS RECOGNIZED AS BEING LINEAR")
     is_linear = (idx is not None)
 
     # thermodynamic
-    idx = misc.get_rev_index(lines, "KJ/MOL    KJ/MOL    KJ/MOL   J/MOL-K")
+    idx = linesio.get_rev_index(lines, "KJ/MOL    KJ/MOL    KJ/MOL   J/MOL-K")
     idx += 1
     values = np.zeros((5,6))
     for i in range(5):
@@ -371,8 +372,8 @@ def read_properties_vibration(output):
         values[i,:] = line
 
     # Get Vibrations
-    idx_start = misc.get_rev_index(lines, "FREQ(CM**-1)")
-    idx_end = misc.get_rev_index(lines, "THERMOCHEMISTRY AT T=  298.15 K")
+    idx_start = linesio.get_rev_index(lines, "FREQ(CM**-1)")
+    idx_end = linesio.get_rev_index(lines, "THERMOCHEMISTRY AT T=  298.15 K")
     idx_start += 1
     idx_end -= 2
     vibrations = []
@@ -389,10 +390,10 @@ def read_properties_vibration(output):
 
     # Cut and save vibration string for jsmol
     # based on number of vibrations and number of atoms
-    idx = misc.get_rev_index(lines, " TAKEN AS ROTATIONS AND TRANSLATIONS.")
+    idx = linesio.get_rev_index(lines, " TAKEN AS ROTATIONS AND TRANSLATIONS.")
     vib_lines = "\n".join(lines[idx:idx_start])
 
-    idx_end = misc.get_index(lines, "ELECTRON INTEGRALS")
+    idx_end = linesio.get_index(lines, "ELECTRON INTEGRALS")
     head_lines = "\n".join(lines[18:idx_end])
 
     properties["jsmol"] = head_lines + vib_lines
@@ -413,14 +414,14 @@ def read_properties_orbitals(output):
     n_lines = len(lines)
 
     # Get number of atoms
-    idx = misc.get_index(lines, "TOTAL NUMBER OF ATOMS")
+    idx = linesio.get_index(lines, "TOTAL NUMBER OF ATOMS")
     line = lines[idx]
     line = line.split("=")
     n_atoms = int(line[-1])
 
-    idx_start = misc.get_index(lines, "EIGENVECTORS")
+    idx_start = linesio.get_index(lines, "EIGENVECTORS")
     idx_start += 4
-    idx_end = misc.get_index(lines, "END OF RHF CALCULATION", offset=idx_start)
+    idx_end = linesio.get_index(lines, "END OF RHF CALCULATION", offset=idx_start)
     energies = []
 
     wait = False
@@ -457,14 +458,14 @@ def read_properties_solvation(output):
     n_lines = len(lines)
 
     # Get number of atoms
-    idx = misc.get_index(lines, "TOTAL NUMBER OF ATOMS")
+    idx = linesio.get_index(lines, "TOTAL NUMBER OF ATOMS")
     line = lines[idx]
     line = line.split("=")
     n_atoms = int(line[-1])
 
     # Get solvation data,charge of molecule, surface area, dipole
 
-    idx = misc.get_rev_index(lines, "ELECTROSTATIC INTERACTION")
+    idx = linesio.get_rev_index(lines, "ELECTROSTATIC INTERACTION")
     line = lines[idx]
     line = line.split()
     electrostatic_interaction = float(line[-2])
@@ -484,26 +485,26 @@ def read_properties_solvation(output):
     total_non_polar = pierotti_cavitation_energy + dispersion_free_energy + repulsion_free_energy
 
 
-    idx = misc.get_index(lines, "CHARGE OF MOLECULE")
+    idx = linesio.get_index(lines, "CHARGE OF MOLECULE")
     line = lines[idx]
     line = line.split("=")
     charge = int(line[-1])
 
-    idx = misc.get_rev_index(lines, "SURFACE AREA")
+    idx = linesio.get_rev_index(lines, "SURFACE AREA")
     line = lines[idx]
     line = line.split()
     surface_area = line[2]
     surface_area = surface_area.replace("(A**2)", "")
     surface_area = float(surface_area)
 
-    idx = misc.get_rev_index(lines, "DEBYE")
+    idx = linesio.get_rev_index(lines, "DEBYE")
     line = lines[idx+1]
     line = line.split()
     line = [float(x) for x in line]
     dxyz = line[0:3]
     dtot = line[-1]
 
-    idx = misc.get_rev_index(lines, "MOPAC CHARGES")
+    idx = linesio.get_rev_index(lines, "MOPAC CHARGES")
     idx += 3
     partial_charges = np.zeros(n_atoms)
     for i in range(n_atoms):
