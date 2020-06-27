@@ -17,6 +17,10 @@ def MndoCalculator(CalculatorSkeleton):
         self.cmd = cmd
         self.scr = scr
 
+        # Ensure scrdir
+        Path(scr).mkdir(parents=True, exist_ok=True)
+
+        # Constants
         self.atomline = MNDO_ATOMLINE
 
         return
