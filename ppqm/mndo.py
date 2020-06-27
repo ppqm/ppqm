@@ -5,6 +5,7 @@ from typing import Dict, List, Str
 from .calculator import CalculatorSkeleton
 from . import chembridge
 from . import linesio
+from . import shell
 
 MNDO_CMD = "mndo"
 MNDO_ATOMLINE = "{atom:2s} {x} {opt_flag} {y} {opt_flag} {z} {opt_flag}"
@@ -74,7 +75,7 @@ def MndoCalculator(CalculatorSkeleton):
 
         runcmd = f"{self.cmd} < {self.filename}"
 
-        # TODO lines = execute(runcmd, scr=scr)
+        lines = shell.stream(runcmd, chdir=scr)
 
         molecule_lines = []
 
