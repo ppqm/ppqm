@@ -1,6 +1,6 @@
 
 import copy
-from typing import Dict, List, Str
+from typing import Dict, List
 
 from .calculator import CalculatorSkeleton
 from . import chembridge
@@ -14,7 +14,7 @@ MNDO_ATOMLINE = "{atom:2s} {x} {opt_flag} {y} {opt_flag} {z} {opt_flag}"
 def MndoCalculator(CalculatorSkeleton):
 
 
-    def __init__(self, cmd=MNDO_CMD, scr="./")
+    def __init__(self, cmd=MNDO_CMD, scr="./"):
 
         self.cmd = cmd
         self.scr = scr
@@ -32,7 +32,7 @@ def MndoCalculator(CalculatorSkeleton):
 
     def optimize(self, molobj,
         return_copy=True,
-        return_properties=False
+        return_properties=False,
         read_params=False):
 
         header = """{method} MULLIK PRECISE charge={charge} jprint=5\nnextmol=-1\nTITLE {title}"""

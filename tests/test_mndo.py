@@ -1,7 +1,7 @@
 
 from context import ppqm
 
-from ppqm import mndo
+from ppqm import mndo, tasks
 
 
 def test_optimize_water():
@@ -12,7 +12,7 @@ def test_optimize_water():
     # Path(scrdir).mkdir(parents=True, exist_ok=True)
 
     # Get molecule
-    molobj = cheminfo.generate_conformers("O", max_conf=1, min_conf=1)
+    molobj = tasks.generate_conformers("O", max_conf=1, min_conf=1)
 
     # Get mndo calculator
     calc = mndo.MndoCalculator(cmd="mndo", scr="_test_dir_")
