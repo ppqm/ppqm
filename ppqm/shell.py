@@ -32,8 +32,12 @@ def execute(cmd, chdir=None):
     """
     """
 
+    if chdir is not None:
+        cmd = f"cd {chdir}; " + cmd
+
     p = subprocess.Popen(cmd,
         stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
         shell=True)
 
     stdout, stderr = p.communicate()

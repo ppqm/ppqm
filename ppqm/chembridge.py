@@ -127,7 +127,7 @@ def canonical(smiles):
     return smiles
 
 
-def molobj_to_coordinates(molobj, conf_idx=-1):
+def molobj_to_coordinates(molobj, idx=-1):
 
     conformer = molobj.GetConformer(idx)
     coordinates = conformer.GetPositions()
@@ -150,14 +150,14 @@ def molobj_to_atoms(molobj, atom_type=int):
     return atoms
 
 
-def molobj_to_axyzc(molobj, atom_type="int", conf_idx=-1):
+def molobj_to_axyzc(molobj, atom_type="int", idx=-1):
     """
     rdkit molobj to atoms, xyz, charge
     """
 
     atoms = molobj_to_atoms(molobj, atom_type=atom_type)
 
-    coordinates = molobj_to_coordinates(molobj, conf_idx=-1)
+    coordinates = molobj_to_coordinates(molobj, idx=-1)
 
     charge = rdmolops.GetFormalCharge(molobj)
 
@@ -393,9 +393,9 @@ def conformer_set_coordinates(conformer, coordinates):
     return
 
 
-def molobj_set_coordinates(molobj, coordinates):
+def molobj_set_coordinates(molobj, coordinates, idx=-1):
 
-    conformer = molobj.GetConformer()
+    conformer = molobj.GetConformer(idx)
     conformer_set_coordinates(conformer, coordinates)
 
     return
