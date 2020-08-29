@@ -7,7 +7,7 @@ from . import constants
 from . import chembridge
 
 
-class CalculatorSkeleton(abc.ABC):
+class BaseCalculator(abc.ABC):
     """ Base class for quantum calculators
 
     This class should not be used directly, use a class appropriate for your

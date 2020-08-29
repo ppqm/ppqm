@@ -1,81 +1,124 @@
 
 import numpy as np
-from pathlib import Path
+import os
+import glob
 
+import rmsd
+
+from .calculator import BaseCalculator
 from . import chembridge
 from . import linesio
 from . import constants
-from . import calculator
+from . import shell
 
 GAMESS_CMD = "rungms"
 GAMESS_SCR = "~/scr/"
 GAMESS_USERSCR = "~/scr/"
 GAMESS_ATOMLINE = "{:2s}    {:2.1f}    {:f}     {:f}    {:f}"
+GAMESS_FILENAME = "_tmp_gamess.inp"
+GAMESS_METHOD = "PM3"
 
 
-class GamessCalculator(calculator.CalculatorSkeleton):
+class GamessCalculator(BaseCalculator):
 
-    def __init__(self, cmd=GAMESS_CMD, scr="./"):
+    def __init__(
+        self,
+        cmd=GAMESS_CMD,
+        scr=constants.SCR,
+        gamess_scr=GAMESS_SCR,
+        gamess_userscr=GAMESS_USERSCR,
+        filename=GAMESS_FILENAME,
+        method=GAMESS_METHOD,
+    ):
+        super().__init__(scr=scr)
 
         self.cmd = cmd
-        self.scr = scr
+        self.filename = filename
 
-        # Ensure scrdir
-        # if None, use tmpdir?
-        Path(scr).mkdir(parents=True, exist_ok=True)
+        self.method = method
 
-        # Constants
-        self.atomline = GAMESS_ATOMLINE
-        self.filename = "_tmp_gamess.inp"
+        self.gamess_options = {
+            "cmd": self.cmd,
+            "scr": self.scr,
+            "gamess_scr": gamess_scr,
+            "gamess_userscr": gamess_userscr
+        }
 
-        return
+    def _generate_header(self, optimize=True, hessian=False, gradient=False):
 
-    def optimize(
-            self, molobj,
-            return_copy=True,
-            return_properties=False,
-            read_params=False):
+        if optimize:
+            calculation = "optimize"
+        elif hessian:
+            calculation = "hessian"
+        else:
+            calculation = "energy"
 
-        header = """ $basis gbasis={method} $end\n"""
-        """$contrl runtyp=optimize icharg={charge} $end\n"""
-        """$statpt opttol=0.0005 nstep=300 projct=.F. $end"""
+        header = (
+            f" $basis gbasis={self.method} $end\n"
+            f" $contrl scftyp=RHF "
+            f"runtyp={calculation} "
+            f"icharg={{charge}} $end\n"
+        )
 
-        properties = self.calculate(molobj, header)
+        if optimize:
+            header += " $statpt opttol=0.0005 nstep=300 projct=.F. $end\n"
 
-        return properties
+        return header
 
+    def calculate(
+        self,
+        molobj,
+        header
+    ):
 
-    def calculate(self, molobj, header):
+        properties_list = []
+        n_confs = molobj.GetNumConformers()
 
         atoms, _, charge = chembridge.molobj_to_axyzc(molobj, atom_type="str")
 
-        # Create input
-        txt = []
-        for i in range(n_confs):
-            coord = chembridge.molobj_to_coordinates(molobj, idx=i)
-            tx = get_input(atoms, coord, charge, title=f"{title}_Conf{i}", **input_options)
-            txt.append(tx)
+        for conf_idx in range(n_confs):
 
-        txt = "".join(txt)
+            coord = chembridge.molobj_get_coordinates(molobj, idx=conf_idx)
+            properties = properties_from_axyzc(
+                atoms,
+                coord,
+                charge,
+                header,
+                **self.gamess_options
+            )
 
+            properties_list.append(properties)
 
-
-        return
-
-
+        return properties_list
 
     def __repr__(self):
-        return "GamessCalc(cmd={self.cmd},scr={self.scr})"
+        return "GamessCalc(cmd={self.cmd},scr={self.scr},met={self.method})"
 
 
+def properties_from_axyzc(
+    atoms,
+    coords,
+    charge,
+    header,
+    **kwargs
+):
+    """
+    """
 
-def calculate(molobj, header, **kwargs):
+    # Prepare input
+    header_prime = header.format(charge=charge)
+    inptxt = get_input(atoms, coords, header_prime)
 
-    inpstr = molobj_to_gmsinp(molobj, header)
+    # Call GAMESS
+    stdout, stderr = run_gamess(inptxt, **kwargs)
 
-    stdout, stderr = run(inpstr, **kwargs)
+    # TODO Check stderr
 
-    return stdout, stderr
+    stdout = stdout.split("\n")
+
+    properties = get_properties(stdout)
+
+    return properties
 
 
 def prepare_atoms(atoms, coordinates):
@@ -84,7 +127,7 @@ def prepare_atoms(atoms, coordinates):
     line = "{:2s}    {:2.1f}    {:f}     {:f}    {:f}"
 
     for atom, coord in zip(atoms, coordinates):
-        iat = chembrigde.int_atom(atom)
+        iat = chembridge.int_atom(atom)
         lines.append(line.format(atom, iat, *coord))
 
     lines = [" $data", "Title", "C1"] + lines + [" $end"]
@@ -106,103 +149,104 @@ def prepare_xyz(filename, charge, header):
     return gmsin
 
 
-def prepare_mol(filename, header, add_hydrogens=True):
-    """
-    """
-
-    atoms = []
-    coordinates = []
-
-    with open(filename, 'r') as f:
-        molfmt = f.read()
-        mol = Chem.MolFromMolBlock(molfmt)
-
-    # get formal charge
-    charge = Chem.GetFormalCharge(mol)
-
-    # Get coordinates
-    conf = mol.GetConformer(0)
-    for atom in mol.GetAtoms():
-        pos = conf.GetAtomPosition(atom.GetIdx())
-        xyz = [pos.x, pos.y, pos.z]
-        coordinates.append(xyz)
-        atoms.append(atom.GetSymbol())
-
-    # set charge
-    header = header.format(charge)
-    lines = prepare_atoms(atoms, coordinates)
-
-    return header + lines
-
-
-def molobj_to_gmsinp(mol, header, conf_idx=-1):
-    """
-    RDKit Mol object to GAMESS input file
-
-    args:
-        mol - rdkit molobj
-        header - str of gamess header
-
-    returns:
-        str - GAMESS input file
-    """
-
-    coordinates = []
-    atoms = []
-
-    # get formal charge
-    charge = Chem.GetFormalCharge(mol)
-
-    # Get coordinates
-    conf = mol.GetConformer(conf_idx)
-    for atom in mol.GetAtoms():
-        pos = conf.GetAtomPosition(atom.GetIdx())
-        xyz = [pos.x, pos.y, pos.z]
-        coordinates.append(xyz)
-        atoms.append(atom.GetSymbol())
-
-    header = header.format(charge)
-    lines = prepare_atoms(atoms, coordinates)
-
-    return header + lines
+# def prepare_mol(filename, header, add_hydrogens=True):
+#     """
+#     """
+#
+#     atoms = []
+#     coordinates = []
+#
+#     with open(filename, 'r') as f:
+#         molfmt = f.read()
+#         mol = Chem.MolFromMolBlock(molfmt)
+#
+#     # get formal charge
+#     charge = Chem.GetFormalCharge(mol)
+#
+#     # Get coordinates
+#     conf = mol.GetConformer(0)
+#     for atom in mol.GetAtoms():
+#         pos = conf.GetAtomPosition(atom.GetIdx())
+#         xyz = [pos.x, pos.y, pos.z]
+#         coordinates.append(xyz)
+#         atoms.append(atom.GetSymbol())
+#
+#     # set charge
+#     header = header.format(charge)
+#     lines = prepare_atoms(atoms, coordinates)
+#
+#     return header + lines
 
 
-def run(inpstr,
+# def get_input(molobj, header, conf_idx=-1):
+#     """
+#     RDKit Mol object to GAMESS input file
+#
+#     args:
+#         mol - rdkit molobj
+#         header - str of gamess header
+#
+#     returns:
+#         str - GAMESS input file
+#     """
+#
+#     coordinates = []
+#     atoms = []
+#
+#     # get formal charge
+#     charge = Chem.GetFormalCharge(mol)
+#
+#     # Get coordinates
+#     conf = mol.GetConformer(conf_idx)
+#     for atom in mol.GetAtoms():
+#         pos = conf.GetAtomPosition(atom.GetIdx())
+#         xyz = [pos.x, pos.y, pos.z]
+#         coordinates.append(xyz)
+#         atoms.append(atom.GetSymbol())
+#
+#     header = header.format(charge)
+#     lines = prepare_atoms(atoms, coordinates)
+#
+#     return header + lines
+
+
+def get_input(atoms, coords, header):
+
+    lines = header
+    lines += prepare_atoms(atoms, coords)
+
+    return lines
+
+
+def run_gamess(
+    input_text,
     cmd=GAMESS_CMD,
     scr=constants.SCR,
-    filename=None,
-    autoclean=True,
+    filename=GAMESS_FILENAME,
     gamess_scr="~/scr",
     gamess_userscr="~/scr",
-    debug=False):
+    post_clean=True,
+    pre_clean=True,
+    debug=False
+):
     """
     """
 
-    if filename is None:
-        pid = os.getpid()
-        pid = str(pid)
-        filename = "_tmp_gamess_run_" + pid + ".inp"
+    assert shell.check_cmd(cmd), f"Could not find {cmd} in your enviroment"
 
-    pwd = os.getcwd()
-    os.chdir(scr)
+    if pre_clean:
+        clean(gamess_scr, filename)
+        clean(gamess_userscr, filename)
 
-    with open(filename, 'w') as f:
-        f.write(inpstr)
+    full_filename = os.path.join(scr, filename)
 
-    cmd = cmd + " " + filename
+    with open(full_filename, 'w') as f:
+        f.write(input_text)
 
-    if debug:
-        print(cmd)
+    command = [cmd, filename]
+    command = " ".join(command)
 
-    proc = subprocess.Popen(cmd,
-        shell=True,
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE)
-
-    stdout, stderr = proc.communicate()
-    stdout = stdout.decode("utf-8")
-    stderr = stderr.decode("utf-8")
+    stdout, stderr = shell.execute(command, chdir=scr)
 
     if debug:
         print(stdout)
@@ -210,23 +254,23 @@ def run(inpstr,
     if debug:
         print(stderr)
 
-    if autoclean:
-        clean(scr, filename)
+    if post_clean:
         clean(gamess_scr, filename)
         clean(gamess_userscr, filename)
-
-    # TODO no
-    os.chdir(pwd)
 
     return stdout, stderr
 
 
 def clean(scr, filename, debug=False):
 
-    search = os.path.join(scr, filename.replace(".inp", "*"))
+    scr = os.path.expanduser(scr)
+
+    search = os.path.join(scr, filename.replace("inp", "*"))
     files = glob.glob(search)
+
     for f in files:
-        if debug: print("rm", f)
+        if debug:
+            print("rm", f)
         os.remove(f)
 
     return
@@ -247,11 +291,10 @@ def check_output(output):
     # grep "resubmit" *.log
     # grep "IMAGINARY FREQUENCY VIBRATION" *.log
 
-
     return True, ""
 
 
-def read_errors(lines):
+def get_errors(lines):
 
     if type(lines) == str:
         lines = lines.split("\n")
@@ -270,45 +313,90 @@ def read_errors(lines):
         msg["error"] = line + ". Only multiplicity 1 allowed."
         return msg
 
-    idx = linesio.get_rev_index(lines, "FAILURE TO LOCATE STATIONARY POINT, TOO MANY STEPS TAKEN", stoppattern=safeword)
+    idx = linesio.get_rev_index(
+        lines,
+        "FAILURE TO LOCATE STATIONARY POINT, TOO MANY STEPS TAKEN",
+        stoppattern=safeword
+    )
+
     if idx is not None:
-        msg["error"] = "Failed to optimize molecule, too many steps taken. <br /> Try to displace atoms and re-calculate."
+        msg["error"] = "TOO_MANY_STEPS"
         return msg
 
-    idx = linesio.get_rev_index(lines, "FAILURE TO LOCATE STATIONARY POINT, SCF HAS NOT CONVERGED", stoppattern=safeword)
+    idx = linesio.get_rev_index(
+        lines,
+        "FAILURE TO LOCATE STATIONARY POINT, SCF HAS NOT CONVERGED",
+        stoppattern=safeword
+    )
+
     if idx is not None:
-        msg["error"] = "Failed to optimize molecule, electrons too complicated. <br /> Try to displace atoms and re-calculate."
+        msg["error"] = "SCF_UNCONVERGED"
         return msg
 
     return msg
 
 
-def read_properties(output):
+def get_properties(lines):
 
-    return
+    runtyp = get_type(lines)
+
+    if runtyp == "optimize":
+        reader = get_properties_coordinates
+    elif runtyp == "hessian":
+        reader = get_properties_vibration
+
+    properties = reader(lines)
+
+    return properties
 
 
-def read_properties_coordinates(output):
+def get_type(lines):
+
+    idx = linesio.get_index(lines, "CONTRL OPTIONS")
+    idx += 2
+    line = lines[idx]
+
+    line = line.split()
+    line = line[1]
+    line = line.split("=")
+    runtyp = line[-1]
+    runtyp = runtyp.lower()
+
+    return runtyp
+
+
+def get_properties_coordinates(lines):
 
     properties = {}
-
-    lines = output.split("\n")
 
     idx = linesio.get_index(lines, "TOTAL NUMBER OF ATOMS")
     line = lines[idx]
     line = line.split("=")
     n_atoms = int(line[-1])
 
-    idx = linesio.get_rev_index(lines, "FAILURE TO LOCATE STATIONARY POINT, TOO MANY STEPS TAKEN", stoppattern="NSEARCH")
+    idx = linesio.get_rev_index(
+        lines,
+        "FAILURE TO LOCATE STATIONARY POINT, TOO MANY STEPS TAKEN",
+        stoppattern="NSEARCH"
+    )
+
     if idx is not None:
-        properties["error"] = "Failed to optimize molecule, too many steps taken. <br /> Try to displace atoms and re-calculate."
+        properties["error"] = "TOO_MANY_STEPS"
+        properties[constants.COLUMN_COORDINATES] = None
+        properties[constants.COLUMN_ATOMS] = None
         return properties
 
-    idx = linesio.get_rev_index(lines, "FAILURE TO LOCATE STATIONARY POINT, SCF HAS NOT CONVERGED", stoppattern="NESERCH")
-    if idx is not None:
-        properties["error"] = "Failed to optimize molecule, electrons too complicated. <br /> Try to displace atoms and re-calculate."
-        return properties
+    idx = linesio.get_rev_index(
+        lines,
+        "FAILURE TO LOCATE STATIONARY POINT, SCF HAS NOT CONVERGED",
+        stoppattern="NESERCH"
+    )
 
+    if idx is not None:
+        properties["error"] = "SCF_UNCONVERGED"
+        properties[constants.COLUMN_COORDINATES] = None
+        properties[constants.COLUMN_ATOMS] = None
+        return properties
 
     idx = linesio.get_rev_index(lines, "EQUILIBRIUM GEOMETRY LOCATED")
     idx += 4
@@ -333,7 +421,9 @@ def read_properties_coordinates(output):
     idx = linesio.get_rev_index(lines, "HEAT OF FORMATION IS")
     line = lines[idx]
     line = line.split()
-    hof = float(line[4]) # kcal/mol
+
+    # energy in kcal/mol
+    hof = float(line[4])
 
     properties[constants.COLUMN_ATOMS] = atoms
     properties[constants.COLUMN_COORDINATES] = coordinates
@@ -342,38 +432,42 @@ def read_properties_coordinates(output):
     return properties
 
 
-def read_properties_vibration(output):
+def get_properties_vibration(lines):
 
     properties = {}
-
-    lines = output.split("\n")
 
     # Get number of atoms
     idx = linesio.get_index(lines, "TOTAL NUMBER OF ATOMS")
     line = lines[idx]
     line = line.split("=")
-    n_atoms = int(line[-1])
 
     # Get heat of formation
     idx = linesio.get_rev_index(lines, "HEAT OF FORMATION IS")
     line = lines[idx]
     line = line.split()
-    hof = float(line[4]) # kcal/mol
+
+    # energy in kcal/mol
+    hof = float(line[4])
 
     # Check linear
-    idx = linesio.get_index(lines, "THIS MOLECULE IS RECOGNIZED AS BEING LINEAR")
+    idx = linesio.get_index(
+        lines,
+        "THIS MOLECULE IS RECOGNIZED AS BEING LINEAR"
+    )
+
     is_linear = (idx is not None)
 
     # thermodynamic
     idx = linesio.get_rev_index(lines, "KJ/MOL    KJ/MOL    KJ/MOL   J/MOL-K")
     idx += 1
-    values = np.zeros((5,6))
+    values = np.zeros((5, 6))
+
     for i in range(5):
-        line = lines[idx +i]
+        line = lines[idx + i]
         line = line.split()
         line = line[1:]
         line = [float(x) for x in line]
-        values[i,:] = line
+        values[i, :] = line
 
     # Get Vibrations
     idx_start = linesio.get_rev_index(lines, "FREQ(CM**-1)")
@@ -410,22 +504,23 @@ def read_properties_vibration(output):
     return properties
 
 
-def read_properties_orbitals(output):
+def get_properties_orbitals(lines):
 
     properties = {}
-
-    lines = output.split("\n")
-    n_lines = len(lines)
 
     # Get number of atoms
     idx = linesio.get_index(lines, "TOTAL NUMBER OF ATOMS")
     line = lines[idx]
     line = line.split("=")
-    n_atoms = int(line[-1])
 
     idx_start = linesio.get_index(lines, "EIGENVECTORS")
     idx_start += 4
-    idx_end = linesio.get_index(lines, "END OF RHF CALCULATION", offset=idx_start)
+    idx_end = linesio.get_index(
+        lines,
+        "END OF RHF CALCULATION",
+        offset=idx_start
+    )
+
     energies = []
 
     wait = False
@@ -449,17 +544,14 @@ def read_properties_orbitals(output):
         j += 1
 
     properties["orbitals"] = np.array(energies)
-    properties["stdout"] = output
+    properties["stdout"] = "\n".join(lines)
 
     return properties
 
 
-def read_properties_solvation(output):
+def get_properties_solvation(lines):
 
     properties = {}
-
-    lines = output.split("\n")
-    n_lines = len(lines)
 
     # Get number of atoms
     idx = linesio.get_index(lines, "TOTAL NUMBER OF ATOMS")
@@ -486,8 +578,9 @@ def read_properties_solvation(output):
     line = lines[idx+4].split()
     total_interaction = float(line[-2])
 
-    total_non_polar = pierotti_cavitation_energy + dispersion_free_energy + repulsion_free_energy
-
+    total_non_polar = pierotti_cavitation_energy \
+        + dispersion_free_energy \
+        + repulsion_free_energy
 
     idx = linesio.get_index(lines, "CHARGE OF MOLECULE")
     line = lines[idx]

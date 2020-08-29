@@ -49,6 +49,11 @@ def test_multiple_molecules():
 
 
 def test_multiple_molecules_with_error():
+    """
+    Test for calculating multiple molecules, and error handling for one
+    molecule crashing.
+
+    """
 
     method = "pm6"
 
@@ -65,7 +70,6 @@ def test_multiple_molecules_with_error():
     # Change molecule(2) with a weird distance
 
     # Header
-    title = "test"
     header = f"{method} mullik precise charge={{charge}} \ntitle {{title}}\n"
 
     atoms_list = []
@@ -74,9 +78,17 @@ def test_multiple_molecules_with_error():
     title_list = []
 
     for i, smi in enumerate(smis):
-        molobj = tasks.generate_conformers(smi, max_conf=1, min_conf=1)
-        atoms, coords, charge = chembridge.molobj_to_axyzc(molobj,
-            atom_type=str)
+
+        molobj = tasks.generate_conformers(
+            smi,
+            max_conf=1,
+            min_conf=1
+        )
+
+        atoms, coords, charge = chembridge.molobj_to_axyzc(
+            molobj,
+            atom_type=str
+        )
 
         if i == 2:
             coords[0, 0] = 0.01
@@ -93,7 +105,8 @@ def test_multiple_molecules_with_error():
         charge_list,
         header,
         titles=title_list,
-        **options)
+        **options
+    )
 
     for properties in properties_list:
         print(properties)
@@ -143,7 +156,13 @@ def test_xyz_usage():
     header = f"{method} MULLIK PRECISE charge={{charge}} \nTITLE {title}\n"
 
     # Optimize coords
-    properties = mopac.properties_from_axyzc(atoms, coords, charge, header, **options)
+    properties = mopac.properties_from_axyzc(
+        atoms,
+        coords,
+        charge,
+        header,
+        **options
+    )
 
     # Check energy
     # energy in kcal/mol

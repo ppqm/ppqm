@@ -1,5 +1,6 @@
 
-from io import StringIO
+import os
+
 
 def readlines_reverse(filename):
     with open(filename) as qfile:
@@ -48,7 +49,13 @@ def reverse_enum(L, max_lines=None, lenl=None):
         yield index, L[index]
 
 
-def get_rev_index(lines, pattern, max_lines=None, lenl=None, stoppattern=False):
+def get_rev_index(
+    lines,
+    pattern,
+    max_lines=None,
+    lenl=None,
+    stoppattern=False
+):
 
     for i, line in reverse_enum(lines, max_lines=max_lines):
 
@@ -85,18 +92,6 @@ def get_indexes_with_stop(lines, pattern, stoppattern):
             break
 
     return idxs
-
-
-def get_index(lines, pattern):
-    for i, line in enumerate(lines):
-        if line.find(pattern) != -1:
-            return i
-    return None
-
-
-def reverse_enum(L):
-    for index in reversed(range(len(L))):
-        yield index, L[index]
 
 
 def get_indexes_patterns(lines, patterns):
@@ -137,12 +132,3 @@ def get_rev_indexes(lines, patterns):
                 i_patterns.remove(ip)
 
     return idxs
-
-
-def get_rev_index(lines, pattern):
-
-    for i, line in reverse_enum(lines):
-        if line.find(pattern) != -1:
-            return i
-
-    return None

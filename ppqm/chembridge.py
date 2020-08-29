@@ -374,11 +374,11 @@ def molobj_copy(molobj):
     return molobj_prime
 
 
-def molobj_get_coordinates(molobj):
+def molobj_get_coordinates(molobj, idx=-1):
     """
     """
 
-    conformer = molobj.GetConformer()
+    conformer = molobj.GetConformer(id=idx)
     coordinates = conformer.GetPositions()
     coordinates = np.asarray(coordinates)
 

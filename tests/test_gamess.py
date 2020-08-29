@@ -1,24 +1,22 @@
 
-import re
-import sys
-import os
+import pytest
 import numpy as np
 
-import context
 from context import ppqm
 
 from ppqm import chembridge
 from ppqm import gamess
+from ppqm import tasks
 
-from rdkit import Chem
 
-# GAMESS_OPTIONS = {
-#     "scr": SCR,
-#     "cmd": CONFIG["gamess"].get("rungms"),
-#     "gamess_scr": CONFIG["gamess"].get("scr"),
-#     "gamess_userscr": CONFIG["gamess"].get("userscr"),
-#     "debug": True,
-# }
+TMPDIR = "_test_scr_gamess_"
+
+GAMESS_OPTIONS = {
+    "scr": TMPDIR,
+    "cmd": "rungms",
+    "gamess_scr": "~/scr",
+    "gamess_userscr": "~/scr",
+}
 
 
 def test_optimization():
@@ -41,19 +39,21 @@ $$$$
     """
 
     header = """ $basis gbasis=pm3 $end
- $contrl runtyp=optimize icharg={:} $end
+ $contrl runtyp=optimize icharg={charge} $end
  $statpt opttol=0.0005 nstep=300 projct=.F. $end
 """
 
     molobj = chembridge.sdfstr_to_molobj(methane)
-    stdout, stderr = gamess.calculate(molobj, header, **GAMESS_OPTIONS)
+    calc = gamess.GamessCalculator(method="pm3", **GAMESS_OPTIONS)
 
-    properties = gamess.read_properties_coordinates(stdout)
+    # calculate returns List(properties) for every conformer
+    results = calc.calculate(molobj, header)
+    properties = results[0]
 
     atoms = properties["atoms"]
     energy = properties["h"]
 
-    assert (atoms == np.array([6,1,1,1,1], dtype=int)).all()
+    assert (atoms == np.array([6, 1, 1, 1, 1], dtype=int)).all()
     np.testing.assert_almost_equal(energy, -13.0148)
 
     return
@@ -61,15 +61,15 @@ $$$$
 
 def test_output():
 
-    with open("tests/data/gamess_methane.log", 'r') as f:
-        output = f.read()
+    with open("tests/resources/gamess/gamess_methane.log", 'r') as f:
+        output = f.readlines()
 
-    properties = gamess.read_properties_coordinates(output)
+    properties = gamess.get_properties_coordinates(output)
 
     atoms = properties["atoms"]
     energy = properties["h"]
 
-    assert (atoms == np.array([6,1,1,1,1], dtype=int)).all()
+    assert (atoms == np.array([6, 1, 1, 1, 1], dtype=int)).all()
     np.testing.assert_almost_equal(energy, -13.0148)
 
     return
@@ -95,15 +95,15 @@ $$$$
     """
 
     coordinates = np.array([
-        [ 0., -0., 0., ],
+        [0., -0., 0., ],
         [-0., -0.88755027, -0.62754422],
         [-0., 0.88755027, -0.62754422],
         [-0.88755027, 0., 0.62754422],
-        [ 0.88755027, 0., 0.62754422],
+        [0.88755027, 0., 0.62754422],
     ])
 
     molobj = chembridge.sdfstr_to_molobj(methane)
-    cheminfo.molobj_set_coordinates(molobj, coordinates)
+    chembridge.molobj_set_coordinates(molobj, coordinates)
 
     header = """
  $basis
@@ -120,7 +120,7 @@ $$$$
 
     stdout, stderr = gamess.calculate(molobj, header, **GAMESS_OPTIONS)
 
-    properties = gamess.read_properties_vibration(stdout)
+    properties = gamess.get_properties_vibration(stdout)
 
     assert properties is not None
     assert 'thermo' in properties
@@ -130,11 +130,10 @@ $$$$
 
 def test_vibration_read():
 
-    with open("tests/data/gamess_methane_vib.log", 'r') as f:
-        output = f.read()
+    with open("tests/resources/gamess/gamess_methane_vib.log", 'r') as f:
+        output = f.readlines()
 
-
-    properties = gamess.read_properties_vibration(output)
+    properties = gamess.get_properties_vibration(output)
 
     vibs = properties["freq"]
     result = np.array([
@@ -189,14 +188,25 @@ $$$$
  $basis gbasis=sto ngauss=3 $end
 """
 
-    molobj = cheminfo.sdfstr_to_molobj(methane)
+    molobj = chembridge.sdfstr_to_molobj(methane)
 
     stdout, stderr = gamess.calculate(molobj, header, **GAMESS_OPTIONS)
 
-    properties = gamess.read_properties_orbitals(stdout)
+    properties = gamess.get_properties_orbitals(stdout)
 
     orbitals = properties["orbitals"]
-    results = [-11.0303, -0.9085, -0.5177, -0.5177, -0.5177, 0.713, 0.713, 0.713, 0.7505]
+    results = [
+        -11.0303,
+        -0.9085,
+        -0.5177,
+        -0.5177,
+        -0.5177,
+        0.713,
+        0.713,
+        0.713,
+        0.7505
+    ]
+
     np.testing.assert_almost_equal(orbitals, results)
 
     return
@@ -204,13 +214,24 @@ $$$$
 
 def test_orbitals_read():
 
-    with open("tests/data/gamess_methane_orb.log", 'r') as f:
-        output = f.read()
+    with open("tests/resources/gamess/gamess_methane_orb.log", 'r') as f:
+        output = f.readlines()
 
-    properties = gamess.read_properties_orbitals(output)
+    properties = gamess.get_properties_orbitals(output)
 
     orbitals = properties["orbitals"]
-    results = [-11.0303, -0.9085, -0.5177, -0.5177, -0.5177, 0.713, 0.713, 0.713, 0.7505]
+    results = [
+        -11.0303,
+        -0.9085,
+        -0.5177,
+        -0.5177,
+        -0.5177,
+        0.713,
+        0.713,
+        0.713,
+        0.7505
+    ]
+
     np.testing.assert_almost_equal(orbitals, results)
 
     return
@@ -260,9 +281,9 @@ $$$$
 
 """
 
-    molobj = cheminfo.sdfstr_to_molobj(methane)
+    molobj = chembridge.sdfstr_to_molobj(methane)
     stdout, stderr = gamess.calculate(molobj, header, **GAMESS_OPTIONS)
-    properties = gamess.read_properties_solvation(stdout)
+    properties = gamess.get_properties_solvation(stdout)
 
     total_solvation = properties["solvation_total"]
     result = 1.24
@@ -273,10 +294,10 @@ $$$$
 
 def test_solvation_read():
 
-    with open("tests/data/gamess_methane_sol.log", 'r') as f:
-        output = f.read()
+    with open("tests/resources/gamess/gamess_methane_sol.log", 'r') as f:
+        output = f.readlines()
 
-    properties = gamess.read_properties_solvation(output)
+    properties = gamess.get_properties_solvation(output)
 
     total_solvation = properties["solvation_total"]
     result = 1.24
@@ -285,19 +306,46 @@ def test_solvation_read():
     return
 
 
-def main():
+def test_water():
 
-    test_output()
-    test_optimization()
-    test_vibration_read()
-    test_vibration()
-    test_orbitals_read()
-    test_orbitals()
-    test_solvation_read()
-    test_solvation()
+    smi = "O"
+    reference_energy = -53.426
+
+    # Get molecule
+    n_conformers = 2
+    molobj = tasks.generate_conformers(
+        smi,
+        max_conf=n_conformers,
+        min_conf=n_conformers
+    )
+
+    # Get mopac calculator
+    method = "PM3"
+    calc = gamess.GamessCalculator(scr=TMPDIR, method=method)
+
+    results = calc.optimize(molobj, return_properties=True)
+
+    for result in results:
+        assert pytest.approx(reference_energy, rel=1e-2) == result["h"]
 
     return
 
+
+def main():
+
+    # test_output()
+    # test_optimization()
+    # test_vibration_read()
+    # test_vibration()
+    # test_orbitals_read()
+    # test_orbitals()
+    # test_solvation_read()
+    # test_solvation()
+
+    test_water()
+
+    return
+
+
 if __name__ == '__main__':
     main()
-

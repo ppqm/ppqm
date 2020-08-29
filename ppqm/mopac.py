@@ -4,7 +4,7 @@ import copy
 import numpy as np
 
 
-from .calculator import CalculatorSkeleton
+from .calculator import BaseCalculator
 from . import chembridge
 from . import shell
 from . import linesio
@@ -32,7 +32,7 @@ MOPAC_HEADER_OPTIMIZE = """{method} MULLIK PRECISE charge={charge} \nTITLE {titl
 MOPAC_FILENAME = "_tmp_mopac." + MOPAC_INPUT_EXTENSION
 
 
-class MopacCalculator(CalculatorSkeleton):
+class MopacCalculator(BaseCalculator):
     """
     """
 
