@@ -5,21 +5,20 @@ import os
 import numpy as np
 
 import context
-from context import molcalc_lib
-from context import CONFIG, SCR
+from context import ppqm
 
-from chemhelp import gamess
-from chemhelp import cheminfo
+from ppqm import chembridge
+from ppqm import gamess
 
 from rdkit import Chem
 
-GAMESS_OPTIONS = {
-    "scr": SCR,
-    "cmd": CONFIG["gamess"].get("rungms"),
-    "gamess_scr": CONFIG["gamess"].get("scr"),
-    "gamess_userscr": CONFIG["gamess"].get("userscr"),
-    "debug": True,
-}
+# GAMESS_OPTIONS = {
+#     "scr": SCR,
+#     "cmd": CONFIG["gamess"].get("rungms"),
+#     "gamess_scr": CONFIG["gamess"].get("scr"),
+#     "gamess_userscr": CONFIG["gamess"].get("userscr"),
+#     "debug": True,
+# }
 
 
 def test_optimization():
@@ -46,7 +45,7 @@ $$$$
  $statpt opttol=0.0005 nstep=300 projct=.F. $end
 """
 
-    molobj = cheminfo.sdfstr_to_molobj(methane)
+    molobj = chembridge.sdfstr_to_molobj(methane)
     stdout, stderr = gamess.calculate(molobj, header, **GAMESS_OPTIONS)
 
     properties = gamess.read_properties_coordinates(stdout)
@@ -103,7 +102,7 @@ $$$$
         [ 0.88755027, 0., 0.62754422],
     ])
 
-    molobj = cheminfo.sdfstr_to_molobj(methane)
+    molobj = chembridge.sdfstr_to_molobj(methane)
     cheminfo.molobj_set_coordinates(molobj, coordinates)
 
     header = """

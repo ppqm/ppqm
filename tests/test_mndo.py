@@ -1,7 +1,10 @@
 
 from context import ppqm
 
-from ppqm import mndo, tasks
+from ppqm import mndo, tasks, chembridge
+
+# TODO Use config for commands
+# TODO Use tempfile with constructor
 
 
 def test_optimize_water():
@@ -21,14 +24,41 @@ def test_optimize_water():
 
     # Optimize water
     properties = calc.optimize(molobj,
-        method,
         return_copy=False,
-        return_propeties=True)
+        return_properties=True)
 
     water_atomization = properties["h"]
 
     assert pytest.approx(-224.11087077483552, rel=1e-2) == water_atomization
 
     return
+
+
+def test_water_xyz():
+
+    smi = "O"
+    method = "PM3"
+
+    # Get molecule
+    molobj = tasks.generate_conformers("O", max_conf=1, min_conf=1)
+
+    # Get XYZ
+    atoms, coords, charge = chembridge.molobj_to_axyzc(molobj)
+
+    # Get mndo calculator
+    calc = mndo.MndoCalculator(cmd="mndo", scr="_test_dir_", method=method)
+
+    # Optimize coords
+    properties = calc.optimize_axyzc(atoms, coords, charge)
+    properties = next(properties)
+
+    water_atomization = properties["h"]
+
+    assert pytest.approx(-224.11087077483552, rel=1e-2) == water_atomization
+
+
+    return
+
+
 
 
