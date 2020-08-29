@@ -1,7 +1,11 @@
 
+import numpy as np
+from pathlib import Path
+
 from . import chembridge
 from . import linesio
 from . import constants
+from . import calculator
 
 GAMESS_CMD = "rungms"
 GAMESS_SCR = "~/scr/"
@@ -9,7 +13,7 @@ GAMESS_USERSCR = "~/scr/"
 GAMESS_ATOMLINE = "{:2s}    {:2.1f}    {:f}     {:f}    {:f}"
 
 
-class GamessCalculator():
+class GamessCalculator(calculator.CalculatorSkeleton):
 
     def __init__(self, cmd=GAMESS_CMD, scr="./"):
 
@@ -26,20 +30,19 @@ class GamessCalculator():
 
         return
 
+    def optimize(
+            self, molobj,
+            return_copy=True,
+            return_properties=False,
+            read_params=False):
 
-    def optimize(self, molobj,
-        return_copy=True,
-        return_properties=False,
-        read_params=False):
-
-        # TODO What to do with 
-
-        header = """ $basis gbasis={method} $end\n $contrl runtyp=optimize icharg={charge} $end\n $statpt opttol=0.0005 nstep=300 projct=.F. $end"""
+        header = """ $basis gbasis={method} $end\n"""
+        """$contrl runtyp=optimize icharg={charge} $end\n"""
+        """$statpt opttol=0.0005 nstep=300 projct=.F. $end"""
 
         properties = self.calculate(molobj, header)
 
-
-        return
+        return properties
 
 
     def calculate(self, molobj, header):
@@ -332,8 +335,8 @@ def read_properties_coordinates(output):
     line = line.split()
     hof = float(line[4]) # kcal/mol
 
-    properties["atoms"] = atoms
-    properties["coord"] = coordinates
+    properties[constants.COLUMN_ATOMS] = atoms
+    properties[constants.COLUMN_COORDINATES] = coordinates
     properties["h"] = hof
 
     return properties

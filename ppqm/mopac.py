@@ -36,11 +36,13 @@ class MopacCalculator(CalculatorSkeleton):
     """
     """
 
-    def __init__(self,
+    def __init__(
+        self,
         cmd=MOPAC_CMD,
         method=MOPAC_METHOD,
         filename=MOPAC_FILENAME,
-        scr=constants.SCR):
+        scr=constants.SCR
+    ):
         """
         """
 
@@ -71,38 +73,6 @@ class MopacCalculator(CalculatorSkeleton):
 
         return
 
-    def optimize(self,
-        molobj,
-        header=MOPAC_HEADER_OPTIMIZE,
-        return_copy=False,
-        return_properties=False,
-        embed_properties=True):
-        """
-        TODO DOCSTRING
-        """
-
-        if return_copy:
-            molobj = copy.deepcopy(molobj)
-
-        result_properties = self.calculate(molobj, header)
-
-        if return_properties:
-            return list(result_properties)
-
-        for i, properties in enumerate(result_properties):
-
-            if "coord" not in properties:
-                pass
-                # TODO What need to happen here? @anders
-
-            coord = properties["coord"]
-
-            # Set coord on conformer
-            molobj_set_coordinates(molobj, coord, idx=i)
-
-        return molobj
-
-
     def calculate(self, molobj, header):
 
         input_string = self._get_input_str(molobj, header, opt_flag=True)
@@ -123,22 +93,42 @@ class MopacCalculator(CalculatorSkeleton):
 
         return
 
+    def _generate_header(self, optimize=True, gradient=False):
+        """ Generate header for MOPAC calculations
 
-    def optimize_axyzc(self, atoms, coords, charge,
-        header=MOPAC_HEADER_OPTIMIZE):
+        """
 
-        header_prime = header.format(method=self.method, charge=charge, title="")
-        properties = self.calculate_axyzc(atoms, coords, header, optimize=True)
+        if optimize:
+            calculation = ""
+        else:
+            calculation = "1scf"
+
+        header = f"""{calculation} {self.method} MULLIK PRECISE charge={{charge}} \nTITLE {{title}}\n"""
+
+        return header
+
+    def optimize_axyzc(
+        self,
+        atoms,
+        coords,
+        charge,
+        header=MOPAC_HEADER_OPTIMIZE
+    ):
+
+        header_prime = header.format(
+            method=self.method,
+            charge=charge,
+            title=""
+        )
+
+        properties = self.calculate_axyzc(
+            atoms,
+            coords,
+            header_prime,
+            optimize=True
+        )
 
         return properties
-
-
-    def calculate_axyzc(self, atoms, coord, header, optimize=False):
-
-        input_string = get_input(atoms, coords, header_prime, opt_flag=True)
-
-        return properties
-
 
     def _get_input_str(self, molobj, header, title="", opt_flag=False):
         """
@@ -151,20 +141,21 @@ class MopacCalculator(CalculatorSkeleton):
 
         atoms, _, charge = chembridge.molobj_to_axyzc(molobj, atom_type="str")
 
-
         txt = []
-
         for i in range(n_confs):
 
             coord = chembridge.molobj_to_coordinates(molobj, idx=i)
-            header_prime = header.format(charge=charge, method=self.method, title=f"{title}_Conf_{i}")
+            header_prime = header.format(
+                charge=charge,
+                method=self.method,
+                title=f"{title}_Conf_{i}"
+            )
             tx = get_input(atoms, coord, header_prime, opt_flag=opt_flag)
             txt.append(tx)
 
         txt = "".join(txt)
 
         return txt
-
 
     def _run_file(self):
 
@@ -175,7 +166,6 @@ class MopacCalculator(CalculatorSkeleton):
         # TODO Check stderr and stdout
 
         return
-
 
     def _read_file(self):
 
@@ -201,9 +191,8 @@ class MopacCalculator(CalculatorSkeleton):
 
         return
 
-
     def __repr__(self):
-        this = f"MopacCalc(method={self.method}, scr={self.scr}, cmd={self.cmd})"
+        this = f"MopacCalc(met={self.method}, scr={self.scr}, cmd={self.cmd})"
         return this
 
 
@@ -225,20 +214,25 @@ def get_input(
     atoms,
     coords,
     header,
-    opt_flag=False):
+    opt_flag=False
+):
     """
     """
 
-    if opt_flag:
-        opt_flag = 1
-    else:
-        opt_flag = 0
+    flag: int = 1 if opt_flag else 0
 
     txt = header
     txt += "\n"
 
     for atom, coord in zip(atoms, coords):
-        line = MOPAC_ATOMLINE.format(atom=atom, x=coord[0], y=coord[1], z=coord[2], opt_flag=opt_flag)
+        line = MOPAC_ATOMLINE.format(
+            atom=atom,
+            x=coord[0],
+            y=coord[1],
+            z=coord[2],
+            opt_flag=flag
+        )
+
         txt += line + "\n"
 
     txt += "\n"
@@ -251,7 +245,13 @@ def properties_from_axyzc(atoms, coords, charge, header, **kwargs):
 
     """
 
-    properties_list = properties_from_many_axyzc([atoms], [coords], [charge], header, **kwargs)
+    properties_list = properties_from_many_axyzc(
+        [atoms],
+        [coords],
+        [charge],
+        header,
+        **kwargs
+    )
 
     properties = properties_list[0]
 
@@ -268,7 +268,8 @@ def properties_from_many_axyzc(
     cmd=MOPAC_CMD,
     filename=MOPAC_FILENAME,
     scr=None,
-    debug=False):
+    debug=False
+):
     """
 
     header requires {charge} in string for formatting
@@ -342,7 +343,6 @@ def read_output(filename, scr=None, translate_filename=True):
 
 def get_properties(lines):
     """
-    TODO AUTO SWITCH
 
     """
 
@@ -418,14 +418,14 @@ def get_properties_optimize(lines):
 
         # continue until we hit a blank line
         while not lines[j].isspace() and lines[j].strip():
-            l = lines[j].split()
+            line = lines[j].split()
 
-            atm = l[idx_atm]
+            atm = line[idx_atm]
             symbols.append(atm)
 
-            x = l[idx_x]
-            y = l[idx_y]
-            z = l[idx_z]
+            x = line[idx_x]
+            y = line[idx_y]
+            z = line[idx_z]
             xyz = [x, y, z]
             xyz = [float(c) for c in xyz]
             coord.append(xyz)
@@ -433,8 +433,8 @@ def get_properties_optimize(lines):
 
         coord = np.array(coord)
 
-    properties["coord"] = coord
-    properties["atoms"] = symbols
+    properties[constants.COLUMN_COORDINATES] = coord
+    properties[constants.COLUMN_ATOMS] = symbols
 
     return properties
 
@@ -453,6 +453,8 @@ def get_properties_1scf(lines):
     line = line.split()
     value = line[0]
     value = float(value)
-    properties["h"] = value # kcal/mol
+
+    # enthalpy in kcal/mol
+    properties["h"] = value
 
     return properties

@@ -9,15 +9,18 @@ from ppqm import mopac, tasks, chembridge
 
 TMPDIR = "_test_scr_mopac_"
 
+
 def test_optimize_water_and_get_energy():
 
     smi = "O"
 
     # Get molecule
     n_conformers = 2
-    molobj = tasks.generate_conformers(smi,
+    molobj = tasks.generate_conformers(
+        smi,
         max_conf=n_conformers,
-        min_conf=n_conformers)
+        min_conf=n_conformers
+    )
 
     # Get mopac calculator
     method = "PM6"
