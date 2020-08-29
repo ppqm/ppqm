@@ -1,27 +1,31 @@
 
 import copy
 from typing import Dict, List
+import numpy as np
+import os
 
 from .calculator import CalculatorSkeleton
 from . import chembridge
 from . import linesio
 from . import shell
+from . import constants
 
 MNDO_CMD = "mndo"
 MNDO_ATOMLINE = "{atom:2s} {x} {opt_flag} {y} {opt_flag} {z} {opt_flag}"
 
 
-def MndoCalculator(CalculatorSkeleton):
+class MndoCalculator(CalculatorSkeleton):
 
 
-    def __init__(self, cmd=MNDO_CMD, scr="./"):
+    def __init__(self, cmd=MNDO_CMD, scr=constants.SCR, method="PM3"):
+
+        super().__init__(scr=scr)
 
         self.cmd = cmd
-        self.scr = scr
+        self.method = method
 
-        # Ensure scrdir
-        # if None, use tmpdir?
-        Path(scr).mkdir(parents=True, exist_ok=True)
+        # TODO should be a parameter
+        self.read_params = False
 
         # Constants
         self.atomline = MNDO_ATOMLINE
@@ -35,12 +39,12 @@ def MndoCalculator(CalculatorSkeleton):
         return_properties=False,
         read_params=False):
 
-        header = """{method} MULLIK PRECISE charge={charge} jprint=5\nnextmol=-1\nTITLE {title}"""
+        header = """{self.method} MULLIK PRECISE charge={charge} jprint=5\nnextmol=-1\nTITLE {title}"""
 
         if return_copy:
             molobj = copy.deepcopy(molobj)
 
-        result_properties = self.calculate(molobj, header)
+        result_properties = self.calculate(molobj, header, optimize=True)
 
         for i, properties in enumerate(result_properties):
 
@@ -55,12 +59,46 @@ def MndoCalculator(CalculatorSkeleton):
         return molobj
 
 
-    def calculate(self, molobj, header):
+    def optimize_axyzc(self, atoms, coord, charge, title=""):
+        """
+        """
 
-        input_string = self._get_input_str(molobj, method, read_params=read_params)
+        header = f"""{self.method} MULLIK PRECISE charge={charge} jprint=5\nnextmol=-1\nTITLE {title}"""
 
-        with(os.path.join(self.scr, self.filename)) as f:
+        properties_ = self.calculate_axyzc(atoms, coord, header, optimize=True)
+
+        return properties_
+
+
+    def calculate(self, molobj, header, optimize=False):
+
+        input_string = self._get_input_from_molobj(molobj,
+            self.method,
+            read_params=self.read_params,
+            optimize=optimize)
+
+        filename = os.path.join(self.scr, self.filename)
+
+        with open(filename, 'w') as f:
             f.write(input_string)
+
+        calculations = self._run_mndo_file()
+
+        for output_lines in calculations:
+            properties = get_properties(output_lines)
+            yield properties
+
+        return
+
+
+    def calculate_axyzc(self, atoms, coords, header, optimize=False):
+
+        input_txt = get_input(atoms, coords, header, optimize=optimize)
+
+        filename = os.path.join(self.scr, self.filename)
+
+        with open(filename, 'w') as f:
+            f.write(input_txt)
 
         calculations = self._run_mndo_file()
 
@@ -75,7 +113,7 @@ def MndoCalculator(CalculatorSkeleton):
 
         runcmd = f"{self.cmd} < {self.filename}"
 
-        lines = shell.stream(runcmd, chdir=scr)
+        lines = shell.stream(runcmd, chdir=self.scr)
 
         molecule_lines = []
 
@@ -93,17 +131,20 @@ def MndoCalculator(CalculatorSkeleton):
         return
 
 
-    def _get_input_str(self, molobj, method, read_params=False, title=""):
+    def _get_input_from_molobj(self, molobj, header, read_params=False, optimize=False, title=""):
         """
         """
 
         atoms, _, charge = chembridge.molobj_to_axyzc(molobj, atom_type="str")
 
+        n_confs = molobj.GetNumConformers()
+
         # Create input
         txt = []
         for i in range(n_confs):
             coord = chembridge.molobj_to_coordinates(molobj, idx=i)
-            tx = get_input(atoms, coord, charge, title=f"{title}_Conf{i}", **input_options)
+            header_prime = header.format(charge=charge, method=self.method, title=f"{title}_Conf_{i}")
+            tx = get_input(atoms, coord, header, read_params=self.read_params, optimize=optimize)
             txt.append(tx)
 
         txt = "".join(txt)
@@ -118,21 +159,19 @@ def MndoCalculator(CalculatorSkeleton):
         return
 
     def __repr__(self):
-        return "MndoCalc(cmd={self.cmd},scr={self.scr})"
+        return "MndoCalc(cmd={self.cmd},scr={self.scr}method={self.method})"
 
 
-
-
-def set_input_str(atoms, coord, header, read_params=False, atomline=MNDO_ATOMLINE):
+def get_input(atoms, coords, header, read_params=False, optimize=False):
     """
-    """
+    # note: internal coordinates are assumed for three-atom systems
 
-    # WARNING: INTERNAL COORDINATES ARE ASSUMED -
-    # FOR THREE-ATOM SYSTEMS
+
+    """
 
     n_atoms = len(atoms)
 
-    txt = header.format(method=method, charge=charge, title=title)
+    txt = header
 
     if read_params:
         txt = txt.split("\n")
@@ -142,7 +181,7 @@ def set_input_str(atoms, coord, header, read_params=False, atomline=MNDO_ATOMLIN
     txt += "\n"
 
     if n_atoms <= 3:
-        txt += internal_coordinates(atoms, coords, optimize=optimize)
+        txt += get_internal_coordinates(atoms, coords, optimize=optimize)
         txt += "\n"
         return txt
 
@@ -157,7 +196,7 @@ def set_input_str(atoms, coord, header, read_params=False, atomline=MNDO_ATOMLIN
             "x": coord[0],
             "opt_flag": opt_flag
         }
-        line = atomline.format(**fmt)
+        line = MNDO_ATOMLINE.format(**fmt)
         txt += line + "\n"
 
     txt += "\n"
@@ -165,7 +204,7 @@ def set_input_str(atoms, coord, header, read_params=False, atomline=MNDO_ATOMLIN
     return
 
 
-def set_internal_coordinates(
+def get_internal_coordinates(
     atoms,
     coord,
     optimize=False):
@@ -184,7 +223,7 @@ def set_internal_coordinates(
 
     output = ""
 
-    if (natoms == 3):
+    if n_atoms == 3:
 
         ba = coord[1] - coord[0]
         bc = coord[1] - coord[2]
@@ -198,14 +237,14 @@ def set_internal_coordinates(
         output += f"{atoms[1]} {norm_ba} {opt_flag}\n"
         output += f"{atoms[2]} {norm_bc} {opt_flag} {angle} {opt_flag}\n"
 
-    elif (natoms == 2):
+    elif n_atoms == 2:
 
         ba = coord[1] - coord[0]
         norm_ba = np.linalg.norm(ba)
         output += f"{atoms[0]}\n"
         output += f"{atoms[1]} {norm_ba} {opt_flag}\n"
 
-    elif (natoms == 1):
+    elif n_atoms == 1:
 
         output += f"{atoms[0]}\n"
 
@@ -226,11 +265,13 @@ def get_properties(output):
     if isinstance(output, str):
         output = output.split("\n")
 
+    result = get_properties_optimize(output)
+
     # TODO Read keywords to detect property type
 
     # TODO Detect failures
 
-    return
+    return result
 
 
 def get_properties_1scf(lines):

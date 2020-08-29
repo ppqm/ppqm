@@ -77,12 +77,10 @@ def get_indexes_with_stop(lines, pattern, stoppattern):
     idxs = []
 
     for i, line in enumerate(lines):
-        # if line.find(pattern) != -1:
         if pattern in line:
             idxs.append(i)
             continue
 
-        # if line.find(stoppattern) != -1:
         if stoppattern in line:
             break
 

@@ -1,13 +1,17 @@
 
+import pathlib
 import abc
 
+from . import constants
 
 class CalculatorSkeleton(abc.ABC):
 
-    def __init__(self):
+    def __init__(self, scr=constants.SCR):
 
-        self.cmd = "ls"
-        self.scr = "./"
+        self.scr = scr
+
+        # Ensure scrdir
+        self.set_scratch_directory()
 
         pass
 
@@ -42,7 +46,7 @@ class CalculatorSkeleton(abc.ABC):
 
     def set_scratch_directory(self):
 
-        Path(self.scr).mkdir(parents=True, exist_ok=True)
+        pathlib.Path(self.scr).mkdir(parents=True, exist_ok=True)
 
         return
 

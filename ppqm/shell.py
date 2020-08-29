@@ -1,5 +1,24 @@
 
 import subprocess
+import os
+
+def check_path(path):
+    """
+
+    """
+
+    if path is None:
+        return False
+
+    if path == "":
+        return False
+
+    if path == "./":
+        return False
+
+    assert os.path.exists(path), f"Cannot chdir, directory does not exists {scr}"
+
+    return True
 
 
 def stream(cmd, chdir=None):
@@ -8,7 +27,7 @@ def stream(cmd, chdir=None):
     :param cmd:
     """
 
-    if chdir is not None:
+    if check_path(chdir):
         cmd = f"cd {chdir}; " + cmd
 
     popen = subprocess.Popen(cmd,
@@ -32,7 +51,7 @@ def execute(cmd, chdir=None):
     """
     """
 
-    if chdir is not None:
+    if check_path(chdir):
         cmd = f"cd {chdir}; " + cmd
 
     p = subprocess.Popen(cmd,

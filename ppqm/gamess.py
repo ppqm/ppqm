@@ -1,6 +1,7 @@
 
 from . import chembridge
 from . import linesio
+from . import constants
 
 GAMESS_CMD = "rungms"
 GAMESS_SCR = "~/scr/"
@@ -8,9 +9,9 @@ GAMESS_USERSCR = "~/scr/"
 GAMESS_ATOMLINE = "{:2s}    {:2.1f}    {:f}     {:f}    {:f}"
 
 
-def GamessCalculator():
+class GamessCalculator():
 
-    def __init__(self, cmd=GAMESS_CMD, scr="./")
+    def __init__(self, cmd=GAMESS_CMD, scr="./"):
 
         self.cmd = cmd
         self.scr = scr
@@ -28,7 +29,7 @@ def GamessCalculator():
 
     def optimize(self, molobj,
         return_copy=True,
-        return_properties=False
+        return_properties=False,
         read_params=False):
 
         # TODO What to do with 
@@ -164,8 +165,8 @@ def molobj_to_gmsinp(mol, header, conf_idx=-1):
 
 
 def run(inpstr,
-    cmd=RUNGMS,
-    scr=SCR,
+    cmd=GAMESS_CMD,
+    scr=constants.SCR,
     filename=None,
     autoclean=True,
     gamess_scr="~/scr",
