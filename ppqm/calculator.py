@@ -14,6 +14,8 @@ class BaseCalculator(abc.ABC):
     quantum calculations (e.g. MopacCalculator or GamessCalculator) instead.
     """
 
+    # TODO CPU admin?
+
     def __init__(self, scr=constants.SCR):
 
         self.scr = scr
@@ -100,6 +102,9 @@ class BaseCalculator(abc.ABC):
             return list(result_properties)
 
         for i, properties in enumerate(result_properties):
+
+            # TODO Check if unconverged
+            # TODO Check number of steps?
 
             if constants.COLUMN_COORDINATES not in properties:
                 # TODO Unable to set coordinates, skip for now

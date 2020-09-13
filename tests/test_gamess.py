@@ -50,8 +50,8 @@ $$$$
     results = calc.calculate(molobj, header)
     properties = results[0]
 
-    atoms = properties["atoms"]
-    energy = properties["h"]
+    atoms = properties[ppqm.constants.COLUMN_ATOMS]
+    energy = properties[ppqm.constants.COLUMN_ENERGY]
 
     assert (atoms == np.array([6, 1, 1, 1, 1], dtype=int)).all()
     np.testing.assert_almost_equal(energy, -13.0148)
@@ -59,15 +59,65 @@ $$$$
     return
 
 
-def test_output():
+def test_optimization_options():
+
+    methane = """
+
+
+  5  4  0  0  0  0  0  0  0  0999 V2000
+    0.0000   -0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000   -0.8900   -0.6293 H   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.8900   -0.6293 H   0  0  0  0  0  0  0  0  0  0  0  0
+   -0.8900   -0.0000    0.6293 H   0  0  0  0  0  0  0  0  0  0  0  0
+    0.8900   -0.0000    0.6293 H   0  0  0  0  0  0  0  0  0  0  0  0
+  1  2  1  0  0  0  0
+  1  3  1  0  0  0  0
+  1  4  1  0  0  0  0
+  1  5  1  0  0  0  0
+M  END
+$$$$
+    """
+
+    options = {
+        "basis": {
+            "gbasis": "pm3"
+        },
+        "contrl": {
+            "runtyp": "optimize",
+            "icharg": "{charge}",
+        },
+        "statpt": {
+            "opttol": 0.0005,
+            "nstep": 300,
+            "projct": False
+        }
+    }
+
+    molobj = chembridge.sdfstr_to_molobj(methane)
+    calc = gamess.GamessCalculator(**GAMESS_OPTIONS)
+
+    # calculate returns List(properties) for every conformer
+    results = calc.calculate(molobj, options)
+    properties = results[0]
+
+    atoms = properties[ppqm.constants.COLUMN_ATOMS]
+    energy = properties[ppqm.constants.COLUMN_ENERGY]
+
+    assert (atoms == np.array([6, 1, 1, 1, 1], dtype=int)).all()
+    np.testing.assert_almost_equal(energy, -13.0148)
+
+    return
+
+
+def test_optimization_read():
 
     with open("tests/resources/gamess/gamess_methane.log", 'r') as f:
         output = f.readlines()
 
     properties = gamess.get_properties_coordinates(output)
 
-    atoms = properties["atoms"]
-    energy = properties["h"]
+    atoms = properties[ppqm.constants.COLUMN_ATOMS]
+    energy = properties[ppqm.constants.COLUMN_ENERGY]
 
     assert (atoms == np.array([6, 1, 1, 1, 1], dtype=int)).all()
     np.testing.assert_almost_equal(energy, -13.0148)
@@ -113,17 +163,35 @@ $$$$
  $contrl
     scftyp=RHF
     runtyp=hessian
-    icharg={:}
+    icharg={charge}
     maxit=60
  $end
 """
 
-    stdout, stderr = gamess.calculate(molobj, header, **GAMESS_OPTIONS)
+    calc = gamess.GamessCalculator(method="pm3", **GAMESS_OPTIONS)
 
-    properties = gamess.get_properties_vibration(stdout)
+    # calculate returns List(properties) for every conformer
+    results = calc.calculate(molobj, header)
+    properties = results[0]
 
-    assert properties is not None
-    assert 'thermo' in properties
+    # GAMESS prints out a thermodynamic table
+
+    #               E         H         G         CV        CP        S
+    #            KJ/MOL    KJ/MOL    KJ/MOL   J/MOL-K   J/MOL-K   J/MOL-K
+    #  ELEC.      0.000     0.000     0.000     0.000     0.000     0.000
+    #  TRANS.     3.718     6.197   -36.542    12.472    20.786   143.348
+    #  ROT.       3.718     3.718   -15.045    12.472    12.472    62.932
+    #  VIB.     119.279   119.279   119.164     2.252     2.252     0.385
+    #  TOTAL    126.716   129.194    67.577    27.195    35.509   206.665
+    #  VIB. THERMAL CORRECTION E(T)-E(0) = H(T)-H(0) =        99.870 J/MOL
+
+    assert ppqm.constants.COLUMN_ENERGY in properties
+    assert pytest.approx(206.665, rel=3) == properties[
+        ppqm.gamess.COLUMN_THERMO][-1, -1]
+
+    assert pytest.approx(-13.01, rel=2) == properties[
+        ppqm.constants.COLUMN_ENERGY
+    ]
 
     return
 
@@ -189,10 +257,11 @@ $$$$
 """
 
     molobj = chembridge.sdfstr_to_molobj(methane)
+    calc = gamess.GamessCalculator(**GAMESS_OPTIONS)
 
-    stdout, stderr = gamess.calculate(molobj, header, **GAMESS_OPTIONS)
-
-    properties = gamess.get_properties_orbitals(stdout)
+    # calculate returns List(properties) for every conformer
+    results = calc.calculate(molobj, header)
+    properties = results[0]
 
     orbitals = properties["orbitals"]
     results = [
@@ -281,9 +350,11 @@ $$$$
 
 """
 
+    calc = gamess.GamessCalculator(**GAMESS_OPTIONS)
+
     molobj = chembridge.sdfstr_to_molobj(methane)
-    stdout, stderr = gamess.calculate(molobj, header, **GAMESS_OPTIONS)
-    properties = gamess.get_properties_solvation(stdout)
+    results = calc.calculate(molobj, header)
+    properties = results[0]
 
     total_solvation = properties["solvation_total"]
     result = 1.24
@@ -326,23 +397,46 @@ def test_water():
     results = calc.optimize(molobj, return_properties=True)
 
     for result in results:
-        assert pytest.approx(reference_energy, rel=1e-2) == result["h"]
+        assert (
+            pytest.approx(reference_energy, rel=1e-2)
+            ==
+            result[ppqm.constants.COLUMN_ENERGY]
+        )
 
     return
+
+
+def test_get_header():
+
+    options = {
+        'contrl': {'scftyp': 'rhf', 'runtyp': 'energy'},
+        'basis': {'gbasis': 'sto', 'ngauss': 3},
+        'statpt': {'opttol': 0.0001, 'nstep': 20, 'projct': False},
+        'system': {'mwords': 30},
+    }
+
+    header = ppqm.gamess.get_header(options)
+    n_lines = len(header.split("\n"))
+
+    assert n_lines == 4
+    assert "runtyp=energy" in header
+    assert "nstep=20" in header
+    assert "projct=.F." in header
 
 
 def main():
 
     # test_output()
     # test_optimization()
+    # test_optimization_options()
     # test_vibration_read()
     # test_vibration()
     # test_orbitals_read()
     # test_orbitals()
     # test_solvation_read()
-    # test_solvation()
-
-    test_water()
+    test_solvation()
+    # test_water()
+    # test_get_header()
 
     return
 

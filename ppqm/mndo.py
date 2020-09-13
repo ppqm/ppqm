@@ -4,7 +4,7 @@ from typing import Dict, List
 import numpy as np
 import os
 
-from .calculator import CalculatorSkeleton
+from .calculator import BaseCalculator
 from . import chembridge
 from . import linesio
 from . import shell
@@ -14,8 +14,7 @@ MNDO_CMD = "mndo"
 MNDO_ATOMLINE = "{atom:2s} {x} {opt_flag} {y} {opt_flag} {z} {opt_flag}"
 
 
-class MndoCalculator(CalculatorSkeleton):
-
+class MndoCalculator(BaseCalculator):
 
     def __init__(self, cmd=MNDO_CMD, scr=constants.SCR, method="PM3"):
 
@@ -31,15 +30,18 @@ class MndoCalculator(CalculatorSkeleton):
         self.atomline = MNDO_ATOMLINE
         self.filename = "_tmp_mndo.inp"
 
-        return
-
-
-    def optimize(self, molobj,
+    def optimize(
+        self,
+        molobj,
         return_copy=True,
         return_properties=False,
-        read_params=False):
+        read_params=False
+    ):
 
-        header = """{self.method} MULLIK PRECISE charge={charge} jprint=5\nnextmol=-1\nTITLE {title}"""
+        header = (
+            "{self.method} MULLIK PRECISE charge={charge} jprint=5\n"
+            "nextmol=-1\nTITLE {title}"
+        )
 
         if return_copy:
             molobj = copy.deepcopy(molobj)

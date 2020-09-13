@@ -17,6 +17,18 @@ GAMESS_USERSCR = "~/scr/"
 GAMESS_ATOMLINE = "{:2s}    {:2.1f}    {:f}     {:f}    {:f}"
 GAMESS_FILENAME = "_tmp_gamess.inp"
 GAMESS_METHOD = "PM3"
+GAMESS_SQM_METHODS = ["AM1", "PM3", "PM6"]
+GAMESS_KEYWORD_CHARGE = "{charge}"
+
+COLUMN_THERMO = "thermo"
+COLUMN_CHARGES = "charges"
+COLUMN_SOLV_TOTAL = "solvation_total"
+COLUMN_SOLV_POLAR = "solvation_polar"
+COLUMN_SOLV_NONPOLAR = "solvation_nonpolar"
+COLUMN_SOLV_SURFACE = "surface"
+COLUMN_TOTAL_CHARGE = "total_charge"
+COLUMN_DIPOLE_VEC = "dipole"
+COLUMN_DIPOLE_TOTAL = "dipole_total"
 
 
 class GamessCalculator(BaseCalculator):
@@ -53,11 +65,14 @@ class GamessCalculator(BaseCalculator):
         else:
             calculation = "energy"
 
+        # TODO Redo
         header = (
             f" $basis gbasis={self.method} $end\n"
-            f" $contrl scftyp=RHF "
-            f"runtyp={calculation} "
-            f"icharg={{charge}} $end\n"
+            f" $contrl"
+            f" scftyp=RHF"
+            f" runtyp={calculation}"
+            f" icharg={GAMESS_KEYWORD_CHARGE}"
+            f" $end\n"
         )
 
         if optimize:
@@ -70,6 +85,9 @@ class GamessCalculator(BaseCalculator):
         molobj,
         header
     ):
+
+        if isinstance(header, dict):
+            header = get_header(header)
 
         properties_list = []
         n_confs = molobj.GetNumConformers()
@@ -100,14 +118,17 @@ def properties_from_axyzc(
     coords,
     charge,
     header,
+    return_stdout=False,
     **kwargs
 ):
     """
     """
 
     # Prepare input
-    header_prime = header.format(charge=charge)
-    inptxt = get_input(atoms, coords, header_prime)
+    if GAMESS_KEYWORD_CHARGE in header:
+        header = header.format(charge=charge)
+
+    inptxt = get_input(atoms, coords, header)
 
     # Call GAMESS
     stdout, stderr = run_gamess(inptxt, **kwargs)
@@ -115,6 +136,9 @@ def properties_from_axyzc(
     # TODO Check stderr
 
     stdout = stdout.split("\n")
+
+    if return_stdout:
+        return stdout
 
     properties = get_properties(stdout)
 
@@ -149,73 +173,42 @@ def prepare_xyz(filename, charge, header):
     return gmsin
 
 
-# def prepare_mol(filename, header, add_hydrogens=True):
-#     """
-#     """
-#
-#     atoms = []
-#     coordinates = []
-#
-#     with open(filename, 'r') as f:
-#         molfmt = f.read()
-#         mol = Chem.MolFromMolBlock(molfmt)
-#
-#     # get formal charge
-#     charge = Chem.GetFormalCharge(mol)
-#
-#     # Get coordinates
-#     conf = mol.GetConformer(0)
-#     for atom in mol.GetAtoms():
-#         pos = conf.GetAtomPosition(atom.GetIdx())
-#         xyz = [pos.x, pos.y, pos.z]
-#         coordinates.append(xyz)
-#         atoms.append(atom.GetSymbol())
-#
-#     # set charge
-#     header = header.format(charge)
-#     lines = prepare_atoms(atoms, coordinates)
-#
-#     return header + lines
-
-
-# def get_input(molobj, header, conf_idx=-1):
-#     """
-#     RDKit Mol object to GAMESS input file
-#
-#     args:
-#         mol - rdkit molobj
-#         header - str of gamess header
-#
-#     returns:
-#         str - GAMESS input file
-#     """
-#
-#     coordinates = []
-#     atoms = []
-#
-#     # get formal charge
-#     charge = Chem.GetFormalCharge(mol)
-#
-#     # Get coordinates
-#     conf = mol.GetConformer(conf_idx)
-#     for atom in mol.GetAtoms():
-#         pos = conf.GetAtomPosition(atom.GetIdx())
-#         xyz = [pos.x, pos.y, pos.z]
-#         coordinates.append(xyz)
-#         atoms.append(atom.GetSymbol())
-#
-#     header = header.format(charge)
-#     lines = prepare_atoms(atoms, coordinates)
-#
-#     return header + lines
-
-
 def get_input(atoms, coords, header):
 
     lines = header
+
+    if lines[-1] != "\n":
+        lines += "\n"
+
     lines += prepare_atoms(atoms, coords)
 
     return lines
+
+
+def get_header(options):
+    sections = []
+    for section_name in options:
+        sections.append(
+            get_section(
+                section_name,
+                options[section_name]
+            )
+        )
+    txt = "\n".join(sections)
+    return txt
+
+
+def get_section(section_name, options):
+    section = f" ${section_name} "
+
+    for key, val in options.items():
+        if isinstance(val, bool):
+            val = ".T." if val else ".F."
+
+        section += f"{key}={val} "
+
+    section += "$end"
+    return section
 
 
 def run_gamess(
@@ -338,7 +331,16 @@ def get_errors(lines):
 
 def get_properties(lines):
 
-    runtyp = get_type(lines)
+    # TODO Better keywords
+    # TODO Make a reader list?
+    # TODO Move SQM Specific properties
+    # TODO Solvation
+
+    runtyp = read_type(lines)
+    method = read_method(lines)
+
+    if method == "HF":
+        reader = get_properties_orbitals
 
     if runtyp == "optimize":
         reader = get_properties_coordinates
@@ -350,7 +352,7 @@ def get_properties(lines):
     return properties
 
 
-def get_type(lines):
+def read_type(lines):
 
     idx = linesio.get_index(lines, "CONTRL OPTIONS")
     idx += 2
@@ -363,6 +365,28 @@ def get_type(lines):
     runtyp = runtyp.lower()
 
     return runtyp
+
+
+def read_method(lines):
+
+    # TODO Add disperion reader
+
+    idx = linesio.get_index(lines, "BASIS OPTIONS")
+    idx += 2
+    line = lines[idx]
+
+    line = line.strip().split()
+    line = line[0]
+    line = line.split("=")
+    basis = line[-1]
+    basis = basis.lower()
+
+    if basis in GAMESS_SQM_METHODS:
+        method = "SQM"
+    else:
+        method = "HF"
+
+    return method
 
 
 def get_properties_coordinates(lines):
@@ -427,7 +451,7 @@ def get_properties_coordinates(lines):
 
     properties[constants.COLUMN_ATOMS] = atoms
     properties[constants.COLUMN_COORDINATES] = coordinates
-    properties["h"] = hof
+    properties[constants.COLUMN_ENERGY] = hof
 
     return properties
 
@@ -498,8 +522,8 @@ def get_properties_vibration(lines):
     properties["linear"] = is_linear
     properties["freq"] = np.array(vibrations)
     properties["intens"] = np.array(intensities)
-    properties["thermo"] = values
-    properties["h"] = hof
+    properties[COLUMN_THERMO] = values
+    properties[constants.COLUMN_ENERGY] = hof
 
     return properties
 
