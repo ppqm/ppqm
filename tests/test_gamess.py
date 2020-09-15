@@ -114,7 +114,7 @@ def test_optimization_read():
     with open("tests/resources/gamess/gamess_methane.log", 'r') as f:
         output = f.readlines()
 
-    properties = gamess.get_properties_coordinates(output)
+    properties = gamess.get_properties(output)
 
     atoms = properties[ppqm.constants.COLUMN_ATOMS]
     energy = properties[ppqm.constants.COLUMN_ENERGY]
@@ -122,7 +122,7 @@ def test_optimization_read():
     assert (atoms == np.array([6, 1, 1, 1, 1], dtype=int)).all()
     np.testing.assert_almost_equal(energy, -13.0148)
 
-    return
+    assert properties[ppqm.constants.COLUMN_COORDINATES] is not None
 
 
 def test_vibration():
@@ -201,7 +201,7 @@ def test_vibration_read():
     with open("tests/resources/gamess/gamess_methane_vib.log", 'r') as f:
         output = f.readlines()
 
-    properties = gamess.get_properties_vibration(output)
+    properties = gamess.get_properties(output)
 
     vibs = properties["freq"]
     result = np.array([
@@ -286,7 +286,7 @@ def test_orbitals_read():
     with open("tests/resources/gamess/gamess_methane_orb.log", 'r') as f:
         output = f.readlines()
 
-    properties = gamess.get_properties_orbitals(output)
+    properties = gamess.get_properties(output)
 
     orbitals = properties["orbitals"]
     results = [
@@ -426,6 +426,8 @@ def test_get_header():
 
 def test_type():
 
+    # TODO read properties
+
     return
 
 
@@ -439,7 +441,7 @@ def main():
     # test_orbitals_read()
     # test_orbitals()
     # test_solvation_read()
-    test_solvation()
+    # test_solvation()
     # test_water()
     # test_get_header()
 
