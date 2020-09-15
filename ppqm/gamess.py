@@ -338,18 +338,35 @@ def get_properties(lines):
 
     runtyp = read_type(lines)
     method = read_method(lines)
+    is_solvation = read_solvation(lines)
 
     if method == "HF":
         reader = get_properties_orbitals
 
     if runtyp == "optimize":
         reader = get_properties_coordinates
+
     elif runtyp == "hessian":
         reader = get_properties_vibration
+
+    elif is_solvation:
+        reader = get_properties_solvation
 
     properties = reader(lines)
 
     return properties
+
+
+def read_solvation(lines):
+
+    keyword = "INPUT FOR PCM SOLVATION CALCULATION"
+    stoppattern = "ELECTRON INTEGRALS"
+
+    idx = linesio.get_index(lines, keyword, stoppattern=stoppattern)
+    if idx is not None:
+        return True
+
+    return False
 
 
 def read_type(lines):

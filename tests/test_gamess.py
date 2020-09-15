@@ -335,7 +335,7 @@ $$$$
  $contrl
     scftyp=RHF
     runtyp=energy
-    icharg={:}
+    icharg={charge}
  $end
  $pcm
     solvnt=water
@@ -368,7 +368,7 @@ def test_solvation_read():
     with open("tests/resources/gamess/gamess_methane_sol.log", 'r') as f:
         output = f.readlines()
 
-    properties = gamess.get_properties_solvation(output)
+    properties = gamess.get_properties(output)
 
     total_solvation = properties["solvation_total"]
     result = 1.24
@@ -422,6 +422,11 @@ def test_get_header():
     assert "runtyp=energy" in header
     assert "nstep=20" in header
     assert "projct=.F." in header
+
+
+def test_type():
+
+    return
 
 
 def main():

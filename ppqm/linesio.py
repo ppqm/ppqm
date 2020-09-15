@@ -19,7 +19,13 @@ def readlines_reverse(filename):
         yield line[::-1]
 
 
-def get_index(lines, pattern, offset=None, n_lines=None):
+def get_index(
+    lines,
+    pattern,
+    offset=None,
+    n_lines=None,
+    stoppattern=None
+):
 
     if offset is None:
         offset = 0
@@ -31,6 +37,9 @@ def get_index(lines, pattern, offset=None, n_lines=None):
         line = lines[i]
         if line.find(pattern) != -1:
             return i
+
+        if stoppattern and stoppattern in line:
+            return None
 
     return None
 
