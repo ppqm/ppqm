@@ -10,6 +10,7 @@ from . import chembridge
 from . import linesio
 from . import constants
 from . import shell
+from . import env
 
 GAMESS_CMD = "rungms"
 GAMESS_SCR = "~/scr/"
@@ -56,6 +57,12 @@ class GamessCalculator(BaseCalculator):
             "gamess_userscr": gamess_userscr
         }
 
+        self._health_check()
+
+    def _health_check(self):
+        assert env.command_exists(self.cmd), (
+            f"{self.cmd} was not found")
+
     def _generate_header(self, optimize=True, hessian=False, gradient=False):
 
         if optimize:
@@ -65,18 +72,26 @@ class GamessCalculator(BaseCalculator):
         else:
             calculation = "energy"
 
-        # TODO Redo
-        header = (
-            f" $basis gbasis={self.method} $end\n"
-            f" $contrl"
-            f" scftyp=RHF"
-            f" runtyp={calculation}"
-            f" icharg={GAMESS_KEYWORD_CHARGE}"
-            f" $end\n"
-        )
+        # TODO Does the calculator need to be based on global options?
+
+        options = dict()
+        options["basis"] = {
+            "gbasis": f"{self.method}",
+        }
+        options["contrl"] = {
+            "scftyp": "rhf",
+            "runtyp": f"{calculation}",
+            "icharg": f"{GAMESS_KEYWORD_CHARGE}"
+        }
 
         if optimize:
-            header += " $statpt opttol=0.0005 nstep=300 projct=.F. $end\n"
+            options["statpt"] = {
+                "opttol": 0.005,
+                "nstep": 300,
+                "projct": False
+            }
+
+        header = get_header(options)
 
         return header
 
@@ -225,7 +240,7 @@ def run_gamess(
     """
     """
 
-    assert shell.check_cmd(cmd), f"Could not find {cmd} in your enviroment"
+    assert env.command_exists(cmd), f"Could not find {cmd} in your enviroment"
 
     if pre_clean:
         clean(gamess_scr, filename)
@@ -337,6 +352,10 @@ def get_properties(lines):
     # TODO Solvation
 
     runtyp = read_type(lines)
+
+    if runtyp is None:
+        return None
+
     method = read_method(lines)
     is_solvation = read_solvation(lines)
 
@@ -372,6 +391,10 @@ def read_solvation(lines):
 def read_type(lines):
 
     idx = linesio.get_index(lines, "CONTRL OPTIONS")
+
+    if idx is None:
+        return None
+
     idx += 2
     line = lines[idx]
 
@@ -389,6 +412,10 @@ def read_method(lines):
     # TODO Add disperion reader
 
     idx = linesio.get_index(lines, "BASIS OPTIONS")
+
+    if idx is None:
+        return None
+
     idx += 2
     line = lines[idx]
 

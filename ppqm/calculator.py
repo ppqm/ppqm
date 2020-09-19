@@ -25,6 +25,9 @@ class BaseCalculator(abc.ABC):
 
         return
 
+    def _health_check(self):
+        return
+
     def _generate_header(self, optimize=True):
         return
 

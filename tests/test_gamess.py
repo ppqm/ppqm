@@ -3,6 +3,7 @@ import pytest
 import numpy as np
 
 from context import ppqm
+from context import CONFIG
 
 from ppqm import chembridge
 from ppqm import gamess
@@ -12,10 +13,10 @@ from ppqm import tasks
 TMPDIR = "_test_scr_gamess_"
 
 GAMESS_OPTIONS = {
-    "scr": TMPDIR,
-    "cmd": "rungms",
-    "gamess_scr": "~/scr",
-    "gamess_userscr": "~/scr",
+    "scr": CONFIG["scr"]["scr"],
+    "cmd": CONFIG["gamess"]["cmd"],
+    "gamess_scr": CONFIG["gamess"]["scr"],
+    "gamess_userscr": CONFIG["gamess"]["userscr"],
 }
 
 
@@ -382,26 +383,59 @@ def test_water():
     smi = "O"
     reference_energy = -53.426
 
-    # Get molecule
-    n_conformers = 2
+    # Get molecule with three conformers
+    n_conformers = 3
     molobj = tasks.generate_conformers(
         smi,
         max_conf=n_conformers,
         min_conf=n_conformers
     )
 
-    # Get mopac calculator
+    # Get gamess calculator
     method = "PM3"
-    calc = gamess.GamessCalculator(scr=TMPDIR, method=method)
+    calc = gamess.GamessCalculator(method=method, **GAMESS_OPTIONS)
 
     results = calc.optimize(molobj, return_properties=True)
 
     for result in results:
         assert (
-            pytest.approx(reference_energy, rel=1e-2)
-            ==
+            pytest.approx(reference_energy, rel=1e-2) ==
             result[ppqm.constants.COLUMN_ENERGY]
         )
+
+    return
+
+
+def test_fail_wrong_method():
+
+    # Get molecule with three conformers
+    smi = "O"
+    molobj = tasks.generate_conformers(smi, max_conf=1, min_conf=1)
+
+    # Set bad options
+    options = {
+        "basis": {
+            "gbasis": "pm9000"
+        },
+        "contrl": {
+            "runtyp": "energy",
+            "icharg": "{charge}",
+        },
+        "statpt": {
+            "opttol": 0.0005,
+            "nstep": 300,
+            "projct": False
+        }
+    }
+
+    # Get gamess calculator and calculate molobj with bad methods
+    calc = gamess.GamessCalculator(**GAMESS_OPTIONS)
+    results = calc.calculate(molobj, options)
+
+    # will return None for each failed conformer
+
+    assert results is not None
+    assert results[0] is None
 
     return
 
@@ -421,12 +455,13 @@ def test_get_header():
     assert n_lines == 4
     assert "runtyp=energy" in header
     assert "nstep=20" in header
+    assert "opttol=0.0001" in header
     assert "projct=.F." in header
 
 
 def test_type():
 
-    # TODO read properties
+    # TODO read properties from log files
 
     return
 
@@ -443,6 +478,7 @@ def main():
     # test_solvation_read()
     # test_solvation()
     # test_water()
+    test_fail_wrong_method()
     # test_get_header()
 
     return

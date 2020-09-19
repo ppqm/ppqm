@@ -60,24 +60,27 @@ class MndoCalculator(BaseCalculator):
 
         return molobj
 
-
     def optimize_axyzc(self, atoms, coord, charge, title=""):
         """
         """
 
-        header = f"""{self.method} MULLIK PRECISE charge={charge} jprint=5\nnextmol=-1\nTITLE {title}"""
+        header = (
+            "{self.method} MULLIK PRECISE charge={charge} "
+            "jprint=5\nnextmol=-1\nTITLE {title}"
+        )
 
         properties_ = self.calculate_axyzc(atoms, coord, header, optimize=True)
 
         return properties_
 
-
     def calculate(self, molobj, header, optimize=False):
 
-        input_string = self._get_input_from_molobj(molobj,
+        input_string = self._get_input_from_molobj(
+            molobj,
             self.method,
             read_params=self.read_params,
-            optimize=optimize)
+            optimize=optimize
+        )
 
         filename = os.path.join(self.scr, self.filename)
 
@@ -91,7 +94,6 @@ class MndoCalculator(BaseCalculator):
             yield properties
 
         return
-
 
     def calculate_axyzc(self, atoms, coords, header, optimize=False):
 

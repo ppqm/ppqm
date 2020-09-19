@@ -1,31 +1,32 @@
 
+import pytest
 from context import ppqm
-
+from context import CONFIG
 from ppqm import mndo, tasks, chembridge
 
-# TODO Use config for commands
-# TODO Use tempfile with constructor
+MNDO_OPTIONS = {
+    "scr": CONFIG["scr"]["scr"],
+    "cmd": CONFIG["mndo"]["cmd"],
+}
 
 
 def test_optimize_water():
 
-    smi = "O"
-
-    # Use tmpdir
-    # Path(scrdir).mkdir(parents=True, exist_ok=True)
-
     # Get molecule
-    molobj = tasks.generate_conformers("O", max_conf=1, min_conf=1)
+    smi = "O"
+    molobj = tasks.generate_conformers(smi, max_conf=1, min_conf=1)
 
     # Get mndo calculator
-    calc = mndo.MndoCalculator(cmd="mndo", scr="_test_dir_")
+    calc = mndo.MndoCalculator(**MNDO_OPTIONS)
 
     method = "PM3"
 
     # Optimize water
-    properties = calc.optimize(molobj,
+    properties = calc.optimize(
+        molobj,
         return_copy=False,
-        return_properties=True)
+        return_properties=True
+    )
 
     water_atomization = properties["h"]
 

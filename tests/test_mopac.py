@@ -3,11 +3,15 @@ import numpy as np
 import pytest
 
 from context import ppqm
+from context import CONFIG
 from ppqm import mopac, tasks, chembridge
 
 # TODO use tempfile
 
-TMPDIR = "_test_scr_mopac_"
+MOPAC_OPTIONS = {
+    "scr": CONFIG["scr"]["scr"],
+    "cmd": CONFIG["mopac"]["cmd"],
+}
 
 
 def test_optimize_water_and_get_energy():
@@ -24,7 +28,7 @@ def test_optimize_water_and_get_energy():
 
     # Get mopac calculator
     method = "PM6"
-    calc = mopac.MopacCalculator(scr=TMPDIR, method=method)
+    calc = mopac.MopacCalculator(method=method, **MOPAC_OPTIONS)
 
     # Optimize water
     properties_per_conformer = calc.optimize(
@@ -61,7 +65,7 @@ def test_multiple_molecules_with_error():
         "cmd": "mopac",
         "optimize": True,
         "filename": "mopac_error",
-        "scr": TMPDIR,
+        "scr": MOPAC_OPTIONS["scr"],
         "debug": True
     }
 
@@ -143,7 +147,6 @@ def test_xyz_usage():
 
     smi = "O"
     method = "PM3"
-    options = {"scr": TMPDIR}
 
     # Get molecule
     molobj = tasks.generate_conformers(smi, max_conf=1, min_conf=1)
@@ -161,7 +164,7 @@ def test_xyz_usage():
         coords,
         charge,
         header,
-        **options
+        **MOPAC_OPTIONS
     )
 
     # Check energy
