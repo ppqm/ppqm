@@ -3,6 +3,7 @@ import os
 from io import StringIO
 import sys
 import gzip
+import copy
 
 import numpy as np
 
@@ -306,9 +307,11 @@ def sdfstr_to_smiles(sdfstr, remove_hs=False):
     return smiles
 
 
-def smiles_to_sdfstr(smilesstr,
+def smiles_to_sdfstr(
+    smilesstr,
     add_hydrogens=True,
-    return_status=False):
+    return_status=False
+):
     """
     SMILES to SDF converter
     """

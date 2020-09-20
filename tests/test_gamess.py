@@ -39,66 +39,19 @@ M  END
 $$$$
     """
 
-    header = """ $basis gbasis=pm3 $end
- $contrl runtyp=optimize icharg={charge} $end
- $statpt opttol=0.0005 nstep=300 projct=.F. $end
-"""
-
-    molobj = chembridge.sdfstr_to_molobj(methane)
-    calc = gamess.GamessCalculator(method="pm3", **GAMESS_OPTIONS)
-
-    # calculate returns List(properties) for every conformer
-    results = calc.calculate(molobj, header)
-    properties = results[0]
-
-    atoms = properties[ppqm.constants.COLUMN_ATOMS]
-    energy = properties[ppqm.constants.COLUMN_ENERGY]
-
-    assert (atoms == np.array([6, 1, 1, 1, 1], dtype=int)).all()
-    np.testing.assert_almost_equal(energy, -13.0148)
-
-    return
-
-
-def test_optimization_options():
-
-    methane = """
-
-
-  5  4  0  0  0  0  0  0  0  0999 V2000
-    0.0000   -0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
-    0.0000   -0.8900   -0.6293 H   0  0  0  0  0  0  0  0  0  0  0  0
-    0.0000    0.8900   -0.6293 H   0  0  0  0  0  0  0  0  0  0  0  0
-   -0.8900   -0.0000    0.6293 H   0  0  0  0  0  0  0  0  0  0  0  0
-    0.8900   -0.0000    0.6293 H   0  0  0  0  0  0  0  0  0  0  0  0
-  1  2  1  0  0  0  0
-  1  3  1  0  0  0  0
-  1  4  1  0  0  0  0
-  1  5  1  0  0  0  0
-M  END
-$$$$
-    """
-
-    options = {
-        "basis": {
-            "gbasis": "pm3"
-        },
-        "contrl": {
-            "runtyp": "optimize",
-            "icharg": "{charge}",
-        },
-        "statpt": {
-            "opttol": 0.0005,
-            "nstep": 300,
-            "projct": False
-        }
+    calculation_options = {
+        "contrl": {"runtyp": "optimize"},
+        "statpt": {"opttol": 0.0005, "nstep": 300, "projct": False}
     }
 
     molobj = chembridge.sdfstr_to_molobj(methane)
-    calc = gamess.GamessCalculator(**GAMESS_OPTIONS)
+    calc = gamess.GamessCalculator(
+        method_options={"method": "pm3"},
+        **GAMESS_OPTIONS
+    )
 
     # calculate returns List(properties) for every conformer
-    results = calc.calculate(molobj, options)
+    results = calc.calculate(molobj, calculation_options)
     properties = results[0]
 
     atoms = properties[ppqm.constants.COLUMN_ATOMS]
@@ -156,23 +109,21 @@ $$$$
     molobj = chembridge.sdfstr_to_molobj(methane)
     chembridge.molobj_set_coordinates(molobj, coordinates)
 
-    header = """
- $basis
-     gbasis=PM3
- $end
+    method_options = {
+        "method": "pm3"
+    }
+    calculation_options = {
+        "contrl": {"runtyp": "hessian", "maxit": 60},
+    }
 
- $contrl
-    scftyp=RHF
-    runtyp=hessian
-    icharg={charge}
-    maxit=60
- $end
-"""
-
-    calc = gamess.GamessCalculator(method="pm3", **GAMESS_OPTIONS)
+    molobj = chembridge.sdfstr_to_molobj(methane)
+    calc = gamess.GamessCalculator(
+        method_options=method_options,
+        **GAMESS_OPTIONS
+    )
 
     # calculate returns List(properties) for every conformer
-    results = calc.calculate(molobj, header)
+    results = calc.calculate(molobj, calculation_options)
     properties = results[0]
 
     # GAMESS prints out a thermodynamic table
@@ -246,22 +197,21 @@ M  END
 $$$$
     """
 
-    header = """
- $contrl
- coord=cart
- units=angs
- scftyp=rhf
- icharg=0
- maxit=60
- $end
- $basis gbasis=sto ngauss=3 $end
-"""
+    options = {
+        "contrl": {
+            "coord": "cart",
+            "units": "angs",
+            "scftyp": "rhf",
+            "maxit": 60
+        },
+        "basis": {"gbasis": "sto", "ngauss": 3}
+    }
 
     molobj = chembridge.sdfstr_to_molobj(methane)
     calc = gamess.GamessCalculator(**GAMESS_OPTIONS)
 
     # calculate returns List(properties) for every conformer
-    results = calc.calculate(molobj, header)
+    results = calc.calculate(molobj, options)
     properties = results[0]
 
     orbitals = properties["orbitals"]
@@ -326,35 +276,27 @@ M  END
 $$$$
     """
 
-    header = """
- $system
-    mwords=125
- $end
- $basis
-    gbasis=PM3
- $end
- $contrl
-    scftyp=RHF
-    runtyp=energy
-    icharg={charge}
- $end
- $pcm
-    solvnt=water
-    mxts=15000
-    icav=1
-    idisp=1
- $end
- $tescav
-    mthall=4
-    ntsall=60
- $end
-
-"""
-
-    calc = gamess.GamessCalculator(**GAMESS_OPTIONS)
-
     molobj = chembridge.sdfstr_to_molobj(methane)
-    results = calc.calculate(molobj, header)
+
+    options = dict()
+    options["system"] = {"mwords": 125}
+    options["pcm"] = {
+        "solvnt": "water",
+        "mxts": 15000,
+        "icav": 1,
+        "idisp": 1
+    }
+    options["tescav"] = {
+        "mthall": 4,
+        "ntsall": 60
+    }
+
+    calc = gamess.GamessCalculator(
+        method_options={"method": "pm3"},
+        **GAMESS_OPTIONS
+    )
+
+    results = calc.calculate(molobj, options)
     properties = results[0]
 
     total_solvation = properties["solvation_total"]
@@ -393,7 +335,13 @@ def test_water():
 
     # Get gamess calculator
     method = "PM3"
-    calc = gamess.GamessCalculator(method=method, **GAMESS_OPTIONS)
+    method_options = {
+        "method": method
+    }
+    calc = gamess.GamessCalculator(
+        method_options=method_options,
+        **GAMESS_OPTIONS
+    )
 
     results = calc.optimize(molobj, return_properties=True)
 
@@ -418,8 +366,7 @@ def test_fail_wrong_method():
             "gbasis": "pm9000"
         },
         "contrl": {
-            "runtyp": "energy",
-            "icharg": "{charge}",
+            "runtyp": "optimize",
         },
         "statpt": {
             "opttol": 0.0005,
@@ -476,9 +423,9 @@ def main():
     # test_orbitals_read()
     # test_orbitals()
     # test_solvation_read()
-    # test_solvation()
+    test_solvation()
     # test_water()
-    test_fail_wrong_method()
+    # test_fail_wrong_method()
     # test_get_header()
 
     return

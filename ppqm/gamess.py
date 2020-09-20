@@ -2,6 +2,7 @@
 import numpy as np
 import os
 import glob
+import copy
 
 import rmsd
 
@@ -11,15 +12,17 @@ from . import linesio
 from . import constants
 from . import shell
 from . import env
+from . import misc
 
 GAMESS_CMD = "rungms"
 GAMESS_SCR = "~/scr/"
 GAMESS_USERSCR = "~/scr/"
 GAMESS_ATOMLINE = "{:2s}    {:2.1f}    {:f}     {:f}    {:f}"
 GAMESS_FILENAME = "_tmp_gamess.inp"
-GAMESS_METHOD = "PM3"
 GAMESS_SQM_METHODS = ["AM1", "PM3", "PM6"]
 GAMESS_KEYWORD_CHARGE = "{charge}"
+
+GAMESS_DEFAULT_OPTIONS = {"method": "pm3"}
 
 COLUMN_THERMO = "thermo"
 COLUMN_CHARGES = "charges"
@@ -37,18 +40,23 @@ class GamessCalculator(BaseCalculator):
     def __init__(
         self,
         cmd=GAMESS_CMD,
-        scr=constants.SCR,
         gamess_scr=GAMESS_SCR,
         gamess_userscr=GAMESS_USERSCR,
         filename=GAMESS_FILENAME,
-        method=GAMESS_METHOD,
+        method_options=GAMESS_DEFAULT_OPTIONS,
+        **kwargs,
     ):
-        super().__init__(scr=scr)
+        super().__init__(**kwargs)
 
         self.cmd = cmd
         self.filename = filename
 
-        self.method = method
+        self.method = method_options["method"]
+
+        if "solvent" in method_options:
+            self.solvent = method_options["solvent"]
+        else:
+            self.solvent = None
 
         self.gamess_options = {
             "cmd": self.cmd,
@@ -59,11 +67,38 @@ class GamessCalculator(BaseCalculator):
 
         self._health_check()
 
+        # Set calculation
+        self._init_options()
+
     def _health_check(self):
         assert env.command_exists(self.cmd), (
             f"{self.cmd} was not found")
 
-    def _generate_header(self, optimize=True, hessian=False, gradient=False):
+    def _init_options(self):
+
+        self.options = dict()
+        self.options["basis"] = {
+            "gbasis": f"{self.method}",
+        }
+        self.options["contrl"] = {
+            "scftyp": "rhf",
+        }
+
+        if self.solvent is not None:
+            self.options["pcm"] = {
+                "solvnt": f"{self.solvent}",
+                "mxts": 15000,
+                "icav": 1,
+                "idisp": 1
+            }
+            self.options["tescav"] = {
+                "mthall": 4,
+                "ntsall": 60
+            }
+
+        return
+
+    def _generate_options(self, optimize=True, hessian=False, gradient=False):
 
         if optimize:
             calculation = "optimize"
@@ -72,16 +107,9 @@ class GamessCalculator(BaseCalculator):
         else:
             calculation = "energy"
 
-        # TODO Does the calculator need to be based on global options?
-
         options = dict()
-        options["basis"] = {
-            "gbasis": f"{self.method}",
-        }
         options["contrl"] = {
-            "scftyp": "rhf",
             "runtyp": f"{calculation}",
-            "icharg": f"{GAMESS_KEYWORD_CHARGE}"
         }
 
         if optimize:
@@ -91,18 +119,19 @@ class GamessCalculator(BaseCalculator):
                 "projct": False
             }
 
-        header = get_header(options)
-
-        return header
+        return options
 
     def calculate(
         self,
         molobj,
-        header
+        options
     ):
+        """ """
 
-        if isinstance(header, dict):
-            header = get_header(header)
+        # Merge options
+        options_prime = copy.deepcopy(self.options)
+        misc.merge_dict(options_prime, options)
+        options_prime["contrl"]["icharg"] = GAMESS_KEYWORD_CHARGE
 
         properties_list = []
         n_confs = molobj.GetNumConformers()
@@ -116,7 +145,7 @@ class GamessCalculator(BaseCalculator):
                 atoms,
                 coord,
                 charge,
-                header,
+                options_prime,
                 **self.gamess_options
             )
 
@@ -132,7 +161,7 @@ def properties_from_axyzc(
     atoms,
     coords,
     charge,
-    header,
+    options,
     return_stdout=False,
     **kwargs
 ):
@@ -140,8 +169,11 @@ def properties_from_axyzc(
     """
 
     # Prepare input
-    if GAMESS_KEYWORD_CHARGE in header:
-        header = header.format(charge=charge)
+    header = get_header(options)
+
+
+    # set charge
+    header = header.format(charge=charge)
 
     inptxt = get_input(atoms, coords, header)
 
@@ -351,6 +383,8 @@ def get_properties(lines):
     # TODO Move SQM Specific properties
     # TODO Solvation
 
+    reader = None
+
     runtyp = read_type(lines)
 
     if runtyp is None:
@@ -370,6 +404,9 @@ def get_properties(lines):
 
     elif is_solvation:
         reader = get_properties_solvation
+
+    if reader is None:
+        raise ValueError("No properties to read in GAMESS log")
 
     properties = reader(lines)
 
@@ -425,7 +462,7 @@ def read_method(lines):
     basis = line[-1]
     basis = basis.lower()
 
-    if basis in GAMESS_SQM_METHODS:
+    if basis.upper() in GAMESS_SQM_METHODS:
         method = "SQM"
     else:
         method = "HF"

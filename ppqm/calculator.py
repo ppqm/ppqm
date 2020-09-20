@@ -15,6 +15,8 @@ class BaseCalculator(abc.ABC):
     """
 
     # TODO CPU admin?
+    # TODO Better option generation?
+    # TODO Use options dictionary instead of header?
 
     def __init__(self, scr=constants.SCR):
 
@@ -28,10 +30,11 @@ class BaseCalculator(abc.ABC):
     def _health_check(self):
         return
 
-    def _generate_header(self, optimize=True):
+    def _generate_options(self, **kwargs):
+        """ to be implemented by individual programs """
         return
 
-    def single_point(
+    def properties(
         self,
         molobj,
     ):
@@ -44,9 +47,10 @@ class BaseCalculator(abc.ABC):
 
         Examples
         --------
-        >>> results = calc.single_point(molobj)
-        >>> for result in results:
-        >>>     print(result)
+        >>> # Get properties per conformer
+        >>> results = calc.properties(molobj)
+        >>> for properties in results:
+        >>>     print(properties)
 
         Returns
         -------
@@ -55,7 +59,7 @@ class BaseCalculator(abc.ABC):
 
         """
 
-        header = self._generate_header(optimize=False)
+        header = self._generate_options(optimize=False)
 
         results = self.calculate(molobj, header)
 
@@ -94,12 +98,12 @@ class BaseCalculator(abc.ABC):
 
         """
 
-        header = self._generate_header(optimize=True)
+        options = self._generate_options(optimize=True)
 
         if return_copy:
             molobj = copy.deepcopy(molobj)
 
-        result_properties = self.calculate(molobj, header)
+        result_properties = self.calculate(molobj, options)
 
         if return_properties:
             return list(result_properties)

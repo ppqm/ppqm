@@ -45,3 +45,12 @@ Example of using GAMESS calculator and using specific options
     # Get properties for each conformer in mol
     properties_list = calc.calculate(mol, options)
 
+
+differetn calculation types
+
+.. code-block:: python
+
+    results = calc.properties(molobj)
+    results = calc.optimize(molobj)
+    results = calc.gradient(molobj)
+    results = calc.hessian(molobj)
