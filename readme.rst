@@ -11,6 +11,7 @@ Examples
 Assume all codesnippets below are using RDKit molecule objs
 
 .. code-block:: python
+
     mol = Chem.MolFromSmiles("O")
     Chem.AddHydrogens(mol)
     AllChem.UFFOptimizeMolecule(molobj, maxIters=max_steps)
