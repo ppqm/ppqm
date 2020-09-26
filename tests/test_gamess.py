@@ -413,6 +413,24 @@ def test_type():
     return
 
 
+def test_dinitrogen():
+
+    sdf = """
+
+
+  2  1  0  0  0  0  0  0  0  0999 V2000
+    0.7500    0.0000    0.0000 N   0  0  0  0  0  0  0  0  0  0  0  0
+   -0.7500    0.0000    0.0000 N   0  0  0  0  0  0  0  0  0  0  0  0
+  1  2  3  0
+M  END """
+
+    molobj = chembridge.sdfstr_to_molobj(sdf)
+    calc = gamess.GamessCalculator(**GAMESS_OPTIONS)
+    results = calc.optimize(molobj, return_properties=True)
+
+    return
+
+
 def main():
 
     # test_output()
@@ -423,10 +441,11 @@ def main():
     # test_orbitals_read()
     # test_orbitals()
     # test_solvation_read()
-    test_solvation()
+    # test_solvation()
     # test_water()
     # test_fail_wrong_method()
     # test_get_header()
+    test_dinitrogen()
 
     return
 

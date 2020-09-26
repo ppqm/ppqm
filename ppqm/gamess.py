@@ -2,7 +2,7 @@
 import numpy as np
 import os
 import glob
-import copy
+from collections import ChainMap
 
 import rmsd
 
@@ -12,7 +12,6 @@ from . import linesio
 from . import constants
 from . import shell
 from . import env
-from . import misc
 
 GAMESS_CMD = "rungms"
 GAMESS_SCR = "~/scr/"
@@ -129,8 +128,8 @@ class GamessCalculator(BaseCalculator):
         """ """
 
         # Merge options
-        options_prime = copy.deepcopy(self.options)
-        misc.merge_dict(options_prime, options)
+        options_prime = ChainMap(options, self.options)
+        options_prime = dict(options_prime)
         options_prime["contrl"]["icharg"] = GAMESS_KEYWORD_CHARGE
 
         properties_list = []
@@ -170,7 +169,6 @@ def properties_from_axyzc(
 
     # Prepare input
     header = get_header(options)
-
 
     # set charge
     header = header.format(charge=charge)
