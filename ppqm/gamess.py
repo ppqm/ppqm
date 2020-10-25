@@ -97,7 +97,12 @@ class GamessCalculator(BaseCalculator):
 
         return
 
-    def _generate_options(self, optimize=True, hessian=False, gradient=False):
+    def _generate_options(
+        self,
+        optimize=True,
+        hessian=False,
+        gradient=False
+    ):
 
         if optimize:
             calculation = "optimize"
