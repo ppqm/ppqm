@@ -1,6 +1,7 @@
 
 import numpy as np
 import pytest
+import copy
 
 from context import ppqm
 from context import CONFIG
@@ -14,7 +15,7 @@ MOPAC_OPTIONS = {
 }
 
 
-def test_optimize_water_and_get_energy():
+def test_optimize_water_and_get_energy(tmpdir):
 
     smi = "O"
 
@@ -26,22 +27,26 @@ def test_optimize_water_and_get_energy():
         min_conf=n_conformers
     )
 
+    mopac_options = copy.deepcopy(MOPAC_OPTIONS)
+    mopac_options["scr"] = tmpdir
+
     # Get mopac calculator
     method = "PM6"
-    calc = mopac.MopacCalculator(method=method, **MOPAC_OPTIONS)
+    calc = mopac.MopacCalculator(method=method, **mopac_options)
 
     # Optimize water
     properties_per_conformer = calc.optimize(
         molobj,
         return_copy=False,
-        return_properties=True)
+        return_properties=True
+    )
 
     assert len(properties_per_conformer) == n_conformers
 
     for properties in properties_per_conformer:
 
-        enthalpy_of_formation = properties["h"]
-        # kcal/mol
+        enthalpy_of_formation = properties["h"]  # kcal/mol
+
         assert pytest.approx(-54.30636, rel=1e-2) == enthalpy_of_formation
 
     return
@@ -143,7 +148,10 @@ def test_read_properties():
     return
 
 
-def test_xyz_usage():
+def test_xyz_usage(tmpdir):
+
+    mopac_options = copy.deepcopy(MOPAC_OPTIONS)
+    mopac_options["scr"] = tmpdir
 
     smi = "O"
     method = "PM3"
@@ -164,7 +172,7 @@ def test_xyz_usage():
         coords,
         charge,
         header,
-        **MOPAC_OPTIONS
+        **mopac_options
     )
 
     # Check energy
@@ -173,3 +181,23 @@ def test_xyz_usage():
     assert pytest.approx(water_atomization, rel=1e-2) == properties["h"]
 
     return
+
+
+def test_options():
+
+    options = dict()
+    options["pm6"] = None
+    options["1scf"] = None
+    options["charge"] = 1
+    options["title"] = "Test Mol"
+    options["precise"] = None
+
+    header = mopac.get_header(options)
+
+    assert type(header) == str
+    assert "Test Mol" in header
+    assert len(header.split("\n")) == 3
+
+
+if __name__ == "__main__":
+    test_optimize_water_and_get_energy()

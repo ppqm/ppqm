@@ -20,7 +20,7 @@ class BaseCalculator(abc.ABC):
 
     def __init__(self, scr=constants.SCR):
 
-        self.scr = scr
+        self.scr = pathlib.Path(scr)
 
         # Ensure scrdir
         self.set_scratch_directory()
@@ -144,7 +144,7 @@ class BaseCalculator(abc.ABC):
 
     def set_scratch_directory(self):
 
-        pathlib.Path(self.scr).mkdir(parents=True, exist_ok=True)
+        self.scr.mkdir(parents=True, exist_ok=True)
 
         return
 

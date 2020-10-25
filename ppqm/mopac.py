@@ -1,8 +1,6 @@
-
 import os
-import copy
 import numpy as np
-
+from collections import ChainMap
 
 from .calculator import BaseCalculator
 from . import chembridge
@@ -26,10 +24,13 @@ MOPAC_CMD = "mopac"
 MOPAC_ATOMLINE = "{atom:2s} {x} {opt_flag} {y} {opt_flag} {z} {opt_flag}"
 MOPAC_INPUT_EXTENSION = "mop"
 MOPAC_OUTPUT_EXTENSION = "out"
-
-MOPAC_HEADER_OPTIMIZE = """{method} MULLIK PRECISE charge={charge} \nTITLE {title}\n"""
-
+MOPAC_KEYWORD_CHARGE = "{charge}"
 MOPAC_FILENAME = "_tmp_mopac." + MOPAC_INPUT_EXTENSION
+
+MOPAC_DEFAULT_OPTIONS = {
+    "precise": None,
+    "mullik": None
+}
 
 
 class MopacCalculator(BaseCalculator):
@@ -41,20 +42,25 @@ class MopacCalculator(BaseCalculator):
         cmd=MOPAC_CMD,
         method=MOPAC_METHOD,
         filename=MOPAC_FILENAME,
-        scr=constants.SCR
+        scr=constants.SCR,
+        options=MOPAC_DEFAULT_OPTIONS
     ):
         """
         """
 
         super().__init__(scr=scr)
 
-        assert method in MOPAC_VALID_METHODS, f"MOPAC does not support {method}"
+        assert method in MOPAC_VALID_METHODS, (
+            f"MOPAC does not support {method}")
 
         self.cmd = cmd
         self.method = method
 
         # Constants
         self.filename = filename
+
+        # Default calculate options
+        self.options = options
 
         return
 
@@ -73,11 +79,21 @@ class MopacCalculator(BaseCalculator):
 
         return
 
-    def calculate(self, molobj, header):
+    def calculate(self, molobj, options):
 
-        input_string = self._get_input_str(molobj, header, opt_flag=True)
+        # Merge options
+        options_prime = ChainMap(options, self.options)
+        options_prime = dict(options_prime)
+        options_prime["charge"] = MOPAC_KEYWORD_CHARGE
+        options_prime[self.method] = None
 
-        filename = os.path.join(self.scr, self.filename)
+        input_string = self._get_input_str(
+            molobj,
+            options_prime,
+            opt_flag=True
+        )
+
+        filename = self.scr / self.filename
 
         with open(filename, 'w') as f:
             f.write(input_string)
@@ -93,27 +109,35 @@ class MopacCalculator(BaseCalculator):
 
         return
 
-    def _generate_header(self, optimize=True, gradient=False):
-        """ Generate header for MOPAC calculations
-
-        """
+    def _generate_options(
+        self,
+        optimize=True,
+        hessian=False,
+        gradient=False
+    ):
+        """ Generate options for calculation types """
 
         if optimize:
-            calculation = ""
+            calculation = "opt"
+        elif hessian:
+            calculation = "hessian"
         else:
             calculation = "1scf"
 
-        header = f"""{calculation} {self.method} MULLIK PRECISE charge={{charge}} \nTITLE {{title}}\n"""
+        options = dict()
+        options[calculation] = None
 
-        return header
+        return options
 
     def optimize_axyzc(
         self,
         atoms,
         coords,
         charge,
-        header=MOPAC_HEADER_OPTIMIZE
     ):
+        """ INCOMPLETE """
+
+        # TODO Get header?
 
         header_prime = header.format(
             method=self.method,
@@ -130,16 +154,21 @@ class MopacCalculator(BaseCalculator):
 
         return properties
 
-    def _get_input_str(self, molobj, header, title="", opt_flag=False):
+    def _get_input_str(
+        self,
+        molobj,
+        options,
+        title="",
+        opt_flag=False
+    ):
         """
-
         Create MOPAC input string from molobj
-
         """
 
         n_confs = molobj.GetNumConformers()
 
         atoms, _, charge = chembridge.molobj_to_axyzc(molobj, atom_type="str")
+        header = get_header(options)
 
         txt = []
         for i in range(n_confs):
@@ -147,7 +176,6 @@ class MopacCalculator(BaseCalculator):
             coord = chembridge.molobj_to_coordinates(molobj, idx=i)
             header_prime = header.format(
                 charge=charge,
-                method=self.method,
                 title=f"{title}_Conf_{i}"
             )
             tx = get_input(atoms, coord, header_prime, opt_flag=opt_flag)
@@ -169,8 +197,11 @@ class MopacCalculator(BaseCalculator):
 
     def _read_file(self):
 
-        filename = os.path.join(self.scr, self.filename)
+        filename = self.scr / self.filename
+        filename = str(filename)
         filename = filename.replace(".mop", ".out")
+
+        print(filename)
 
         with open(filename, 'r') as f:
             lines = f.readlines()
@@ -208,6 +239,32 @@ def run_mopac(filename, cmd=MOPAC_CMD, scr=None, debug=False):
     # TODO Check stdout and stderr for error and return False
 
     return True
+
+
+def get_header(options):
+    """ return mopac header from options dict """
+
+    title = options.get("title", "TITLE")
+    if "title" in options:
+        del options["title"]
+
+    header = [""]*3
+    header[1] = title
+    header[0] = list()
+
+    for key, val in options.items():
+
+        if val is not None:
+            keyword = f"{key}={val}"
+        else:
+            keyword = f"{key}"
+
+        header[0].append(keyword)
+
+    header[0] = " ".join(header[0])
+    header = "\n".join(header)
+
+    return header
 
 
 def get_input(
@@ -343,6 +400,10 @@ def read_output(filename, scr=None, translate_filename=True):
 
 def get_properties(lines):
     """
+    TODO Check common errors
+
+    Errors detected in keywords.
+    UNRECOGNIZED KEY-WORDS: (MULIKEN)
 
     """
 
