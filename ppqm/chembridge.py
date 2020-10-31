@@ -6,9 +6,7 @@ from io import StringIO
 import numpy as np
 import rdkit.Chem as Chem
 import rdkit.Chem.AllChem as AllChem
-import rdkit.Chem.ChemicalForceFields as ChemicalForceFields
 import rdkit.Chem.Draw as Draw
-import rdkit.Chem.rdMolDescriptors as rdMolDescriptors
 import rdkit.Chem.rdmolops as rdmolops
 
 # spin-multiplicities 2,3,4,3,2 for the atoms H, C, N, O, F, respectively.

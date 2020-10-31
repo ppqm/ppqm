@@ -1,10 +1,7 @@
 import numpy as np
 import rdkit.Chem as Chem
 import rdkit.Chem.AllChem as AllChem
-import rdkit.Chem.ChemicalForceFields as ChemicalForceFields
-import rdkit.Chem.Draw as Draw
 import rdkit.Chem.rdMolDescriptors as rdMolDescriptors
-import rdkit.Chem.rdmolops as rdmolops
 
 from ppqm import chembridge
 

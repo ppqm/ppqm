@@ -2,7 +2,7 @@ import copy
 
 import numpy as np
 import pytest
-from context import CONFIG, ppqm
+from context import CONFIG
 
 from ppqm import chembridge, mopac, tasks
 

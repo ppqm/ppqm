@@ -4,7 +4,6 @@ import sys
 
 try:
     import ppqm
-
 except ImportError:
     parent = str(pathlib.Path(__file__).absolute().parent.parent)
     sys.path.insert(0, parent)
@@ -26,3 +25,5 @@ if not configfile.is_file():
     configfile = pathlib.Path("default.ini")
 
 CONFIG = read_settings(configfile)
+
+ppqm = ppqm
