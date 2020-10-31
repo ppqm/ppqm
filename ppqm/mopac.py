@@ -1,12 +1,10 @@
 import os
-import numpy as np
 from collections import ChainMap
 
+import numpy as np
+
+from . import chembridge, constants, linesio, shell
 from .calculator import BaseCalculator
-from . import chembridge
-from . import shell
-from . import linesio
-from . import constants
 
 # NOTE
 # Should be possible to get graph of molecule using
@@ -27,15 +25,11 @@ MOPAC_OUTPUT_EXTENSION = "out"
 MOPAC_KEYWORD_CHARGE = "{charge}"
 MOPAC_FILENAME = "_tmp_mopac." + MOPAC_INPUT_EXTENSION
 
-MOPAC_DEFAULT_OPTIONS = {
-    "precise": None,
-    "mullik": None
-}
+MOPAC_DEFAULT_OPTIONS = {"precise": None, "mullik": None}
 
 
 class MopacCalculator(BaseCalculator):
-    """
-    """
+    """"""
 
     def __init__(
         self,
@@ -43,15 +37,15 @@ class MopacCalculator(BaseCalculator):
         method=MOPAC_METHOD,
         filename=MOPAC_FILENAME,
         scr=constants.SCR,
-        options=MOPAC_DEFAULT_OPTIONS
+        options=MOPAC_DEFAULT_OPTIONS,
     ):
-        """
-        """
+        """"""
 
         super().__init__(scr=scr)
 
-        assert method in MOPAC_VALID_METHODS, (
-            f"MOPAC does not support {method}")
+        assert (
+            method in MOPAC_VALID_METHODS
+        ), f"MOPAC does not support {method}"
 
         self.cmd = cmd
         self.method = method
@@ -88,14 +82,12 @@ class MopacCalculator(BaseCalculator):
         options_prime[self.method] = None
 
         input_string = self._get_input_str(
-            molobj,
-            options_prime,
-            opt_flag=True
+            molobj, options_prime, opt_flag=True
         )
 
         filename = self.scr / self.filename
 
-        with open(filename, 'w') as f:
+        with open(filename, "w") as f:
             f.write(input_string)
 
         # Run mopac
@@ -109,12 +101,7 @@ class MopacCalculator(BaseCalculator):
 
         return
 
-    def _generate_options(
-        self,
-        optimize=True,
-        hessian=False,
-        gradient=False
-    ):
+    def _generate_options(self, optimize=True, hessian=False, gradient=False):
         """ Generate options for calculation types """
 
         if optimize:
@@ -129,38 +116,27 @@ class MopacCalculator(BaseCalculator):
 
         return options
 
-    def optimize_axyzc(
-        self,
-        atoms,
-        coords,
-        charge,
-    ):
-        """ INCOMPLETE """
+    # def optimize_axyzc(
+    #     self,
+    #     atoms,
+    #     coords,
+    #     charge,
+    # ):
+    #     """ INCOMPLETE """
+    #
+    #     # TODO Get header?
+    #
+    #     header_prime = header.format(
+    #         method=self.method, charge=charge, title=""
+    #     )
+    #
+    #     properties = self.calculate_axyzc(
+    #         atoms, coords, header_prime, optimize=True
+    #     )
+    #
+    #     return properties
 
-        # TODO Get header?
-
-        header_prime = header.format(
-            method=self.method,
-            charge=charge,
-            title=""
-        )
-
-        properties = self.calculate_axyzc(
-            atoms,
-            coords,
-            header_prime,
-            optimize=True
-        )
-
-        return properties
-
-    def _get_input_str(
-        self,
-        molobj,
-        options,
-        title="",
-        opt_flag=False
-    ):
+    def _get_input_str(self, molobj, options, title="", opt_flag=False):
         """
         Create MOPAC input string from molobj
         """
@@ -175,8 +151,7 @@ class MopacCalculator(BaseCalculator):
 
             coord = chembridge.molobj_to_coordinates(molobj, idx=i)
             header_prime = header.format(
-                charge=charge,
-                title=f"{title}_Conf_{i}"
+                charge=charge, title=f"{title}_Conf_{i}"
             )
             tx = get_input(atoms, coord, header_prime, opt_flag=opt_flag)
             txt.append(tx)
@@ -203,7 +178,7 @@ class MopacCalculator(BaseCalculator):
 
         print(filename)
 
-        with open(filename, 'r') as f:
+        with open(filename, "r") as f:
             lines = f.readlines()
 
         molecule_lines = []
@@ -228,8 +203,7 @@ class MopacCalculator(BaseCalculator):
 
 
 def run_mopac(filename, cmd=MOPAC_CMD, scr=None, debug=False):
-    """
-    """
+    """"""
 
     command = [cmd, filename]
     command = " ".join(command)
@@ -248,7 +222,7 @@ def get_header(options):
     if "title" in options:
         del options["title"]
 
-    header = [""]*3
+    header = [""] * 3
     header[1] = title
     header[0] = list()
 
@@ -267,14 +241,8 @@ def get_header(options):
     return header
 
 
-def get_input(
-    atoms,
-    coords,
-    header,
-    opt_flag=False
-):
-    """
-    """
+def get_input(atoms, coords, header, opt_flag=False):
+    """"""
 
     flag: int = 1 if opt_flag else 0
 
@@ -283,11 +251,7 @@ def get_input(
 
     for atom, coord in zip(atoms, coords):
         line = MOPAC_ATOMLINE.format(
-            atom=atom,
-            x=coord[0],
-            y=coord[1],
-            z=coord[2],
-            opt_flag=flag
+            atom=atom, x=coord[0], y=coord[1], z=coord[2], opt_flag=flag
         )
 
         txt += line + "\n"
@@ -298,16 +262,10 @@ def get_input(
 
 
 def properties_from_axyzc(atoms, coords, charge, header, **kwargs):
-    """
-
-    """
+    """"""
 
     properties_list = properties_from_many_axyzc(
-        [atoms],
-        [coords],
-        [charge],
-        header,
-        **kwargs
+        [atoms], [coords], [charge], header, **kwargs
     )
 
     properties = properties_list[0]
@@ -325,7 +283,7 @@ def properties_from_many_axyzc(
     cmd=MOPAC_CMD,
     filename=MOPAC_FILENAME,
     scr=None,
-    debug=False
+    debug=False,
 ):
     """
 
@@ -335,7 +293,9 @@ def properties_from_many_axyzc(
 
     input_texts = list()
 
-    for i, (atoms, coords, charge) in enumerate(zip(atoms_list, coords_list, charge_list)):
+    for i, (atoms, coords, charge) in enumerate(
+        zip(atoms_list, coords_list, charge_list)
+    ):
 
         if titles is None:
             title = ""
@@ -352,7 +312,7 @@ def properties_from_many_axyzc(
         scr = ""
 
     # Save file
-    with open(os.path.join(scr, filename), 'w') as f:
+    with open(os.path.join(scr, filename), "w") as f:
         f.write(input_texts)
 
     # Run file
@@ -378,7 +338,7 @@ def read_output(filename, scr=None, translate_filename=True):
         filename = filename.replace("." + MOPAC_INPUT_EXTENSION, "")
         filename += "." + MOPAC_OUTPUT_EXTENSION
 
-    with open(filename, 'r') as f:
+    with open(filename, "r") as f:
         lines = f.readlines()
 
     molecule_lines = []
@@ -435,8 +395,7 @@ def is_1scf(lines):
 
 
 def get_properties_optimize(lines):
-    """
-    """
+    """"""
 
     properties = {}
 
@@ -457,7 +416,7 @@ def get_properties_optimize(lines):
     properties["h"] = value
 
     # optimized coordinates
-    i = linesio.get_rev_index(lines, 'CARTESIAN')
+    i = linesio.get_rev_index(lines, "CARTESIAN")
 
     line = lines[i]
     if i is not None and "ATOM LIST" in line:
@@ -501,8 +460,7 @@ def get_properties_optimize(lines):
 
 
 def get_properties_1scf(lines):
-    """
-    """
+    """"""
 
     properties = {}
 

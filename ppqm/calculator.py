@@ -1,14 +1,12 @@
-
+import abc
 import copy
 import pathlib
-import abc
 
-from . import constants
-from . import chembridge
+from . import chembridge, constants
 
 
 class BaseCalculator(abc.ABC):
-    """ Base class for quantum calculators
+    """Base class for quantum calculators
 
     This class should not be used directly, use a class appropriate for your
     quantum calculations (e.g. MopacCalculator or GamessCalculator) instead.
@@ -65,12 +63,7 @@ class BaseCalculator(abc.ABC):
 
         return results
 
-    def optimize(
-        self,
-        molobj,
-        return_copy=True,
-        return_properties=False
-    ):
+    def optimize(self, molobj, return_copy=True, return_properties=False):
         """
 
         Parameters

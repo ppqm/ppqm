@@ -1,18 +1,12 @@
-
-import sys
-import pathlib
 import configparser
+import pathlib
+import sys
 
 try:
     import ppqm
 
 except ImportError:
-    parent = str(
-        pathlib.Path(__file__)
-        .absolute()
-        .parent
-        .parent
-    )
+    parent = str(pathlib.Path(__file__).absolute().parent.parent)
     sys.path.insert(0, parent)
     import ppqm
 

@@ -1,21 +1,16 @@
-
 import copy
-from typing import Dict, List
-import numpy as np
 import os
 
+import numpy as np
+
+from . import chembridge, constants, linesio, shell
 from .calculator import BaseCalculator
-from . import chembridge
-from . import linesio
-from . import shell
-from . import constants
 
 MNDO_CMD = "mndo"
 MNDO_ATOMLINE = "{atom:2s} {x} {opt_flag} {y} {opt_flag} {z} {opt_flag}"
 
 
 class MndoCalculator(BaseCalculator):
-
     def __init__(self, cmd=MNDO_CMD, scr=constants.SCR, method="PM3"):
 
         super().__init__(scr=scr)
@@ -35,7 +30,7 @@ class MndoCalculator(BaseCalculator):
         molobj,
         return_copy=True,
         return_properties=False,
-        read_params=False
+        read_params=False,
     ):
 
         header = (
@@ -54,15 +49,14 @@ class MndoCalculator(BaseCalculator):
                 pass
                 # TODO What need to happen here? @anders
 
-            coord = properties["coord"]
+            properties["coord"]
 
             # TODO Set coord on conformer
 
         return molobj
 
     def optimize_axyzc(self, atoms, coord, charge, title=""):
-        """
-        """
+        """"""
 
         header = (
             "{self.method} MULLIK PRECISE charge={charge} "
@@ -79,12 +73,12 @@ class MndoCalculator(BaseCalculator):
             molobj,
             self.method,
             read_params=self.read_params,
-            optimize=optimize
+            optimize=optimize,
         )
 
         filename = os.path.join(self.scr, self.filename)
 
-        with open(filename, 'w') as f:
+        with open(filename, "w") as f:
             f.write(input_string)
 
         calculations = self._run_mndo_file()
@@ -101,7 +95,7 @@ class MndoCalculator(BaseCalculator):
 
         filename = os.path.join(self.scr, self.filename)
 
-        with open(filename, 'w') as f:
+        with open(filename, "w") as f:
             f.write(input_txt)
 
         calculations = self._run_mndo_file()
@@ -111,7 +105,6 @@ class MndoCalculator(BaseCalculator):
             yield properties
 
         return
-
 
     def _run_mndo_file(self):
 
@@ -134,10 +127,10 @@ class MndoCalculator(BaseCalculator):
 
         return
 
-
-    def _get_input_from_molobj(self, molobj, header, read_params=False, optimize=False, title=""):
-        """
-        """
+    def _get_input_from_molobj(
+        self, molobj, header, read_params=False, optimize=False, title=""
+    ):
+        """"""
 
         atoms, _, charge = chembridge.molobj_to_axyzc(molobj, atom_type="str")
 
@@ -147,14 +140,21 @@ class MndoCalculator(BaseCalculator):
         txt = []
         for i in range(n_confs):
             coord = chembridge.molobj_to_coordinates(molobj, idx=i)
-            header_prime = header.format(charge=charge, method=self.method, title=f"{title}_Conf_{i}")
-            tx = get_input(atoms, coord, header, read_params=self.read_params, optimize=optimize)
+            header_prime = header.format(
+                charge=charge, method=self.method, title=f"{title}_Conf_{i}"
+            )
+            tx = get_input(
+                atoms,
+                coord,
+                header,
+                read_params=self.read_params,
+                optimize=optimize,
+            )
             txt.append(tx)
 
         txt = "".join(txt)
 
         return txt
-
 
     def _set_input_file(self, input_str):
 
@@ -190,7 +190,8 @@ def get_input(atoms, coords, header, read_params=False, optimize=False):
         return txt
 
     opt_flag = 0
-    if optimize: opt_flag = 1
+    if optimize:
+        opt_flag = 1
 
     for atom, coord in zip(atoms, coords):
         fmt = {
@@ -198,7 +199,7 @@ def get_input(atoms, coords, header, read_params=False, optimize=False):
             "x": coord[0],
             "x": coord[0],
             "x": coord[0],
-            "opt_flag": opt_flag
+            "opt_flag": opt_flag,
         }
         line = MNDO_ATOMLINE.format(**fmt)
         txt += line + "\n"
@@ -208,10 +209,7 @@ def get_input(atoms, coords, header, read_params=False, optimize=False):
     return
 
 
-def get_internal_coordinates(
-    atoms,
-    coord,
-    optimize=False):
+def get_internal_coordinates(atoms, coord, optimize=False):
     """
 
     :param atoms: List[Str]
@@ -223,7 +221,8 @@ def get_internal_coordinates(
     n_atoms = len(atoms)
 
     opt_flag = 0
-    if optimize: opt_flag = 1
+    if optimize:
+        opt_flag = 1
 
     output = ""
 
@@ -231,7 +230,9 @@ def get_internal_coordinates(
 
         ba = coord[1] - coord[0]
         bc = coord[1] - coord[2]
-        cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
+        cosine_angle = np.dot(ba, bc) / (
+            np.linalg.norm(ba) * np.linalg.norm(bc)
+        )
         angle = np.arccos(cosine_angle) / np.pi * 180.0
 
         norm_ba = np.linalg.norm(ba)
@@ -263,8 +264,7 @@ def run_mndo_file(filename, scr=None, mndo_cmd=MNDO_CMD):
 
 
 def get_properties(output):
-    """
-    """
+    """"""
 
     if isinstance(output, str):
         output = output.split("\n")
@@ -293,7 +293,8 @@ def get_properties_1scf(lines):
         "CORE HAMILTONIAN MATRIX.",
         "NUCLEAR ENERGY",
         "IONIZATION ENERGY",
-        "INPUT GEOMETRY"]
+        "INPUT GEOMETRY",
+    ]
 
     idx_keywords = linesio.get_rev_indexes(lines, keywords)
 
@@ -319,7 +320,7 @@ def get_properties_1scf(lines):
             value = line[1]
             e_scf = float(value)
 
-        properties["e_scf"] = e_scf # ev
+        properties["e_scf"] = e_scf  # ev
 
     # Nuclear energy
     if idx_keywords[1] is None:
@@ -331,7 +332,7 @@ def get_properties_1scf(lines):
         line = line.split()
         value = line[2]
         e_nuc = float(value)
-        properties["e_nuc"] = e_nuc # ev
+        properties["e_nuc"] = e_nuc  # ev
 
     # eisol
     eisol = dict()
@@ -341,7 +342,7 @@ def get_properties_1scf(lines):
         line = line.split()
         atom = int(line[0])
         value = line[2]
-        eisol[atom] = float(value) # ev
+        eisol[atom] = float(value)  # ev
 
     # # Enthalpy of formation
     idx_hof = linesio.get_index(lines, "SCF HEAT OF FORMATION")
@@ -351,7 +352,7 @@ def get_properties_1scf(lines):
     line = line.split()
     value = line[0]
     value = float(value)
-    properties["h"] = value # kcal/mol
+    properties["h"] = value  # kcal/mol
 
     # ionization
     # idx = get_rev_index(lines, "IONIZATION ENERGY")
@@ -362,7 +363,7 @@ def get_properties_1scf(lines):
     else:
         line = lines[idx]
         value = line.split()[-2]
-        e_ion = float(value) # ev
+        e_ion = float(value)  # ev
         properties["e_ion"] = e_ion
 
     # # Dipole
@@ -400,7 +401,7 @@ def get_properties_1scf(lines):
             z = float(line[idx_z])
 
             atoms.append(atom)
-            coord.append([x,y,z])
+            coord.append([x, y, z])
 
             j += 1
 
@@ -430,7 +431,7 @@ def get_properties_1scf(lines):
     # calculate energy
     e_iso = [eisol[a] for a in atoms]
     e_iso = np.sum(e_iso)
-    energy = (e_nuc + e_scf - e_iso)
+    energy = e_nuc + e_scf - e_iso
 
     properties["energy"] = energy
 
@@ -454,10 +455,10 @@ def get_properties_optimize(lines):
     line = line.split()
     value = line[0]
     value = float(value)
-    properties["h"] = value # kcal/mol
+    properties["h"] = value  # kcal/mol
 
     # optimized coordinates
-    i = linesio.get_rev_index(lines, 'CARTESIAN COORDINATES')
+    i = linesio.get_rev_index(lines, "CARTESIAN COORDINATES")
     idx_atm = 1
     idx_x = 2
     idx_y = 3
@@ -465,7 +466,7 @@ def get_properties_optimize(lines):
     n_skip = 4
 
     if i < idx_hof:
-        i = linesio.get_rev_index(lines, 'X-COORDINATE')
+        i = linesio.get_rev_index(lines, "X-COORDINATE")
         idx_atm = 1
         idx_x = 2
         idx_y = 4
@@ -496,9 +497,6 @@ def get_properties_optimize(lines):
 
 
 def get_properties_gradient():
-    """
-    """
-
+    """"""
 
     return
-

@@ -1,23 +1,16 @@
-
 import numpy as np
-
 import rdkit.Chem as Chem
 import rdkit.Chem.AllChem as AllChem
-import rdkit.Chem.Draw as Draw
 import rdkit.Chem.ChemicalForceFields as ChemicalForceFields
+import rdkit.Chem.Draw as Draw
 import rdkit.Chem.rdMolDescriptors as rdMolDescriptors
 import rdkit.Chem.rdmolops as rdmolops
-
 
 from ppqm import chembridge
 
 
 def generate_conformers(
-    smiles,
-    max_conf=20,
-    min_conf=10,
-    max_steps=1000,
-    random_seed=1
+    smiles, max_conf=20, min_conf=10, max_steps=1000, random_seed=1
 ):
 
     molobj = chembridge.smiles_to_molobj(smiles, add_hydrogens=True)
@@ -47,14 +40,14 @@ def generate_conformers(
 
     rot_bond = rdMolDescriptors.CalcNumRotatableBonds(molobj)
 
-    confs = min(1 + 3*rot_bond, max_conf)
+    confs = min(1 + 3 * rot_bond, max_conf)
     confs = max(confs, min_conf)
 
     _ = AllChem.EmbedMultipleConfs(
         molobj,
         numConfs=confs,
         useExpTorsionAnglePrefs=True,
-        useBasicKnowledge=True
+        useBasicKnowledge=True,
     )
 
     return molobj

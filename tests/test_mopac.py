@@ -1,11 +1,10 @@
+import copy
 
 import numpy as np
 import pytest
-import copy
+from context import CONFIG, ppqm
 
-from context import ppqm
-from context import CONFIG
-from ppqm import mopac, tasks, chembridge
+from ppqm import chembridge, mopac, tasks
 
 # TODO use tempfile
 
@@ -22,9 +21,7 @@ def test_optimize_water_and_get_energy(tmpdir):
     # Get molecule
     n_conformers = 2
     molobj = tasks.generate_conformers(
-        smi,
-        max_conf=n_conformers,
-        min_conf=n_conformers
+        smi, max_conf=n_conformers, min_conf=n_conformers
     )
 
     mopac_options = copy.deepcopy(MOPAC_OPTIONS)
@@ -36,9 +33,7 @@ def test_optimize_water_and_get_energy(tmpdir):
 
     # Optimize water
     properties_per_conformer = calc.optimize(
-        molobj,
-        return_copy=False,
-        return_properties=True
+        molobj, return_copy=False, return_properties=True
     )
 
     assert len(properties_per_conformer) == n_conformers
@@ -71,7 +66,7 @@ def test_multiple_molecules_with_error():
         "optimize": True,
         "filename": "mopac_error",
         "scr": MOPAC_OPTIONS["scr"],
-        "debug": True
+        "debug": True,
     }
 
     smis = ["O", "N", "CC", "CC", "CCO"]
@@ -88,15 +83,10 @@ def test_multiple_molecules_with_error():
 
     for i, smi in enumerate(smis):
 
-        molobj = tasks.generate_conformers(
-            smi,
-            max_conf=1,
-            min_conf=1
-        )
+        molobj = tasks.generate_conformers(smi, max_conf=1, min_conf=1)
 
         atoms, coords, charge = chembridge.molobj_to_axyzc(
-            molobj,
-            atom_type=str
+            molobj, atom_type=str
         )
 
         if i == 2:
@@ -114,7 +104,7 @@ def test_multiple_molecules_with_error():
         charge_list,
         header,
         titles=title_list,
-        **options
+        **options,
     )
 
     for properties in properties_list:
@@ -139,11 +129,11 @@ def test_read_properties():
     assert len(result_list) == 5
 
     # Could read correct results
-    assert result_list[0]['h'] is not None
-    assert not np.isnan(result_list[0]['h'])
+    assert result_list[0]["h"] is not None
+    assert not np.isnan(result_list[0]["h"])
 
     # Could not read error molecule
-    assert np.isnan(result_list[error_idx]['h'])
+    assert np.isnan(result_list[error_idx]["h"])
 
     return
 
@@ -168,11 +158,7 @@ def test_xyz_usage(tmpdir):
 
     # Optimize coords
     properties = mopac.properties_from_axyzc(
-        atoms,
-        coords,
-        charge,
-        header,
-        **mopac_options
+        atoms, coords, charge, header, **mopac_options
     )
 
     # Check energy

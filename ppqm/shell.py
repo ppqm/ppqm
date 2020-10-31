@@ -1,7 +1,6 @@
-
-import subprocess
 import os
 import shutil
+import subprocess
 
 
 def check_cmd(cmd):
@@ -15,9 +14,7 @@ def check_cmd(cmd):
 
 
 def check_path(path):
-    """
-
-    """
+    """"""
 
     if path is None:
         return False
@@ -28,7 +25,9 @@ def check_path(path):
     if path == "./":
         return False
 
-    assert os.path.exists(path), f"Cannot chdir, directory does not exists {path}"
+    assert os.path.exists(
+        path
+    ), f"Cannot chdir, directory does not exists {path}"
 
     return True
 
@@ -43,10 +42,7 @@ def stream(cmd, chdir=None):
         cmd = f"cd {chdir}; " + cmd
 
     popen = subprocess.Popen(
-        cmd,
-        stdout=subprocess.PIPE,
-        universal_newlines=True,
-        shell=True
+        cmd, stdout=subprocess.PIPE, universal_newlines=True, shell=True
     )
 
     for stdout_line in iter(popen.stdout.readline, ""):
@@ -62,17 +58,13 @@ def stream(cmd, chdir=None):
 
 
 def execute(cmd, chdir=None):
-    """
-    """
+    """"""
 
     if check_path(chdir):
         cmd = f"cd {chdir}; " + cmd
 
     p = subprocess.Popen(
-        cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        shell=True
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
     )
 
     stdout, stderr = p.communicate()

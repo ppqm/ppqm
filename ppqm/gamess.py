@@ -1,17 +1,12 @@
-
-import numpy as np
-import os
 import glob
+import os
 from collections import ChainMap
 
+import numpy as np
 import rmsd
 
+from . import chembridge, constants, env, linesio, shell
 from .calculator import BaseCalculator
-from . import chembridge
-from . import linesio
-from . import constants
-from . import shell
-from . import env
 
 GAMESS_CMD = "rungms"
 GAMESS_SCR = "~/scr/"
@@ -35,7 +30,6 @@ COLUMN_DIPOLE_TOTAL = "dipole_total"
 
 
 class GamessCalculator(BaseCalculator):
-
     def __init__(
         self,
         cmd=GAMESS_CMD,
@@ -61,7 +55,7 @@ class GamessCalculator(BaseCalculator):
             "cmd": self.cmd,
             "scr": self.scr,
             "gamess_scr": gamess_scr,
-            "gamess_userscr": gamess_userscr
+            "gamess_userscr": gamess_userscr,
         }
 
         self._health_check()
@@ -70,8 +64,7 @@ class GamessCalculator(BaseCalculator):
         self._init_options()
 
     def _health_check(self):
-        assert env.command_exists(self.cmd), (
-            f"{self.cmd} was not found")
+        assert env.command_exists(self.cmd), f"{self.cmd} was not found"
 
     def _init_options(self):
 
@@ -88,21 +81,13 @@ class GamessCalculator(BaseCalculator):
                 "solvnt": f"{self.solvent}",
                 "mxts": 15000,
                 "icav": 1,
-                "idisp": 1
+                "idisp": 1,
             }
-            self.options["tescav"] = {
-                "mthall": 4,
-                "ntsall": 60
-            }
+            self.options["tescav"] = {"mthall": 4, "ntsall": 60}
 
         return
 
-    def _generate_options(
-        self,
-        optimize=True,
-        hessian=False,
-        gradient=False
-    ):
+    def _generate_options(self, optimize=True, hessian=False, gradient=False):
 
         if optimize:
             calculation = "optimize"
@@ -120,16 +105,12 @@ class GamessCalculator(BaseCalculator):
             options["statpt"] = {
                 "opttol": 0.005,
                 "nstep": 300,
-                "projct": False
+                "projct": False,
             }
 
         return options
 
-    def calculate(
-        self,
-        molobj,
-        options
-    ):
+    def calculate(self, molobj, options):
         """ """
 
         # Merge options
@@ -146,11 +127,7 @@ class GamessCalculator(BaseCalculator):
 
             coord = chembridge.molobj_get_coordinates(molobj, idx=conf_idx)
             properties = properties_from_axyzc(
-                atoms,
-                coord,
-                charge,
-                options_prime,
-                **self.gamess_options
+                atoms, coord, charge, options_prime, **self.gamess_options
             )
 
             properties_list.append(properties)
@@ -162,15 +139,9 @@ class GamessCalculator(BaseCalculator):
 
 
 def properties_from_axyzc(
-    atoms,
-    coords,
-    charge,
-    options,
-    return_stdout=False,
-    **kwargs
+    atoms, coords, charge, options, return_stdout=False, **kwargs
 ):
-    """
-    """
+    """"""
 
     # Prepare input
     header = get_header(options)
@@ -210,8 +181,7 @@ def prepare_atoms(atoms, coordinates):
 
 
 def prepare_xyz(filename, charge, header):
-    """
-    """
+    """"""
 
     atoms, coordinates = rmsd.get_coordinates_xyz("test.xyz")
 
@@ -238,12 +208,7 @@ def get_input(atoms, coords, header):
 def get_header(options):
     sections = []
     for section_name in options:
-        sections.append(
-            get_section(
-                section_name,
-                options[section_name]
-            )
-        )
+        sections.append(get_section(section_name, options[section_name]))
     txt = "\n".join(sections)
     return txt
 
@@ -270,10 +235,9 @@ def run_gamess(
     gamess_userscr="~/scr",
     post_clean=True,
     pre_clean=True,
-    debug=False
+    debug=False,
 ):
-    """
-    """
+    """"""
 
     assert env.command_exists(cmd), f"Could not find {cmd} in your enviroment"
 
@@ -283,7 +247,7 @@ def run_gamess(
 
     full_filename = os.path.join(scr, filename)
 
-    with open(full_filename, 'w') as f:
+    with open(full_filename, "w") as f:
         f.write(input_text)
 
     command = [cmd, filename]
@@ -349,7 +313,7 @@ def get_errors(lines):
     key = "CHECK YOUR INPUT CHARGE AND MULTIPLICITY"
     idx = linesio.get_rev_index(lines, key, stoppattern=safeword)
     if idx is not None:
-        line = lines[idx+1:idx+2]
+        line = lines[idx + 1 : idx + 2]
         line = [x.strip().lower().capitalize() for x in line]
         line = ". ".join(line)
         line = line.replace("icharg=", "").replace("mult=", "")
@@ -359,7 +323,7 @@ def get_errors(lines):
     idx = linesio.get_rev_index(
         lines,
         "FAILURE TO LOCATE STATIONARY POINT, TOO MANY STEPS TAKEN",
-        stoppattern=safeword
+        stoppattern=safeword,
     )
 
     if idx is not None:
@@ -369,7 +333,7 @@ def get_errors(lines):
     idx = linesio.get_rev_index(
         lines,
         "FAILURE TO LOCATE STATIONARY POINT, SCF HAS NOT CONVERGED",
-        stoppattern=safeword
+        stoppattern=safeword,
     )
 
     if idx is not None:
@@ -485,7 +449,7 @@ def get_properties_coordinates(lines):
     idx = linesio.get_rev_index(
         lines,
         "FAILURE TO LOCATE STATIONARY POINT, TOO MANY STEPS TAKEN",
-        stoppattern="NSEARCH"
+        stoppattern="NSEARCH",
     )
 
     if idx is not None:
@@ -497,7 +461,7 @@ def get_properties_coordinates(lines):
     idx = linesio.get_rev_index(
         lines,
         "FAILURE TO LOCATE STATIONARY POINT, SCF HAS NOT CONVERGED",
-        stoppattern="NESERCH"
+        stoppattern="NESERCH",
     )
 
     if idx is not None:
@@ -559,11 +523,10 @@ def get_properties_vibration(lines):
 
     # Check linear
     idx = linesio.get_index(
-        lines,
-        "THIS MOLECULE IS RECOGNIZED AS BEING LINEAR"
+        lines, "THIS MOLECULE IS RECOGNIZED AS BEING LINEAR"
     )
 
-    is_linear = (idx is not None)
+    is_linear = idx is not None
 
     # thermodynamic
     idx = linesio.get_rev_index(lines, "KJ/MOL    KJ/MOL    KJ/MOL   J/MOL-K")
@@ -624,9 +587,7 @@ def get_properties_orbitals(lines):
     idx_start = linesio.get_index(lines, "EIGENVECTORS")
     idx_start += 4
     idx_end = linesio.get_index(
-        lines,
-        "END OF RHF CALCULATION",
-        offset=idx_start
+        lines, "END OF RHF CALCULATION", offset=idx_start
     )
 
     energies = []
@@ -674,21 +635,23 @@ def get_properties_solvation(lines):
     line = line.split()
     electrostatic_interaction = float(line[-2])
 
-    line = lines[idx+1].split()
+    line = lines[idx + 1].split()
     pierotti_cavitation_energy = float(line[-2])
 
-    line = lines[idx+2].split()
+    line = lines[idx + 2].split()
     dispersion_free_energy = float(line[-2])
 
-    line = lines[idx+3].split()
+    line = lines[idx + 3].split()
     repulsion_free_energy = float(line[-2])
 
-    line = lines[idx+4].split()
+    line = lines[idx + 4].split()
     total_interaction = float(line[-2])
 
-    total_non_polar = pierotti_cavitation_energy \
-        + dispersion_free_energy \
+    total_non_polar = (
+        pierotti_cavitation_energy
+        + dispersion_free_energy
         + repulsion_free_energy
+    )
 
     idx = linesio.get_index(lines, "CHARGE OF MOLECULE")
     line = lines[idx]
@@ -703,7 +666,7 @@ def get_properties_solvation(lines):
     surface_area = float(surface_area)
 
     idx = linesio.get_rev_index(lines, "DEBYE")
-    line = lines[idx+1]
+    line = lines[idx + 1]
     line = line.split()
     line = [float(x) for x in line]
     dxyz = line[0:3]
@@ -713,7 +676,7 @@ def get_properties_solvation(lines):
     idx += 3
     partial_charges = np.zeros(n_atoms)
     for i in range(n_atoms):
-        line = lines[idx+i]
+        line = lines[idx + i]
         line = line.split()
         atom_charge = float(line[-2])
         partial_charges[i] = atom_charge

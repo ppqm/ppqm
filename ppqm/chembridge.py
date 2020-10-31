@@ -1,19 +1,15 @@
-
-import os
-from io import StringIO
-import sys
-import gzip
 import copy
+import gzip
+import sys
+from io import StringIO
 
 import numpy as np
-
 import rdkit.Chem as Chem
 import rdkit.Chem.AllChem as AllChem
-import rdkit.Chem.Draw as Draw
 import rdkit.Chem.ChemicalForceFields as ChemicalForceFields
+import rdkit.Chem.Draw as Draw
 import rdkit.Chem.rdMolDescriptors as rdMolDescriptors
 import rdkit.Chem.rdmolops as rdmolops
-
 
 # spin-multiplicities 2,3,4,3,2 for the atoms H, C, N, O, F, respectively.
 MULTIPLICITY = {}
@@ -25,23 +21,110 @@ MULTIPLICITY["F"] = 2
 MULTIPLICITY["Cl"] = 2
 
 
-ATOM_LIST = [x.strip() for x in [
-    'h ', 'he', \
-    'li', 'be', 'b ', 'c ', 'n ', 'o ', 'f ', 'ne', \
-    'na', 'mg', 'al', 'si', 'p ', 's ', 'cl', 'ar', \
-    'k ', 'ca', 'sc', 'ti', 'v ', 'cr', 'mn', 'fe', 'co', 'ni', 'cu', \
-    'zn', 'ga', 'ge', 'as', 'se', 'br', 'kr',  \
-    'rb', 'sr', 'y ', 'zr', 'nb', 'mo', 'tc', 'ru', 'rh', 'pd', 'ag', \
-    'cd', 'in', 'sn', 'sb', 'te', 'i ', 'xe',  \
-    'cs', 'ba', 'la', 'ce', 'pr', 'nd', 'pm', 'sm', 'eu', 'gd', 'tb', 'dy', \
-    'ho', 'er', 'tm', 'yb', 'lu', 'hf', 'ta', 'w ', 're', 'os', 'ir', 'pt', \
-    'au', 'hg', 'tl', 'pb', 'bi', 'po', 'at', 'rn', \
-    'fr', 'ra', 'ac', 'th', 'pa', 'u ', 'np', 'pu']]
+ATOM_LIST = [
+    x.strip()
+    for x in [
+        "h ",
+        "he",
+        "li",
+        "be",
+        "b ",
+        "c ",
+        "n ",
+        "o ",
+        "f ",
+        "ne",
+        "na",
+        "mg",
+        "al",
+        "si",
+        "p ",
+        "s ",
+        "cl",
+        "ar",
+        "k ",
+        "ca",
+        "sc",
+        "ti",
+        "v ",
+        "cr",
+        "mn",
+        "fe",
+        "co",
+        "ni",
+        "cu",
+        "zn",
+        "ga",
+        "ge",
+        "as",
+        "se",
+        "br",
+        "kr",
+        "rb",
+        "sr",
+        "y ",
+        "zr",
+        "nb",
+        "mo",
+        "tc",
+        "ru",
+        "rh",
+        "pd",
+        "ag",
+        "cd",
+        "in",
+        "sn",
+        "sb",
+        "te",
+        "i ",
+        "xe",
+        "cs",
+        "ba",
+        "la",
+        "ce",
+        "pr",
+        "nd",
+        "pm",
+        "sm",
+        "eu",
+        "gd",
+        "tb",
+        "dy",
+        "ho",
+        "er",
+        "tm",
+        "yb",
+        "lu",
+        "hf",
+        "ta",
+        "w ",
+        "re",
+        "os",
+        "ir",
+        "pt",
+        "au",
+        "hg",
+        "tl",
+        "pb",
+        "bi",
+        "po",
+        "at",
+        "rn",
+        "fr",
+        "ra",
+        "ac",
+        "th",
+        "pa",
+        "u ",
+        "np",
+        "pu",
+    ]
+]
 
 
 def str_atom(iatm):
 
-    atom = ATOM_LIST[iatm-1]
+    atom = ATOM_LIST[iatm - 1]
     atom = atom.capitalize()
 
     return atom
@@ -57,26 +140,21 @@ def clean_sdf_header(sdfstr):
 
     sdfstr = str(sdfstr)
     for _ in range(2):
-        i = sdfstr.index('\n')
-        sdfstr = sdfstr[i+1:]
+        i = sdfstr.index("\n")
+        sdfstr = sdfstr[i + 1 :]
     sdfstr = "\n\n" + sdfstr
 
     return sdfstr
 
 
 def get_torsions(mol):
-    """ return idx of all torsion pairs
+    """return idx of all torsion pairs
     All heavy atoms, and one end can be a hydrogen
     """
 
     any_atom = "[*]"
-    not_hydrogen = "[!H]"
 
-    smarts = [
-        any_atom,
-        any_atom,
-        any_atom,
-        any_atom]
+    smarts = [any_atom, any_atom, any_atom, any_atom]
 
     smarts = "~".join(smarts)
 
@@ -90,12 +168,15 @@ def get_torsions(mol):
 
         atoms = get_torsion_atoms(mol, idx)
         atoms = np.array(atoms)
-        idxh, = np.where(atoms == "H")
+        (idxh,) = np.where(atoms == "H")
 
-        if idxh.shape[0] > 1: continue
+        if idxh.shape[0] > 1:
+            continue
         elif idxh.shape[0] > 0:
-            if idxh[0] == 1: continue
-            if idxh[0] == 2: continue
+            if idxh[0] == 1:
+                continue
+            if idxh[0] == 2:
+                continue
 
         rtnidxs.append(idx)
 
@@ -110,7 +191,7 @@ def get_torsion_atoms(mol, torsion, atom_type="str"):
 
     """
 
-    atoms = molobj_to_atoms(molobj, atom_type=atom_type)
+    atoms = molobj_to_atoms(mol, atom_type=atom_type)
     atoms = np.array(atoms)
     atoms = atoms[torsion]
 
@@ -187,7 +268,8 @@ def molobj_to_sdfstr(mol, use_v3000=False):
 
     """
 
-    if mol is None: return None
+    if mol is None:
+        return None
 
     n_confs = mol.GetNumConformers()
 
@@ -216,11 +298,9 @@ def molobj_to_smiles(mol, remove_hs=False):
     return smiles
 
 
-def molobj_to_svgstr(molobj,
-    force2d=False,
-    highlights=None,
-    pretty=False,
-    removeHs=False):
+def molobj_to_svgstr(
+    molobj, force2d=False, highlights=None, pretty=False, removeHs=False
+):
     """
 
     Returns SVG in string format
@@ -238,9 +318,10 @@ def molobj_to_svgstr(molobj,
     svg = Draw.MolsToGridImage(
         [molobj],
         molsPerRow=1,
-        subImgSize=(400,400),
+        subImgSize=(400, 400),
         useSVG=True,
-        highlightAtomLists=[highlights])
+        highlightAtomLists=[highlights],
+    )
 
     svg = svg.replace("xmlns:svg", "xmlns")
 
@@ -258,18 +339,19 @@ def molobj_to_svgstr(molobj,
 
                 # Add border to text
                 border_text = line
-                border_text = border_text.replace('stroke:none;', '')
-                border_text = border_text.replace(replacetext, borderline+replacetext )
+                border_text = border_text.replace("stroke:none;", "")
+                border_text = border_text.replace(
+                    replacetext, borderline + replacetext
+                )
 
                 svg[i] = border_text + "\n" + line
 
                 continue
 
-
             if "path" in line:
 
                 # thicker lines
-                line = line.replace('stroke-width:2px', 'stroke-width:3px')
+                line = line.replace("stroke-width:2px", "stroke-width:3px")
                 svg[i] = line
 
         svg = "\n".join(svg)
@@ -307,11 +389,7 @@ def sdfstr_to_smiles(sdfstr, remove_hs=False):
     return smiles
 
 
-def smiles_to_sdfstr(
-    smilesstr,
-    add_hydrogens=True,
-    return_status=False
-):
+def smiles_to_sdfstr(smilesstr, add_hydrogens=True, return_status=False):
     """
     SMILES to SDF converter
     """
@@ -336,9 +414,7 @@ def smiles_to_sdfstr(
     return sdfstr
 
 
-def smiles_to_molobj(smilesstr,
-    add_hydrogens=True,
-    return_status=False):
+def smiles_to_molobj(smilesstr, add_hydrogens=True, return_status=False):
 
     if return_status:
         Chem.WrapLogs()
@@ -378,8 +454,7 @@ def molobj_copy(molobj):
 
 
 def molobj_get_coordinates(molobj, idx=-1):
-    """
-    """
+    """"""
 
     conformer = molobj.GetConformer(id=idx)
     coordinates = conformer.GetPositions()
@@ -427,7 +502,7 @@ def molobj_to_mol2(molobj, charges=None):
         else:
             t = "ar"
 
-        bond = bond_fmt.format(i+1, a+1, b+1, t)
+        bond = bond_fmt.format(i + 1, a + 1, b + 1, t)
         bond_lines.append(bond)
 
     bond_lines.append("\n")
@@ -435,7 +510,9 @@ def molobj_to_mol2(molobj, charges=None):
 
     # Atoms
     atom_lines = ["@<TRIPOS>ATOM"]
-    atom_fmt = "{0:>4} {1:>4} {2:>13.4f} {3:>9.4f} {4:>9.4f} {5:>4} {6} {7} {8:>7.4f}"
+    atom_fmt = (
+        "{0:>4} {1:>4} {2:>13.4f} {3:>9.4f} {4:>9.4f} {5:>4} {6} {7} {8:>7.4f}"
+    )
     atoms = list(molobj.GetAtoms())
     atoms_int = [atom.GetAtomicNum() for atom in atoms]
     atoms_str = [atom.GetSymbol() for atom in atoms]
@@ -444,26 +521,27 @@ def molobj_to_mol2(molobj, charges=None):
     conformer = molobj.GetConformer()
     coordinates = conformer.GetPositions()
     coordinates = np.array(coordinates)
-    unique_atoms = np.unique(atoms_int)
+    np.unique(atoms_int)
 
     if charges is None:
         charges = np.zeros(n_atoms)
 
     atm_i = 1
 
-
     for j in range(n_atoms):
 
         name = atoms_str[j]
-        pos0 = coordinates[j,0]
-        pos1 = coordinates[j,1]
-        pos2 = coordinates[j,2]
+        pos0 = coordinates[j, 0]
+        pos1 = coordinates[j, 1]
+        pos2 = coordinates[j, 2]
         typ = atoms_str[j]
         resid = 0
         resname = "MOL"
         charge = charges[j]
 
-        atmstr = atom_fmt.format(j+1, name, pos0, pos1, pos2, typ, resid,  resname, charge)
+        atmstr = atom_fmt.format(
+            j + 1, name, pos0, pos1, pos2, typ, resid, resname, charge
+        )
         atom_lines.append(atmstr)
 
         atm_i += 1
@@ -513,30 +591,27 @@ def check_conformer_distance(molobj, cutoff=0.001):
     return status
 
 
-
 def remove_salt(smiles):
 
     return max(smiles.split("."), key=len)
 
 
 def read(filename, remove_hs=False, sanitize=True):
-    """
-    """
+    """"""
 
     ext = filename.split(".")[-1]
 
     if ext == "sdf":
 
-        suppl = Chem.SDMolSupplier(filename,
-            removeHs=remove_hs,
-            sanitize=sanitize)
+        suppl = Chem.SDMolSupplier(
+            filename, removeHs=remove_hs, sanitize=sanitize
+        )
 
     elif ext == "gz":
 
         fobj = gzip.open(filename)
-        suppl = Chem.ForwardSDMolSupplier(fobj,
-            removeHs=remove_hs,
-            sanitize=sanitize)
+        suppl = Chem.ForwardSDMolSupplier(
+            fobj, removeHs=remove_hs, sanitize=sanitize
+        )
 
     return suppl
-

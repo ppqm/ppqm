@@ -1,8 +1,7 @@
-
 import pytest
-from context import ppqm
-from context import CONFIG
-from ppqm import mndo, tasks, chembridge
+from context import CONFIG, ppqm
+
+from ppqm import chembridge, mndo, tasks
 
 MNDO_OPTIONS = {
     "scr": CONFIG["scr"]["scr"],
@@ -21,13 +20,9 @@ def test_optimize_water():
     # Get mndo calculator
     calc = mndo.MndoCalculator(**MNDO_OPTIONS)
 
-    method = "PM3"
-
     # Optimize water
     properties = calc.optimize(
-        molobj,
-        return_copy=False,
-        return_properties=True
+        molobj, return_copy=False, return_properties=True
     )
 
     water_atomization = properties["h"]
@@ -39,7 +34,6 @@ def test_optimize_water():
 
 def test_water_xyz():
 
-    smi = "O"
     method = "PM3"
 
     # Get molecule
@@ -59,9 +53,4 @@ def test_water_xyz():
 
     assert pytest.approx(-224.11087077483552, rel=1e-2) == water_atomization
 
-
     return
-
-
-
-

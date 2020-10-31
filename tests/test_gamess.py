@@ -1,14 +1,8 @@
-
-import pytest
 import numpy as np
+import pytest
+from context import CONFIG, ppqm
 
-from context import ppqm
-from context import CONFIG
-
-from ppqm import chembridge
-from ppqm import gamess
-from ppqm import tasks
-
+from ppqm import chembridge, gamess, tasks
 
 TMPDIR = "_test_scr_gamess_"
 
@@ -41,13 +35,12 @@ $$$$
 
     calculation_options = {
         "contrl": {"runtyp": "optimize"},
-        "statpt": {"opttol": 0.0005, "nstep": 300, "projct": False}
+        "statpt": {"opttol": 0.0005, "nstep": 300, "projct": False},
     }
 
     molobj = chembridge.sdfstr_to_molobj(methane)
     calc = gamess.GamessCalculator(
-        method_options={"method": "pm3"},
-        **GAMESS_OPTIONS
+        method_options={"method": "pm3"}, **GAMESS_OPTIONS
     )
 
     # calculate returns List(properties) for every conformer
@@ -65,7 +58,7 @@ $$$$
 
 def test_optimization_read():
 
-    with open("tests/resources/gamess/gamess_methane.log", 'r') as f:
+    with open("tests/resources/gamess/gamess_methane.log", "r") as f:
         output = f.readlines()
 
     properties = gamess.get_properties(output)
@@ -98,28 +91,31 @@ M  END
 $$$$
     """
 
-    coordinates = np.array([
-        [0., -0., 0., ],
-        [-0., -0.88755027, -0.62754422],
-        [-0., 0.88755027, -0.62754422],
-        [-0.88755027, 0., 0.62754422],
-        [0.88755027, 0., 0.62754422],
-    ])
+    coordinates = np.array(
+        [
+            [
+                0.0,
+                -0.0,
+                0.0,
+            ],
+            [-0.0, -0.88755027, -0.62754422],
+            [-0.0, 0.88755027, -0.62754422],
+            [-0.88755027, 0.0, 0.62754422],
+            [0.88755027, 0.0, 0.62754422],
+        ]
+    )
 
     molobj = chembridge.sdfstr_to_molobj(methane)
     chembridge.molobj_set_coordinates(molobj, coordinates)
 
-    method_options = {
-        "method": "pm3"
-    }
+    method_options = {"method": "pm3"}
     calculation_options = {
         "contrl": {"runtyp": "hessian", "maxit": 60},
     }
 
     molobj = chembridge.sdfstr_to_molobj(methane)
     calc = gamess.GamessCalculator(
-        method_options=method_options,
-        **GAMESS_OPTIONS
+        method_options=method_options, **GAMESS_OPTIONS
     )
 
     # calculate returns List(properties) for every conformer
@@ -138,40 +134,46 @@ $$$$
     #  VIB. THERMAL CORRECTION E(T)-E(0) = H(T)-H(0) =        99.870 J/MOL
 
     assert ppqm.constants.COLUMN_ENERGY in properties
-    assert pytest.approx(206.665, rel=3) == properties[
-        ppqm.gamess.COLUMN_THERMO][-1, -1]
+    assert (
+        pytest.approx(206.665, rel=3)
+        == properties[ppqm.gamess.COLUMN_THERMO][-1, -1]
+    )
 
-    assert pytest.approx(-13.01, rel=2) == properties[
-        ppqm.constants.COLUMN_ENERGY
-    ]
+    assert (
+        pytest.approx(-13.01, rel=2)
+        == properties[ppqm.constants.COLUMN_ENERGY]
+    )
 
     return
 
 
 def test_vibration_read():
 
-    with open("tests/resources/gamess/gamess_methane_vib.log", 'r') as f:
+    with open("tests/resources/gamess/gamess_methane_vib.log", "r") as f:
         output = f.readlines()
 
     properties = gamess.get_properties(output)
 
     vibs = properties["freq"]
-    result = np.array([
-        5.757000e+00,
-        5.757000e+00,
-        9.600000e-02,
-        6.419200e+01,
-        7.002200e+01,
-        7.002200e+01,
-        1.362606e+03,
-        1.362741e+03,
-        1.362741e+03,
-        1.451008e+03,
-        1.451231e+03,
-        3.207758e+03,
-        3.207864e+03,
-        3.207864e+03,
-        3.311312e+03])
+    result = np.array(
+        [
+            5.757000e00,
+            5.757000e00,
+            9.600000e-02,
+            6.419200e01,
+            7.002200e01,
+            7.002200e01,
+            1.362606e03,
+            1.362741e03,
+            1.362741e03,
+            1.451008e03,
+            1.451231e03,
+            3.207758e03,
+            3.207864e03,
+            3.207864e03,
+            3.311312e03,
+        ]
+    )
 
     np.testing.assert_almost_equal(vibs, result)
 
@@ -202,9 +204,9 @@ $$$$
             "coord": "cart",
             "units": "angs",
             "scftyp": "rhf",
-            "maxit": 60
+            "maxit": 60,
         },
-        "basis": {"gbasis": "sto", "ngauss": 3}
+        "basis": {"gbasis": "sto", "ngauss": 3},
     }
 
     molobj = chembridge.sdfstr_to_molobj(methane)
@@ -224,7 +226,7 @@ $$$$
         0.713,
         0.713,
         0.713,
-        0.7505
+        0.7505,
     ]
 
     np.testing.assert_almost_equal(orbitals, results)
@@ -234,7 +236,7 @@ $$$$
 
 def test_orbitals_read():
 
-    with open("tests/resources/gamess/gamess_methane_orb.log", 'r') as f:
+    with open("tests/resources/gamess/gamess_methane_orb.log", "r") as f:
         output = f.readlines()
 
     properties = gamess.get_properties(output)
@@ -249,7 +251,7 @@ def test_orbitals_read():
         0.713,
         0.713,
         0.713,
-        0.7505
+        0.7505,
     ]
 
     np.testing.assert_almost_equal(orbitals, results)
@@ -280,20 +282,11 @@ $$$$
 
     options = dict()
     options["system"] = {"mwords": 125}
-    options["pcm"] = {
-        "solvnt": "water",
-        "mxts": 15000,
-        "icav": 1,
-        "idisp": 1
-    }
-    options["tescav"] = {
-        "mthall": 4,
-        "ntsall": 60
-    }
+    options["pcm"] = {"solvnt": "water", "mxts": 15000, "icav": 1, "idisp": 1}
+    options["tescav"] = {"mthall": 4, "ntsall": 60}
 
     calc = gamess.GamessCalculator(
-        method_options={"method": "pm3"},
-        **GAMESS_OPTIONS
+        method_options={"method": "pm3"}, **GAMESS_OPTIONS
     )
 
     results = calc.calculate(molobj, options)
@@ -308,7 +301,7 @@ $$$$
 
 def test_solvation_read():
 
-    with open("tests/resources/gamess/gamess_methane_sol.log", 'r') as f:
+    with open("tests/resources/gamess/gamess_methane_sol.log", "r") as f:
         output = f.readlines()
 
     properties = gamess.get_properties(output)
@@ -328,27 +321,22 @@ def test_water():
     # Get molecule with three conformers
     n_conformers = 3
     molobj = tasks.generate_conformers(
-        smi,
-        max_conf=n_conformers,
-        min_conf=n_conformers
+        smi, max_conf=n_conformers, min_conf=n_conformers
     )
 
     # Get gamess calculator
     method = "PM3"
-    method_options = {
-        "method": method
-    }
+    method_options = {"method": method}
     calc = gamess.GamessCalculator(
-        method_options=method_options,
-        **GAMESS_OPTIONS
+        method_options=method_options, **GAMESS_OPTIONS
     )
 
     results = calc.optimize(molobj, return_properties=True)
 
     for result in results:
         assert (
-            pytest.approx(reference_energy, rel=1e-2) ==
-            result[ppqm.constants.COLUMN_ENERGY]
+            pytest.approx(reference_energy, rel=1e-2)
+            == result[ppqm.constants.COLUMN_ENERGY]
         )
 
     return
@@ -362,17 +350,11 @@ def test_fail_wrong_method():
 
     # Set bad options
     options = {
-        "basis": {
-            "gbasis": "pm9000"
-        },
+        "basis": {"gbasis": "pm9000"},
         "contrl": {
             "runtyp": "optimize",
         },
-        "statpt": {
-            "opttol": 0.0005,
-            "nstep": 300,
-            "projct": False
-        }
+        "statpt": {"opttol": 0.0005, "nstep": 300, "projct": False},
     }
 
     # Get gamess calculator and calculate molobj with bad methods
@@ -390,10 +372,10 @@ def test_fail_wrong_method():
 def test_get_header():
 
     options = {
-        'contrl': {'scftyp': 'rhf', 'runtyp': 'energy'},
-        'basis': {'gbasis': 'sto', 'ngauss': 3},
-        'statpt': {'opttol': 0.0001, 'nstep': 20, 'projct': False},
-        'system': {'mwords': 30},
+        "contrl": {"scftyp": "rhf", "runtyp": "energy"},
+        "basis": {"gbasis": "sto", "ngauss": 3},
+        "statpt": {"opttol": 0.0001, "nstep": 20, "projct": False},
+        "system": {"mwords": 30},
     }
 
     header = ppqm.gamess.get_header(options)
@@ -450,5 +432,5 @@ def main():
     return
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
