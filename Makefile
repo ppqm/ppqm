@@ -1,8 +1,8 @@
 python = python
-LINE_LENGTH=79
-BLACKARGS=--line-length ${LINE_LENGTH}
+LINE_LENGTH = 79
+BLACKARGS = --line-length ${LINE_LENGTH}
 
-FLAKEARGS=\
+FLAKEARGS = \
 	--remove-all-unused-imports \
 	--remove-unused-variables \
 	--expand-star-imports
