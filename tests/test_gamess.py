@@ -418,26 +418,3 @@ M  END """
         pytest.approx(17.56621, rel=10 ** -4)
         == properties[ppqm.constants.COLUMN_ENERGY]
     )
-
-
-def main():
-
-    # test_output()
-    # test_optimization()
-    # test_optimization_options()
-    # test_vibration_read()
-    # test_vibration()
-    # test_orbitals_read()
-    # test_orbitals()
-    # test_solvation_read()
-    # test_solvation()
-    # test_water()
-    # test_fail_wrong_method()
-    # test_get_header()
-    test_dinitrogen()
-
-    return
-
-
-if __name__ == "__main__":
-    main()
