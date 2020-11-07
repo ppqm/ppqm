@@ -410,7 +410,14 @@ M  END """
     calc = gamess.GamessCalculator(**GAMESS_OPTIONS)
     results = calc.optimize(molobj, return_properties=True)
 
-    return
+    assert isinstance(results, list)
+
+    properties = results[0]
+    assert isinstance(properties, dict)
+    assert (
+        pytest.approx(17.56621, rel=10 ** -4)
+        == properties[ppqm.constants.COLUMN_ENERGY]
+    )
 
 
 def main():
