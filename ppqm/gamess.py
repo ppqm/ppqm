@@ -59,6 +59,7 @@ class GamessCalculator(BaseCalculator):
             "scr": self.scr,
             "gamess_scr": gamess_scr,
             "gamess_userscr": gamess_userscr,
+            "filename": self.filename
         }
 
         self._health_check()
@@ -244,9 +245,13 @@ def run_gamess(
 
     assert env.command_exists(cmd), f"Could not find {cmd} in your enviroment"
 
+    if not filename.endswith(".inp"):
+        filename += ".inp"
+
     if pre_clean:
         clean(gamess_scr, filename)
-        clean(gamess_userscr, filename)
+        if gamess_scr != gamess_userscr:
+            clean(gamess_userscr, filename)
 
     full_filename = os.path.join(scr, filename)
 
@@ -256,18 +261,24 @@ def run_gamess(
     command = [cmd, filename]
     command = " ".join(command)
 
-    _logger.debug(command)
+    _logger.debug(f"scr {scr}")
+    _logger.debug(f"cmd {command}")
 
     stdout, stderr = shell.execute(command, chdir=scr)
 
     if post_clean:
         clean(gamess_scr, filename)
-        clean(gamess_userscr, filename)
+        if gamess_scr != gamess_userscr:
+            clean(gamess_userscr, filename)
 
     return stdout, stderr
 
 
-def clean(scr, filename, debug=False):
+def clean(scr, filename):
+
+    # TODO Use pathlib instead
+
+    _logger.debug(f"removing {scr} {filename}")
 
     scr = os.path.expanduser(scr)
 
@@ -275,8 +286,6 @@ def clean(scr, filename, debug=False):
     files = glob.glob(search)
 
     for f in files:
-        if debug:
-            print("rm", f)
         os.remove(f)
 
     return
@@ -354,10 +363,17 @@ def get_properties(lines):
     runtyp = read_type(lines)
 
     if runtyp is None:
+
+        errors = get_errors(lines)
+        if errors is not None:
+            return errors
+
         return None
 
     method = read_method(lines)
     is_solvation = read_solvation(lines)
+
+    _logger.debug(f"parseing {runtyp} {method} solvation={is_solvation}")
 
     if method == "HF":
         reader = get_properties_orbitals
@@ -506,6 +522,13 @@ def get_properties_coordinates(lines):
 def get_properties_vibration(lines):
 
     properties = {}
+
+    idx = linesio.get_rev_index(lines, "SCF DOES NOT CONVERGE AT VIB", stoppattern="END OF PROPERTY EVALUATION")
+
+    if idx is not None:
+        properties["error"] = "Unable to vibrate structure"
+        _logger.warning("vibration_unconverged")
+        return properties
 
     # Get number of atoms
     idx = linesio.get_index(lines, "TOTAL NUMBER OF ATOMS")

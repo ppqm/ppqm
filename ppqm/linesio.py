@@ -27,11 +27,11 @@ def get_index(lines, pattern, offset=None, n_lines=None, stoppattern=None):
         n_lines = len(lines)
 
     for i in range(offset, n_lines):
-        line = lines[i]
-        if line.find(pattern) != -1:
+
+        if pattern in lines[i]:
             return i
 
-        if stoppattern and stoppattern in line:
+        if stoppattern and stoppattern in lines[i]:
             return None
 
     return None
