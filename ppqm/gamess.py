@@ -1,7 +1,7 @@
 import glob
+import logging
 import os
 from collections import ChainMap
-import logging
 
 import numpy as np
 import rmsd
