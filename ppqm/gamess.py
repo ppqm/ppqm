@@ -1,6 +1,7 @@
 import glob
 import os
 from collections import ChainMap
+import logging
 
 import numpy as np
 import rmsd
@@ -27,6 +28,8 @@ COLUMN_SOLV_SURFACE = "surface"
 COLUMN_TOTAL_CHARGE = "total_charge"
 COLUMN_DIPOLE_VEC = "dipole"
 COLUMN_DIPOLE_TOTAL = "dipole_total"
+
+_logger = logging.getLogger("ppqm.gamess")
 
 
 class GamessCalculator(BaseCalculator):
@@ -253,13 +256,9 @@ def run_gamess(
     command = [cmd, filename]
     command = " ".join(command)
 
+    _logger.debug(command)
+
     stdout, stderr = shell.execute(command, chdir=scr)
-
-    if debug:
-        print(stdout)
-
-    if debug:
-        print(stderr)
 
     if post_clean:
         clean(gamess_scr, filename)
