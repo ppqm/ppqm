@@ -56,9 +56,10 @@ different calculation types
     results = calc.hessian(molobj)
     
 
-## Other code bases
+Other code bases
+================
 
-
+- https://github.com/kzfm/pygamess
 - https://github.com/duartegroup/autodE/
 
 
