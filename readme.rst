@@ -46,7 +46,7 @@ Example of using GAMESS calculator and using specific options
     properties_list = calc.calculate(mol, options)
 
 
-differetn calculation types
+different calculation types
 
 .. code-block:: python
 
@@ -54,3 +54,12 @@ differetn calculation types
     results = calc.optimize(molobj)
     results = calc.gradient(molobj)
     results = calc.hessian(molobj)
+    
+
+## Other code bases
+
+
+- https://github.com/duartegroup/autodE/
+
+
+    
