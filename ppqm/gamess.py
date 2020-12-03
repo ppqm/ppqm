@@ -395,6 +395,16 @@ def get_properties(lines):
     return properties
 
 
+def has_failed(lines):
+
+    msg = "Execution terminated due to error"
+    idx = linesio.get_rev_index(lines, msg, stoppattern="TOTAL WALL TIME")
+    if idx is not None:
+        return True
+
+    return False
+
+
 def read_solvation(lines):
 
     keyword = "INPUT FOR PCM SOLVATION CALCULATION"
@@ -587,6 +597,7 @@ def get_properties_vibration(lines):
     idx_end = linesio.get_index(lines, "ELECTRON INTEGRALS")
     head_lines = "\n".join(lines[18:idx_end])
 
+    # TODO Make custom molcalc readers
     properties["jsmol"] = head_lines + vib_lines
     properties["linear"] = is_linear
     properties["freq"] = np.array(vibrations)
@@ -643,6 +654,14 @@ def get_properties_orbitals(lines):
 def get_properties_solvation(lines):
 
     properties = {}
+
+    # Check for common errors
+    if has_failed(lines):
+        errormsg = "ERROR"
+        idx = linesio.get_index(lines, errormsg)
+        if idx is not None:
+            error = lines[idx]
+            properties["error"] = error
 
     # Get number of atoms
     idx = linesio.get_index(lines, "TOTAL NUMBER OF ATOMS")
