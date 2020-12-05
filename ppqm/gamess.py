@@ -243,6 +243,10 @@ def run_gamess(
 ):
     """"""
 
+    # TODO important! Gamess is super sensitive to filename, because it will
+    # create filenames in userscr filename in this function should be using
+    # tempfile, if filename is None
+
     assert env.command_exists(cmd), f"Could not find {cmd} in your enviroment"
 
     if not filename.endswith(".inp"):
