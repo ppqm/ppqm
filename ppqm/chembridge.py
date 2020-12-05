@@ -297,7 +297,7 @@ def molobj_to_smiles(mol, remove_hs=False):
 
 
 def molobj_to_svgstr(
-    molobj, force2d=False, highlights=None, pretty=False, removeHs=False
+    molobj, use_2d=False, highlights=None, pretty=False, removeHs=False
 ):
     """
 
@@ -308,9 +308,9 @@ def molobj_to_svgstr(
     if removeHs:
         molobj = Chem.RemoveHs(molobj)
 
-    if force2d:
+    if use_2d:
         molobj = copy.deepcopy(molobj)
-        Chem.RemoveAllConformers(molobj)
+        molobj.RemoveAllConformers()
         AllChem.Compute2DCoords(molobj)
 
     svg = Draw.MolsToGridImage(
@@ -353,6 +353,10 @@ def molobj_to_svgstr(
                 svg[i] = line
 
         svg = "\n".join(svg)
+
+    svg = svg.replace(
+        "<?xml version='1.0' encoding='iso-8859-1'?>", ""
+    )
 
     return svg
 
