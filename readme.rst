@@ -61,6 +61,8 @@ Other code bases
 
 - https://github.com/kzfm/pygamess
 - https://github.com/duartegroup/autodE/
+- https://github.com/JelfsMaterialsGroup/stko
+- https://github.com/lukasturcani/stk
 
 
     
