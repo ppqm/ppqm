@@ -54,7 +54,7 @@ different calculation types
     results = calc.optimize(molobj)
     results = calc.gradient(molobj)
     results = calc.hessian(molobj)
-    
+
 
 Other code bases
 ================
@@ -63,6 +63,3 @@ Other code bases
 - https://github.com/duartegroup/autodE/
 - https://github.com/JelfsMaterialsGroup/stko
 - https://github.com/lukasturcani/stk
-
-
-    

@@ -14,7 +14,7 @@ unset echo
 
  Distributed Data Interface kickoff program.
  Initiating 1 compute processes on 1 nodes to run the following command:
- /home/charnley/opt/gamess/gamess-github/gamess.00.x gamess_methane 
+ /home/charnley/opt/gamess/gamess-github/gamess.00.x gamess_methane
 
           ******************************************************
           *         GAMESS VERSION = 30 SEP 2018 (R3)         *
@@ -94,32 +94,32 @@ unset echo
  EXECUTION OF GAMESS BEGUN Tue Dec 31 16:07:38 2019
 
             ECHO OF THE FIRST FEW INPUT CARDS -
- INPUT CARD> $basis gbasis=pm3 $end                                                         
- INPUT CARD> $contrl runtyp=optimize icharg=0 $end                                          
- INPUT CARD> $statpt opttol=0.0005 nstep=200 projct=.F. $end                                
- INPUT CARD> $data                                                                          
- INPUT CARD>Title                                                                           
- INPUT CARD>C1                                                                              
- INPUT CARD>C     6.0    0.000000     -0.000000    0.000000                                 
- INPUT CARD>H     1.0    0.000000     -0.890000    -0.629300                                
- INPUT CARD>H     1.0    0.000000     0.890000    -0.629300                                 
- INPUT CARD>H     1.0    -0.890000     -0.000000    0.629300                                
- INPUT CARD>H     1.0    0.890000     -0.000000    0.629300                                 
- INPUT CARD> $end                                                                           
+ INPUT CARD> $basis gbasis=pm3 $end
+ INPUT CARD> $contrl runtyp=optimize icharg=0 $end
+ INPUT CARD> $statpt opttol=0.0005 nstep=200 projct=.F. $end
+ INPUT CARD> $data
+ INPUT CARD>Title
+ INPUT CARD>C1
+ INPUT CARD>C     6.0    0.000000     -0.000000    0.000000
+ INPUT CARD>H     1.0    0.000000     -0.890000    -0.629300
+ INPUT CARD>H     1.0    0.000000     0.890000    -0.629300
+ INPUT CARD>H     1.0    -0.890000     -0.000000    0.629300
+ INPUT CARD>H     1.0    0.890000     -0.000000    0.629300
+ INPUT CARD> $end
     1000000 WORDS OF MEMORY AVAILABLE
 
      BASIS OPTIONS
      -------------
-     GBASIS=PM3          IGAUSS=       0      POLAR=NONE    
+     GBASIS=PM3          IGAUSS=       0      POLAR=NONE
      NDFUNC=       0     NFFUNC=       0     DIFFSP=       F
-     NPFUNC=       0      DIFFS=       F     BASNAM=        
+     NPFUNC=       0      DIFFS=       F     BASNAM=
 
 
      RUN TITLE
      ---------
- Title                                                                           
+ Title
 
- THE POINT GROUP OF THE MOLECULE IS C1      
+ THE POINT GROUP OF THE MOLECULE IS C1
  THE ORDER OF THE PRINCIPAL AXIS IS     0
 
  ATOM      ATOMIC                      COORDINATES (BOHR)
@@ -133,13 +133,13 @@ unset echo
           INTERNUCLEAR DISTANCES (ANGS.)
           ------------------------------
 
-                1 C          2 H          3 H          4 H          5 H     
+                1 C          2 H          3 H          4 H          5 H
 
    1 C       0.0000000    1.0900085 *  1.0900085 *  1.0900085 *  1.0900085 *
    2 H       1.0900085 *  0.0000000    1.7800000 *  1.7799646 *  1.7799646 *
    3 H       1.0900085 *  1.7800000 *  0.0000000    1.7799646 *  1.7799646 *
    4 H       1.0900085 *  1.7799646 *  1.7799646 *  0.0000000    1.7800000 *
-   5 H       1.0900085 *  1.7799646 *  1.7799646 *  1.7800000 *  0.0000000  
+   5 H       1.0900085 *  1.7799646 *  1.7799646 *  1.7800000 *  0.0000000
 
   * ... LESS THAN  3.000
 
@@ -156,22 +156,22 @@ unset echo
 
  THE PARAMETERS USED IN THIS CALCULATION ARE DESCRIBED IN:
 
-  H: (PM3): J. J. P. STEWART, J. COMP. CHEM.     10, 209 (1989).                
-  C: (PM3): J. J. P. STEWART, J. COMP. CHEM.     10, 209 (1989).                
+  H: (PM3): J. J. P. STEWART, J. COMP. CHEM.     10, 209 (1989).
+  C: (PM3): J. J. P. STEWART, J. COMP. CHEM.     10, 209 (1989).
 
  THERE ARE    1 HEAVY AND    4 LIGHT ATOMS,
  YIELDING A TOTAL OF        46 MOPAC 2E- INTEGRALS.
 
      $CONTRL OPTIONS
      ---------------
- SCFTYP=RHF          RUNTYP=OPTIMIZE     EXETYP=RUN     
- MPLEVL=       0     CITYP =NONE         CCTYP =NONE         VBTYP =NONE    
- DFTTYP=NONE         TDDFT =NONE    
- MULT  =       1     ICHARG=       0     NZVAR =       0     COORD =UNIQUE  
+ SCFTYP=RHF          RUNTYP=OPTIMIZE     EXETYP=RUN
+ MPLEVL=       0     CITYP =NONE         CCTYP =NONE         VBTYP =NONE
+ DFTTYP=NONE         TDDFT =NONE
+ MULT  =       1     ICHARG=       0     NZVAR =       0     COORD =UNIQUE
  PP    =NONE         RELWFN=NONE         LOCAL =NONE         NUMGRD=       F
- ISPHER=      -1     NOSYM =       0     MAXIT =      30     UNITS =ANGS    
- PLTORB=       F     MOLPLT=       F     AIMPAC=       F     FRIEND=        
- NPRINT=       7     IREST =       0     GEOM  =INPUT   
+ ISPHER=      -1     NOSYM =       0     MAXIT =      30     UNITS =ANGS
+ PLTORB=       F     MOLPLT=       F     AIMPAC=       F     FRIEND=
+ NPRINT=       7     IREST =       0     GEOM  =INPUT
  NORMF =       0     NORMP =       0     ITOL  =      20     ICUT  =       9
  INTTYP=BEST         GRDTYP=BEST         QMTTOL= 1.0E-06
 
@@ -191,8 +191,8 @@ unset echo
 
      MOMENTS            FIELD           POTENTIAL          DENSITY
  IEMOM =       1   IEFLD =       0   IEPOT =       0   IEDEN =       0
- WHERE =COMASS     WHERE =NUCLEI     WHERE =NUCLEI     WHERE =NUCLEI  
- OUTPUT=BOTH       OUTPUT=BOTH       OUTPUT=BOTH       OUTPUT=BOTH    
+ WHERE =COMASS     WHERE =NUCLEI     WHERE =NUCLEI     WHERE =NUCLEI
+ OUTPUT=BOTH       OUTPUT=BOTH       OUTPUT=BOTH       OUTPUT=BOTH
  IEMINT=       0   IEFINT=       0                     IEDINT=       0
                                                        MORB  =       0
           EXTRAPOLATION IN EFFECT
@@ -203,7 +203,7 @@ unset echo
      -------------------------------
      NWORD  =            0
      CUTOFF = 1.0E-09     MPTRAN =       0
-     DIRTRF =       F     AOINTS =DUP     
+     DIRTRF =       F     AOINTS =DUP
 
           ----------------------
           INTEGRAL INPUT OPTIONS
@@ -226,11 +226,11 @@ unset echo
           STATIONARY POINT LOCATION RUN
           -----------------------------
 
- OBTAINING INITIAL HESSIAN, HESS=GUESS   
+ OBTAINING INITIAL HESSIAN, HESS=GUESS
  CARTESIAN COORDINATE OPTIMIZATION USING BADGER'S RULE FORCE CONSTANT GUESS
 
           PARAMETERS CONTROLLING GEOMETRY SEARCH ARE
-          METHOD =QA                  UPHESS =BFGS    
+          METHOD =QA                  UPHESS =BFGS
           NNEG   =         0          NFRZ   =         0
           NSTEP  =       200          IFOLOW =         1
           HESS   =GUESS               RESTAR =         F
@@ -283,8 +283,8 @@ unset echo
 
  SYMMETRIES FOR INITIAL GUESS ORBITALS FOLLOW.   BOTH SET(S).
      4 ORBITALS ARE OCCUPIED (    0 CORE ORBITALS).
-     1=A        2=A        3=A        4=A        5=A        6=A        7=A   
-     8=A   
+     1=A        2=A        3=A        4=A        5=A        6=A        7=A
+     8=A
  ...... END OF INITIAL ORBITAL SELECTION ......
  STEP CPU TIME =     0.00 TOTAL CPU TIME =          0.0 (      0.0 MIN)
  TOTAL WALL CLOCK TIME=          0.0 SECONDS, CPU UTILIZATION IS   100.00%
@@ -326,7 +326,7 @@ unset echo
 
                       1          2          3          4          5
                    -1.0961    -0.5009    -0.5009    -0.5009     0.1553
-                     A          A          A          A          A   
+                     A          A          A          A          A
     1  C  1  S    0.745771  -0.000000   0.000000   0.000000   0.666203
     2  C  1  X    0.000000  -0.062086   0.704240  -0.000000   0.000000
     3  C  1  Y    0.000000   0.704240   0.062086   0.000000   0.000000
@@ -338,7 +338,7 @@ unset echo
 
                       6          7          8
                     0.1684     0.1684     0.1684
-                     A          A          A   
+                     A          A          A
     1  C  1  S    0.000000  -0.000000  -0.000000
     2  C  1  X    0.000000  -0.073080   0.703456
     3  C  1  Y    0.000000   0.703456   0.073080
@@ -413,13 +413,13 @@ unset echo
           INTERNUCLEAR DISTANCES (ANGS.)
           ------------------------------
 
-                1 C          2 H          3 H          4 H          5 H     
+                1 C          2 H          3 H          4 H          5 H
 
    1 C       0.0000000    1.0874758 *  1.0874758 *  1.0874758 *  1.0874758 *
    2 H       1.0874758 *  0.0000000    1.7758126 *  1.7758546 *  1.7758546 *
    3 H       1.0874758 *  1.7758126 *  0.0000000    1.7758546 *  1.7758546 *
    4 H       1.0874758 *  1.7758546 *  1.7758546 *  0.0000000    1.7758126 *
-   5 H       1.0874758 *  1.7758546 *  1.7758546 *  1.7758126 *  0.0000000  
+   5 H       1.0874758 *  1.7758546 *  1.7758546 *  1.7758126 *  0.0000000
 
   * ... LESS THAN  3.000
 
@@ -497,13 +497,13 @@ unset echo
           INTERNUCLEAR DISTANCES (ANGS.)
           ------------------------------
 
-                1 C          2 H          3 H          4 H          5 H     
+                1 C          2 H          3 H          4 H          5 H
 
    1 C       0.0000000    1.0869946 *  1.0869946 *  1.0869946 *  1.0869946 *
    2 H       1.0869946 *  0.0000000    1.7751005 *  1.7750318 *  1.7750318 *
    3 H       1.0869946 *  1.7751005 *  0.0000000    1.7750318 *  1.7750318 *
    4 H       1.0869946 *  1.7750318 *  1.7750318 *  0.0000000    1.7751005 *
-   5 H       1.0869946 *  1.7750318 *  1.7750318 *  1.7751005 *  0.0000000  
+   5 H       1.0869946 *  1.7750318 *  1.7750318 *  1.7751005 *  0.0000000
 
   * ... LESS THAN  3.000
 
@@ -572,13 +572,13 @@ unset echo
           INTERNUCLEAR DISTANCES (ANGS.)
           ------------------------------
 
-                1 C          2 H          3 H          4 H          5 H     
+                1 C          2 H          3 H          4 H          5 H
 
    1 C       0.0000000    1.0869946 *  1.0869946 *  1.0869946 *  1.0869946 *
    2 H       1.0869946 *  0.0000000    1.7751005 *  1.7750318 *  1.7750318 *
    3 H       1.0869946 *  1.7751005 *  0.0000000    1.7750318 *  1.7750318 *
    4 H       1.0869946 *  1.7750318 *  1.7750318 *  0.0000000    1.7751005 *
-   5 H       1.0869946 *  1.7750318 *  1.7750318 *  1.7751005 *  0.0000000  
+   5 H       1.0869946 *  1.7750318 *  1.7750318 *  1.7751005 *  0.0000000
 
   * ... LESS THAN  3.000
 
@@ -593,7 +593,7 @@ unset echo
 
                       1          2          3          4          5
                    -1.0980    -0.5014    -0.5014    -0.5013     0.1560
-                     A          A          A          A          A   
+                     A          A          A          A          A
     1  C  1  S   -0.745267   0.000000   0.000000  -0.000000   0.666766
     2  C  1  X    0.000000   0.707057  -0.000000   0.000000   0.000000
     3  C  1  Y   -0.000000  -0.000000  -0.707057   0.000000  -0.000000
@@ -605,7 +605,7 @@ unset echo
 
                       6          7          8
                     0.1688     0.1688     0.1688
-                     A          A          A   
+                     A          A          A
     1  C  1  S   -0.000000   0.000000   0.000000
     2  C  1  X   -0.000000  -0.000009  -0.707156
     3  C  1  Y   -0.000000   0.707156  -0.000009
@@ -640,7 +640,7 @@ unset echo
  ...... END OF PROPERTY EVALUATION ......
  STEP CPU TIME =     0.00 TOTAL CPU TIME =          0.0 (      0.0 MIN)
  TOTAL WALL CLOCK TIME=          0.0 SECONDS, CPU UTILIZATION IS     0.00%
-  $VIB   
+  $VIB
           IVIB=   0 IATOM=   0 ICOORD=   0 E=       -6.6344799463
   0.000000000E+00 0.000000000E+00 0.000000000E+00 0.000000000E+00-1.569501410E-07
   7.278917634E-06 0.000000000E+00 1.569523864E-07 7.278918843E-06-1.569534228E-07

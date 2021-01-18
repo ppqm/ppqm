@@ -296,9 +296,7 @@ def molobj_to_smiles(mol, remove_hs=False):
     return smiles
 
 
-def molobj_to_svgstr(
-    molobj, use_2d=False, highlights=None, pretty=False, removeHs=False
-):
+def molobj_to_svgstr(molobj, use_2d=False, highlights=None, pretty=False, removeHs=False):
     """
 
     Returns SVG in string format
@@ -338,9 +336,7 @@ def molobj_to_svgstr(
                 # Add border to text
                 border_text = line
                 border_text = border_text.replace("stroke:none;", "")
-                border_text = border_text.replace(
-                    replacetext, borderline + replacetext
-                )
+                border_text = border_text.replace(replacetext, borderline + replacetext)
 
                 svg[i] = border_text + "\n" + line
 
@@ -354,9 +350,7 @@ def molobj_to_svgstr(
 
         svg = "\n".join(svg)
 
-    svg = svg.replace(
-        "<?xml version='1.0' encoding='iso-8859-1'?>", ""
-    )
+    svg = svg.replace("<?xml version='1.0' encoding='iso-8859-1'?>", "")
 
     return svg
 
@@ -512,9 +506,7 @@ def molobj_to_mol2(molobj, charges=None):
 
     # Atoms
     atom_lines = ["@<TRIPOS>ATOM"]
-    atom_fmt = (
-        "{0:>4} {1:>4} {2:>13.4f} {3:>9.4f} {4:>9.4f} {5:>4} {6} {7} {8:>7.4f}"
-    )
+    atom_fmt = "{0:>4} {1:>4} {2:>13.4f} {3:>9.4f} {4:>9.4f} {5:>4} {6} {7} {8:>7.4f}"
     atoms = list(molobj.GetAtoms())
     atoms_int = [atom.GetAtomicNum() for atom in atoms]
     atoms_str = [atom.GetSymbol() for atom in atoms]
@@ -541,9 +533,7 @@ def molobj_to_mol2(molobj, charges=None):
         resname = "MOL"
         charge = charges[j]
 
-        atmstr = atom_fmt.format(
-            j + 1, name, pos0, pos1, pos2, typ, resid, resname, charge
-        )
+        atmstr = atom_fmt.format(j + 1, name, pos0, pos1, pos2, typ, resid, resname, charge)
         atom_lines.append(atmstr)
 
         atm_i += 1
@@ -605,15 +595,11 @@ def read(filename, remove_hs=False, sanitize=True):
 
     if ext == "sdf":
 
-        suppl = Chem.SDMolSupplier(
-            filename, removeHs=remove_hs, sanitize=sanitize
-        )
+        suppl = Chem.SDMolSupplier(filename, removeHs=remove_hs, sanitize=sanitize)
 
     elif ext == "gz":
 
         fobj = gzip.open(filename)
-        suppl = Chem.ForwardSDMolSupplier(
-            fobj, removeHs=remove_hs, sanitize=sanitize
-        )
+        suppl = Chem.ForwardSDMolSupplier(fobj, removeHs=remove_hs, sanitize=sanitize)
 
     return suppl

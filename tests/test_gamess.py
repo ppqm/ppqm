@@ -39,9 +39,7 @@ $$$$
     }
 
     molobj = chembridge.sdfstr_to_molobj(methane)
-    calc = gamess.GamessCalculator(
-        method_options={"method": "pm3"}, **GAMESS_OPTIONS
-    )
+    calc = gamess.GamessCalculator(method_options={"method": "pm3"}, **GAMESS_OPTIONS)
 
     # calculate returns List(properties) for every conformer
     results = calc.calculate(molobj, calculation_options)
@@ -114,9 +112,7 @@ $$$$
     }
 
     molobj = chembridge.sdfstr_to_molobj(methane)
-    calc = gamess.GamessCalculator(
-        method_options=method_options, **GAMESS_OPTIONS
-    )
+    calc = gamess.GamessCalculator(method_options=method_options, **GAMESS_OPTIONS)
 
     # calculate returns List(properties) for every conformer
     results = calc.calculate(molobj, calculation_options)
@@ -134,15 +130,9 @@ $$$$
     #  VIB. THERMAL CORRECTION E(T)-E(0) = H(T)-H(0) =        99.870 J/MOL
 
     assert ppqm.constants.COLUMN_ENERGY in properties
-    assert (
-        pytest.approx(206.665, rel=3)
-        == properties[ppqm.gamess.COLUMN_THERMO][-1, -1]
-    )
+    assert pytest.approx(206.665, rel=3) == properties[ppqm.gamess.COLUMN_THERMO][-1, -1]
 
-    assert (
-        pytest.approx(-13.01, rel=2)
-        == properties[ppqm.constants.COLUMN_ENERGY]
-    )
+    assert pytest.approx(-13.01, rel=2) == properties[ppqm.constants.COLUMN_ENERGY]
 
     return
 
@@ -285,9 +275,7 @@ $$$$
     options["pcm"] = {"solvnt": "water", "mxts": 15000, "icav": 1, "idisp": 1}
     options["tescav"] = {"mthall": 4, "ntsall": 60}
 
-    calc = gamess.GamessCalculator(
-        method_options={"method": "pm3"}, **GAMESS_OPTIONS
-    )
+    calc = gamess.GamessCalculator(method_options={"method": "pm3"}, **GAMESS_OPTIONS)
 
     results = calc.calculate(molobj, options)
     properties = results[0]
@@ -320,24 +308,17 @@ def test_water():
 
     # Get molecule with three conformers
     n_conformers = 3
-    molobj = tasks.generate_conformers(
-        smi, max_conf=n_conformers, min_conf=n_conformers
-    )
+    molobj = tasks.generate_conformers(smi, max_conf=n_conformers, min_conf=n_conformers)
 
     # Get gamess calculator
     method = "PM3"
     method_options = {"method": method}
-    calc = gamess.GamessCalculator(
-        method_options=method_options, **GAMESS_OPTIONS
-    )
+    calc = gamess.GamessCalculator(method_options=method_options, **GAMESS_OPTIONS)
 
     results = calc.optimize(molobj, return_properties=True)
 
     for result in results:
-        assert (
-            pytest.approx(reference_energy, rel=1e-2)
-            == result[ppqm.constants.COLUMN_ENERGY]
-        )
+        assert pytest.approx(reference_energy, rel=1e-2) == result[ppqm.constants.COLUMN_ENERGY]
 
     return
 
@@ -414,7 +395,4 @@ M  END """
 
     properties = results[0]
     assert isinstance(properties, dict)
-    assert (
-        pytest.approx(17.56621, rel=10 ** -4)
-        == properties[ppqm.constants.COLUMN_ENERGY]
-    )
+    assert pytest.approx(17.56621, rel=10 ** -4) == properties[ppqm.constants.COLUMN_ENERGY]

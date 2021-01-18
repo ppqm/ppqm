@@ -6,9 +6,7 @@ import rdkit.Chem.rdMolDescriptors as rdMolDescriptors
 from ppqm import chembridge
 
 
-def generate_conformers(
-    smiles, max_conf=20, min_conf=10, max_steps=1000, random_seed=1
-):
+def generate_conformers(smiles, max_conf=20, min_conf=10, max_steps=1000, random_seed=1):
 
     molobj = chembridge.smiles_to_molobj(smiles, add_hydrogens=True)
 

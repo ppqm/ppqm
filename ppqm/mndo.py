@@ -34,8 +34,7 @@ class MndoCalculator(BaseCalculator):
     ):
 
         header = (
-            "{self.method} MULLIK PRECISE charge={charge} jprint=5\n"
-            "nextmol=-1\nTITLE {title}"
+            "{self.method} MULLIK PRECISE charge={charge} jprint=5\n" "nextmol=-1\nTITLE {title}"
         )
 
         if return_copy:
@@ -59,8 +58,7 @@ class MndoCalculator(BaseCalculator):
         """"""
 
         header = (
-            "{self.method} MULLIK PRECISE charge={charge} "
-            "jprint=5\nnextmol=-1\nTITLE {title}"
+            "{self.method} MULLIK PRECISE charge={charge} " "jprint=5\nnextmol=-1\nTITLE {title}"
         )
 
         properties_ = self.calculate_axyzc(atoms, coord, header, optimize=True)
@@ -127,10 +125,10 @@ class MndoCalculator(BaseCalculator):
 
         return
 
-    def _get_input_from_molobj(
-        self, molobj, header, read_params=False, optimize=False, title=""
-    ):
+    def _get_input_from_molobj(self, molobj, header, read_params=False, optimize=False, title=""):
         """"""
+
+        # TODO Switch from header to options
 
         atoms, _, charge = chembridge.molobj_to_axyzc(molobj, atom_type="str")
 
@@ -140,9 +138,9 @@ class MndoCalculator(BaseCalculator):
         txt = []
         for i in range(n_confs):
             coord = chembridge.molobj_to_coordinates(molobj, idx=i)
-            header_prime = header.format(
-                charge=charge, method=self.method, title=f"{title}_Conf_{i}"
-            )
+            # header_prime = header.format(
+            #     charge=charge, method=self.method, title=f"{title}_Conf_{i}"
+            # )
             tx = get_input(
                 atoms,
                 coord,
@@ -197,8 +195,8 @@ def get_input(atoms, coords, header, read_params=False, optimize=False):
         fmt = {
             "atom": atom,
             "x": coord[0],
-            "x": coord[0],
-            "x": coord[0],
+            "y": coord[1],
+            "z": coord[2],
             "opt_flag": opt_flag,
         }
         line = MNDO_ATOMLINE.format(**fmt)
@@ -230,9 +228,7 @@ def get_internal_coordinates(atoms, coord, optimize=False):
 
         ba = coord[1] - coord[0]
         bc = coord[1] - coord[2]
-        cosine_angle = np.dot(ba, bc) / (
-            np.linalg.norm(ba) * np.linalg.norm(bc)
-        )
+        cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
         angle = np.arccos(cosine_angle) / np.pi * 180.0
 
         norm_ba = np.linalg.norm(ba)
@@ -418,11 +414,11 @@ def get_properties_1scf(lines):
         j = idx
         # continue until we hit a blank line
         while not lines[j].isspace() and lines[j].strip():
-            l = lines[j].split()
-            atoms.append(int(l[idx_atm]))
-            x = l[idx_x]
-            y = l[idx_y]
-            z = l[idx_z]
+            line = lines[j].split()
+            atoms.append(int(line[idx_atm]))
+            x = line[idx_x]
+            y = line[idx_y]
+            z = line[idx_z]
             xyz = [x, y, z]
             xyz = [float(c) for c in xyz]
             coord.append(xyz)
@@ -479,11 +475,11 @@ def get_properties_optimize(lines):
 
     # continue until we hit a blank line
     while not lines[j].isspace() and lines[j].strip():
-        l = lines[j].split()
-        symbols.append(int(l[idx_atm]))
-        x = l[idx_x]
-        y = l[idx_y]
-        z = l[idx_z]
+        line = lines[j].split()
+        symbols.append(int(line[idx_atm]))
+        x = line[idx_x]
+        y = line[idx_y]
+        z = line[idx_z]
         xyz = [x, y, z]
         xyz = [float(c) for c in xyz]
         coord.append(xyz)

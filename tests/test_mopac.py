@@ -20,9 +20,7 @@ def test_optimize_water_and_get_energy(tmpdir):
 
     # Get molecule
     n_conformers = 2
-    molobj = tasks.generate_conformers(
-        smi, max_conf=n_conformers, min_conf=n_conformers
-    )
+    molobj = tasks.generate_conformers(smi, max_conf=n_conformers, min_conf=n_conformers)
 
     mopac_options = copy.deepcopy(MOPAC_OPTIONS)
     mopac_options["scr"] = tmpdir
@@ -32,9 +30,7 @@ def test_optimize_water_and_get_energy(tmpdir):
     calc = mopac.MopacCalculator(method=method, **mopac_options)
 
     # Optimize water
-    properties_per_conformer = calc.optimize(
-        molobj, return_copy=False, return_properties=True
-    )
+    properties_per_conformer = calc.optimize(molobj, return_copy=False, return_properties=True)
 
     assert len(properties_per_conformer) == n_conformers
 
@@ -85,9 +81,7 @@ def test_multiple_molecules_with_error():
 
         molobj = tasks.generate_conformers(smi, max_conf=1, min_conf=1)
 
-        atoms, coords, charge = chembridge.molobj_to_axyzc(
-            molobj, atom_type=str
-        )
+        atoms, coords, charge = chembridge.molobj_to_axyzc(molobj, atom_type=str)
 
         if i == 2:
             coords[0, 0] = 0.01
@@ -157,9 +151,7 @@ def test_xyz_usage(tmpdir):
     header = f"{method} MULLIK PRECISE charge={{charge}} \nTITLE {title}\n"
 
     # Optimize coords
-    properties = mopac.properties_from_axyzc(
-        atoms, coords, charge, header, **mopac_options
-    )
+    properties = mopac.properties_from_axyzc(atoms, coords, charge, header, **mopac_options)
 
     # Check energy
     # energy in kcal/mol

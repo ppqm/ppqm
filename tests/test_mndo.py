@@ -21,9 +21,7 @@ def test_optimize_water():
     calc = mndo.MndoCalculator(**MNDO_OPTIONS)
 
     # Optimize water
-    properties = calc.optimize(
-        molobj, return_copy=False, return_properties=True
-    )
+    properties = calc.optimize(molobj, return_copy=False, return_properties=True)
 
     water_atomization = properties["h"]
 

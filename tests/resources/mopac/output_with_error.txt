@@ -31,14 +31,14 @@ pm6 mullik precise charge=0
 
    ATOM   CHEMICAL          X               Y               Z
   NUMBER   SYMBOL      (ANGSTROMS)     (ANGSTROMS)     (ANGSTROMS)
- 
+
      1       O         -0.00420307  *   0.36044714  *   0.00000000  *
      2       H          0.82521629  *  -0.17885589  *   0.00000000  *
      3       H         -0.82101322  *  -0.18159125  *   0.00000000  *
- 
 
 
-          CARTESIAN COORDINATES 
+
+          CARTESIAN COORDINATES
 
     NO.       ATOM           X           Y           Z
 
@@ -55,7 +55,7 @@ pm6 mullik precise charge=0
 
 
 
-      MOLECULAR POINT GROUP   :   C2v 
+      MOLECULAR POINT GROUP   :   C2v
 
 
       RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS = 4
@@ -82,8 +82,8 @@ pm6 mullik precise charge=0
 
 
 
-     GEOMETRY OPTIMISED USING EIGENVECTOR FOLLOWING (EF).     
-     SCF FIELD WAS ACHIEVED                                   
+     GEOMETRY OPTIMISED USING EIGENVECTOR FOLLOWING (EF).
+     SCF FIELD WAS ACHIEVED
 
 
                               PM6 CALCULATION
@@ -97,7 +97,7 @@ pm6 mullik precise charge=0
 
 
           TOTAL ENERGY            =       -319.07752 EV
-          ELECTRONIC ENERGY       =       -458.40560 EV  POINT GROUP:     C2v 
+          ELECTRONIC ENERGY       =       -458.40560 EV  POINT GROUP:     C2v
           CORE-CORE REPULSION     =        139.32807 EV
           COSMO AREA              =         42.45 SQUARE ANGSTROMS
           COSMO VOLUME            =         25.17 CUBIC ANGSTROMS
@@ -117,7 +117,7 @@ pm6 mullik precise charge=0
 
 
           SCF CALCULATIONS        =          7
- 
+
           WALL-CLOCK TIME         =          0.008 SECONDS
           COMPUTATION TIME        =          0.004 SECONDS
 
@@ -126,7 +126,7 @@ pm6 mullik precise charge=0
 
    ATOM   CHEMICAL          X               Y               Z
   NUMBER   SYMBOL      (ANGSTROMS)     (ANGSTROMS)     (ANGSTROMS)
- 
+
      1       O         -0.00282663  *   0.36709367  *   0.00000000  *
      2       H          0.76489972  *  -0.19047745  *   0.00000000  *
      3       H         -0.76618069  *  -0.19645092  *   0.00000000  *
@@ -142,16 +142,16 @@ pm6 mullik precise charge=0
 
 
 
-      MOLECULAR POINT GROUP   :   C2v 
+      MOLECULAR POINT GROUP   :   C2v
 
 
-                  EIGENVALUES  
+                  EIGENVALUES
  -30.40536 -18.98833 -14.10927 -11.90620   4.06800   6.04093
 
 
               NET ATOMIC CHARGES AND DIPOLE CONTRIBUTIONS
 
-  ATOM NO.   TYPE          CHARGE      No. of ELECS.   s-Pop       p-Pop       
+  ATOM NO.   TYPE          CHARGE      No. of ELECS.   s-Pop       p-Pop
     1          O          -0.618784        6.6188     1.75977     4.85901
     2          H           0.309392        0.6906     0.69061
     3          H           0.309392        0.6906     0.69061
@@ -163,7 +163,7 @@ pm6 mullik precise charge=0
 
           ATOMIC ORBITAL ELECTRON POPULATIONS
 
-     Atom    s        px        py        pz   
+     Atom    s        px        py        pz
     1  O   1.75977   1.32156   1.53746   2.00000
     2  H   0.69061
     3  H   0.69061
@@ -211,15 +211,15 @@ pm6 mullik precise charge=0
 
    ATOM   CHEMICAL          X               Y               Z
   NUMBER   SYMBOL      (ANGSTROMS)     (ANGSTROMS)     (ANGSTROMS)
- 
+
      1       N         -0.01360138  *   0.00262365  *   0.26827589  *
      2       H          0.92748247  *  -0.29746023  *  -0.08603823  *
      3       H         -0.72321915  *  -0.68018324  *  -0.09147171  *
      4       H         -0.19066193  *   0.97501982  *  -0.09076594  *
- 
 
 
-          CARTESIAN COORDINATES 
+
+          CARTESIAN COORDINATES
 
     NO.       ATOM           X           Y           Z
 
@@ -237,7 +237,7 @@ pm6 mullik precise charge=0
 
 
 
-      MOLECULAR POINT GROUP   :   Cs  
+      MOLECULAR POINT GROUP   :   Cs
 
 
       RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS = 4
@@ -267,8 +267,8 @@ pm6 mullik precise charge=0
 
 
 
-     GEOMETRY OPTIMISED USING EIGENVECTOR FOLLOWING (EF).     
-     SCF FIELD WAS ACHIEVED                                   
+     GEOMETRY OPTIMISED USING EIGENVECTOR FOLLOWING (EF).
+     SCF FIELD WAS ACHIEVED
 
 
                               PM6 CALCULATION
@@ -282,7 +282,7 @@ pm6 mullik precise charge=0
 
 
           TOTAL ENERGY            =       -220.50677 EV
-          ELECTRONIC ENERGY       =       -409.17567 EV  POINT GROUP:     C3v 
+          ELECTRONIC ENERGY       =       -409.17567 EV  POINT GROUP:     C3v
           CORE-CORE REPULSION     =        188.66890 EV
           COSMO AREA              =         47.53 SQUARE ANGSTROMS
           COSMO VOLUME            =         29.85 CUBIC ANGSTROMS
@@ -302,7 +302,7 @@ pm6 mullik precise charge=0
 
 
           SCF CALCULATIONS        =         10
- 
+
           WALL-CLOCK TIME         =          0.016 SECONDS
           COMPUTATION TIME        =          0.012 SECONDS
 
@@ -311,7 +311,7 @@ pm6 mullik precise charge=0
 
    ATOM   CHEMICAL          X               Y               Z
   NUMBER   SYMBOL      (ANGSTROMS)     (ANGSTROMS)     (ANGSTROMS)
- 
+
      1       N         -0.00690532  *   0.00124453  *   0.27034540  *
      2       H          0.88935791  *  -0.28625476  *  -0.08389201  *
      3       H         -0.69891843  *  -0.62906995  *  -0.09737635  *
@@ -329,16 +329,16 @@ pm6 mullik precise charge=0
 
 
 
-      MOLECULAR POINT GROUP   :   C3v 
+      MOLECULAR POINT GROUP   :   C3v
 
 
-                  EIGENVALUES  
+                  EIGENVALUES
  -31.03052 -16.18684 -16.18598 -10.09873   4.38471   6.81430   6.81472
 
 
               NET ATOMIC CHARGES AND DIPOLE CONTRIBUTIONS
 
-  ATOM NO.   TYPE          CHARGE      No. of ELECS.   s-Pop       p-Pop       
+  ATOM NO.   TYPE          CHARGE      No. of ELECS.   s-Pop       p-Pop
     1          N          -0.594885        5.5949     1.58374     4.01115
     2          H           0.198308        0.8017     0.80169
     3          H           0.198282        0.8017     0.80172
@@ -351,7 +351,7 @@ pm6 mullik precise charge=0
 
           ATOMIC ORBITAL ELECTRON POPULATIONS
 
-     Atom    s        px        py        pz   
+     Atom    s        px        py        pz
     1  N   1.58374   1.16946   1.16944   1.67225
     2  H   0.80169
     3  H   0.80172
@@ -401,7 +401,7 @@ pm6 mullik precise charge=0
 
    ATOM   CHEMICAL          X               Y               Z
   NUMBER   SYMBOL      (ANGSTROMS)     (ANGSTROMS)     (ANGSTROMS)
- 
+
      1       C          0.01000000  *   0.00212415  *  -0.00221581  *
      2       C          0.02000000  *  -0.02429578  *   0.08027002  *
      3       H          0.99484829  *   0.25697730  *  -1.06988329  *
@@ -410,10 +410,10 @@ pm6 mullik precise charge=0
      6       H         -1.14885685  *  -0.10229723  *   1.09844863  *
      7       H         -1.11453298  *  -0.85802906  *  -0.54478667  *
      8       H         -1.11631961  *   0.94508402  *  -0.35462374  *
- 
 
 
-          CARTESIAN COORDINATES 
+
+          CARTESIAN COORDINATES
 
     NO.       ATOM           X           Y           Z
 
@@ -435,7 +435,7 @@ pm6 mullik precise charge=0
 
 
 
-      MOLECULAR POINT GROUP   :   C1  
+      MOLECULAR POINT GROUP   :   C1
 
 
       RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS = 7
@@ -481,7 +481,7 @@ pm6 mullik precise charge=0
 
    ATOM   CHEMICAL          X               Y               Z
   NUMBER   SYMBOL      (ANGSTROMS)     (ANGSTROMS)     (ANGSTROMS)
- 
+
      1       C         -0.76946415  *  -0.03067327  *   0.02380023  *
      2       C          0.72750101  *   0.02595488  *   0.01343321  *
      3       H         -1.08061302  *  -0.92336011  *  -0.57499818  *
@@ -490,10 +490,10 @@ pm6 mullik precise charge=0
      6       H          1.18402780  *   0.03964199  *   1.02010465  *
      7       H          1.19065528  *  -0.83506564  *  -0.53906886  *
      8       H          1.11347658  *   0.93349244  *  -0.52727883  *
- 
 
 
-          CARTESIAN COORDINATES 
+
+          CARTESIAN COORDINATES
 
     NO.       ATOM           X           Y           Z
 
@@ -515,7 +515,7 @@ pm6 mullik precise charge=0
 
 
 
-      MOLECULAR POINT GROUP   :   C2v 
+      MOLECULAR POINT GROUP   :   C2v
 
 
       RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS = 7
@@ -577,8 +577,8 @@ pm6 mullik precise charge=0
 
 
 
-     GEOMETRY OPTIMISED USING EIGENVECTOR FOLLOWING (EF).     
-     SCF FIELD WAS ACHIEVED                                   
+     GEOMETRY OPTIMISED USING EIGENVECTOR FOLLOWING (EF).
+     SCF FIELD WAS ACHIEVED
 
 
                               PM6 CALCULATION
@@ -592,7 +592,7 @@ pm6 mullik precise charge=0
 
 
           TOTAL ENERGY            =       -326.94787 EV
-          ELECTRONIC ENERGY       =       -946.23641 EV  POINT GROUP:     D3d 
+          ELECTRONIC ENERGY       =       -946.23641 EV  POINT GROUP:     D3d
           CORE-CORE REPULSION     =        619.28854 EV
           COSMO AREA              =         75.82 SQUARE ANGSTROMS
           COSMO VOLUME            =         57.37 CUBIC ANGSTROMS
@@ -612,7 +612,7 @@ pm6 mullik precise charge=0
 
 
           SCF CALCULATIONS        =         51
- 
+
           WALL-CLOCK TIME         =          0.047 SECONDS
           COMPUTATION TIME        =          0.044 SECONDS
 
@@ -621,7 +621,7 @@ pm6 mullik precise charge=0
 
    ATOM   CHEMICAL          X               Y               Z
   NUMBER   SYMBOL      (ANGSTROMS)     (ANGSTROMS)     (ANGSTROMS)
- 
+
      1       C         -0.76760458  *  -0.03070865  *   0.00855928  *
      2       C          0.75165717  *   0.02888473  *   0.00560527  *
      3       H         -1.15129984  *  -0.52439286  *  -0.89207557  *
@@ -647,17 +647,17 @@ pm6 mullik precise charge=0
 
 
 
-      MOLECULAR POINT GROUP   :   D3d 
+      MOLECULAR POINT GROUP   :   D3d
 
 
-                  EIGENVALUES  
+                  EIGENVALUES
  -27.04950 -21.69811 -14.96337 -14.96264 -13.08000 -11.91962 -11.91904   4.57634
    5.72368   5.72390   6.23925   6.23948   6.91773   6.92907
 
 
               NET ATOMIC CHARGES AND DIPOLE CONTRIBUTIONS
 
-  ATOM NO.   TYPE          CHARGE      No. of ELECS.   s-Pop       p-Pop       
+  ATOM NO.   TYPE          CHARGE      No. of ELECS.   s-Pop       p-Pop
     1          C          -0.422916        4.4229     1.07566     3.34726
     2          C          -0.422916        4.4229     1.07566     3.34726
     3          H           0.140968        0.8590     0.85903
@@ -674,7 +674,7 @@ pm6 mullik precise charge=0
 
           ATOMIC ORBITAL ELECTRON POPULATIONS
 
-     Atom    s        px        py        pz   
+     Atom    s        px        py        pz
     1  C   1.07566   1.02125   1.16289   1.16312
     2  C   1.07566   1.02124   1.16290   1.16311
     3  H   0.85903
@@ -732,7 +732,7 @@ pm6 mullik precise charge=0
 
    ATOM   CHEMICAL          X               Y               Z
   NUMBER   SYMBOL      (ANGSTROMS)     (ANGSTROMS)     (ANGSTROMS)
- 
+
      1       C         -0.89891065  *  -0.29196830  *   0.20947406  *
      2       C          0.37941306  *   0.48751665  *   0.04254804  *
      3       O          1.46874361  *  -0.37951745  *   0.08856262  *
@@ -742,10 +742,10 @@ pm6 mullik precise charge=0
      7       H          0.35063531  *   0.93150422  *  -0.97645419  *
      8       H          0.53356554  *   1.25202826  *   0.81735899  *
      9       H          1.87462522  *  -0.51635699  *  -0.79771280  *
- 
 
 
-          CARTESIAN COORDINATES 
+
+          CARTESIAN COORDINATES
 
     NO.       ATOM           X           Y           Z
 
@@ -768,7 +768,7 @@ pm6 mullik precise charge=0
 
 
 
-      MOLECULAR POINT GROUP   :   C1  
+      MOLECULAR POINT GROUP   :   C1
 
 
       RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS = 10
@@ -835,8 +835,8 @@ pm6 mullik precise charge=0
 
 
 
-     GEOMETRY OPTIMISED USING EIGENVECTOR FOLLOWING (EF).     
-     SCF FIELD WAS ACHIEVED                                   
+     GEOMETRY OPTIMISED USING EIGENVECTOR FOLLOWING (EF).
+     SCF FIELD WAS ACHIEVED
 
 
                               PM6 CALCULATION
@@ -850,7 +850,7 @@ pm6 mullik precise charge=0
 
 
           TOTAL ENERGY            =       -618.45884 EV
-          ELECTRONIC ENERGY       =      -1751.91728 EV  POINT GROUP:     C1  
+          ELECTRONIC ENERGY       =      -1751.91728 EV  POINT GROUP:     C1
           CORE-CORE REPULSION     =       1133.45844 EV
           COSMO AREA              =         87.21 SQUARE ANGSTROMS
           COSMO VOLUME            =         69.20 CUBIC ANGSTROMS
@@ -870,7 +870,7 @@ pm6 mullik precise charge=0
 
 
           SCF CALCULATIONS        =         50
- 
+
           WALL-CLOCK TIME         =          0.090 SECONDS
           COMPUTATION TIME        =          0.088 SECONDS
 
@@ -879,7 +879,7 @@ pm6 mullik precise charge=0
 
    ATOM   CHEMICAL          X               Y               Z
   NUMBER   SYMBOL      (ANGSTROMS)     (ANGSTROMS)     (ANGSTROMS)
- 
+
      1       C         -0.89098470  *  -0.31485283  *   0.15132902  *
      2       C          0.36352961  *   0.52797525  *  -0.01681482  *
      3       O          1.55225321  *  -0.26526293  *   0.12526781  *
@@ -907,10 +907,10 @@ pm6 mullik precise charge=0
 
 
 
-      MOLECULAR POINT GROUP   :   C1  
+      MOLECULAR POINT GROUP   :   C1
 
 
-                  EIGENVALUES  
+                  EIGENVALUES
  -29.83887 -26.50769 -22.32139 -17.59776 -15.76051 -15.26493 -13.51024 -13.12167
  -11.97879 -10.49858   2.78386   3.91036   5.08448   5.38308   5.57401   5.67861
    6.01019   6.52221
@@ -918,7 +918,7 @@ pm6 mullik precise charge=0
 
               NET ATOMIC CHARGES AND DIPOLE CONTRIBUTIONS
 
-  ATOM NO.   TYPE          CHARGE      No. of ELECS.   s-Pop       p-Pop       
+  ATOM NO.   TYPE          CHARGE      No. of ELECS.   s-Pop       p-Pop
     1          C          -0.539955        4.5400     1.09225     3.44771
     2          C           0.052338        3.9477     1.09114     2.85652
     3          O          -0.556595        6.5566     1.81879     4.73780
@@ -936,7 +936,7 @@ pm6 mullik precise charge=0
 
           ATOMIC ORBITAL ELECTRON POPULATIONS
 
-     Atom    s        px        py        pz   
+     Atom    s        px        py        pz
     1  C   1.09225   1.10055   1.15338   1.19378
     2  C   1.09114   0.80565   0.93922   1.11165
     3  O   1.81879   1.50024   1.51340   1.72416

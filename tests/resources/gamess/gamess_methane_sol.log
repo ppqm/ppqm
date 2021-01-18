@@ -14,7 +14,7 @@ unset echo
 
  Distributed Data Interface kickoff program.
  Initiating 1 compute processes on 1 nodes to run the following command:
- /home/charnley/opt/gamess/gamess-github/gamess.00.x gamess_methane_sol 
+ /home/charnley/opt/gamess/gamess-github/gamess.00.x gamess_methane_sol
 
           ******************************************************
           *         GAMESS VERSION = 30 SEP 2018 (R3)         *
@@ -94,51 +94,51 @@ unset echo
  EXECUTION OF GAMESS BEGUN Tue Dec 31 21:54:43 2019
 
             ECHO OF THE FIRST FEW INPUT CARDS -
- INPUT CARD> $system                                                                        
- INPUT CARD>    mwords=125                                                                  
- INPUT CARD> $end                                                                           
- INPUT CARD> $basis                                                                         
- INPUT CARD>    gbasis=PM3                                                                  
- INPUT CARD> $end                                                                           
- INPUT CARD> $contrl                                                                        
- INPUT CARD>    scftyp=RHF                                                                  
- INPUT CARD>    runtyp=energy                                                               
- INPUT CARD>    icharg=0                                                                    
- INPUT CARD> $end                                                                           
- INPUT CARD> $pcm                                                                           
- INPUT CARD>    solvnt=water                                                                
- INPUT CARD>    mxts=15000                                                                  
- INPUT CARD>    icav=1                                                                      
- INPUT CARD>    idisp=1                                                                     
- INPUT CARD> $end                                                                           
- INPUT CARD> $tescav                                                                        
- INPUT CARD>    mthall=4                                                                    
- INPUT CARD>    ntsall=60                                                                   
- INPUT CARD> $end                                                                           
- INPUT CARD>                                                                                
- INPUT CARD> $data                                                                          
- INPUT CARD>Title                                                                           
- INPUT CARD>C1                                                                              
- INPUT CARD>C     6.0    0.000000     -0.000000    0.000000                                 
- INPUT CARD>H     1.0    0.000000     -0.890000    -0.629300                                
- INPUT CARD>H     1.0    0.000000     0.890000    -0.629300                                 
- INPUT CARD>H     1.0    -0.890000     -0.000000    0.629300                                
- INPUT CARD>H     1.0    0.890000     -0.000000    0.629300                                 
- INPUT CARD> $end                                                                           
+ INPUT CARD> $system
+ INPUT CARD>    mwords=125
+ INPUT CARD> $end
+ INPUT CARD> $basis
+ INPUT CARD>    gbasis=PM3
+ INPUT CARD> $end
+ INPUT CARD> $contrl
+ INPUT CARD>    scftyp=RHF
+ INPUT CARD>    runtyp=energy
+ INPUT CARD>    icharg=0
+ INPUT CARD> $end
+ INPUT CARD> $pcm
+ INPUT CARD>    solvnt=water
+ INPUT CARD>    mxts=15000
+ INPUT CARD>    icav=1
+ INPUT CARD>    idisp=1
+ INPUT CARD> $end
+ INPUT CARD> $tescav
+ INPUT CARD>    mthall=4
+ INPUT CARD>    ntsall=60
+ INPUT CARD> $end
+ INPUT CARD>
+ INPUT CARD> $data
+ INPUT CARD>Title
+ INPUT CARD>C1
+ INPUT CARD>C     6.0    0.000000     -0.000000    0.000000
+ INPUT CARD>H     1.0    0.000000     -0.890000    -0.629300
+ INPUT CARD>H     1.0    0.000000     0.890000    -0.629300
+ INPUT CARD>H     1.0    -0.890000     -0.000000    0.629300
+ INPUT CARD>H     1.0    0.890000     -0.000000    0.629300
+ INPUT CARD> $end
   125000000 WORDS OF MEMORY AVAILABLE
 
      BASIS OPTIONS
      -------------
-     GBASIS=PM3          IGAUSS=       0      POLAR=NONE    
+     GBASIS=PM3          IGAUSS=       0      POLAR=NONE
      NDFUNC=       0     NFFUNC=       0     DIFFSP=       F
-     NPFUNC=       0      DIFFS=       F     BASNAM=        
+     NPFUNC=       0      DIFFS=       F     BASNAM=
 
 
      RUN TITLE
      ---------
- Title                                                                           
+ Title
 
- THE POINT GROUP OF THE MOLECULE IS C1      
+ THE POINT GROUP OF THE MOLECULE IS C1
  THE ORDER OF THE PRINCIPAL AXIS IS     0
 
  ATOM      ATOMIC                      COORDINATES (BOHR)
@@ -152,13 +152,13 @@ unset echo
           INTERNUCLEAR DISTANCES (ANGS.)
           ------------------------------
 
-                1 C          2 H          3 H          4 H          5 H     
+                1 C          2 H          3 H          4 H          5 H
 
    1 C       0.0000000    1.0900085 *  1.0900085 *  1.0900085 *  1.0900085 *
    2 H       1.0900085 *  0.0000000    1.7800000 *  1.7799646 *  1.7799646 *
    3 H       1.0900085 *  1.7800000 *  0.0000000    1.7799646 *  1.7799646 *
    4 H       1.0900085 *  1.7799646 *  1.7799646 *  0.0000000    1.7800000 *
-   5 H       1.0900085 *  1.7799646 *  1.7799646 *  1.7800000 *  0.0000000  
+   5 H       1.0900085 *  1.7799646 *  1.7799646 *  1.7800000 *  0.0000000
 
   * ... LESS THAN  3.000
 
@@ -175,22 +175,22 @@ unset echo
 
  THE PARAMETERS USED IN THIS CALCULATION ARE DESCRIBED IN:
 
-  H: (PM3): J. J. P. STEWART, J. COMP. CHEM.     10, 209 (1989).                
-  C: (PM3): J. J. P. STEWART, J. COMP. CHEM.     10, 209 (1989).                
+  H: (PM3): J. J. P. STEWART, J. COMP. CHEM.     10, 209 (1989).
+  C: (PM3): J. J. P. STEWART, J. COMP. CHEM.     10, 209 (1989).
 
  THERE ARE    1 HEAVY AND    4 LIGHT ATOMS,
  YIELDING A TOTAL OF        46 MOPAC 2E- INTEGRALS.
 
      $CONTRL OPTIONS
      ---------------
- SCFTYP=RHF          RUNTYP=ENERGY       EXETYP=RUN     
- MPLEVL=       0     CITYP =NONE         CCTYP =NONE         VBTYP =NONE    
- DFTTYP=NONE         TDDFT =NONE    
- MULT  =       1     ICHARG=       0     NZVAR =       0     COORD =UNIQUE  
+ SCFTYP=RHF          RUNTYP=ENERGY       EXETYP=RUN
+ MPLEVL=       0     CITYP =NONE         CCTYP =NONE         VBTYP =NONE
+ DFTTYP=NONE         TDDFT =NONE
+ MULT  =       1     ICHARG=       0     NZVAR =       0     COORD =UNIQUE
  PP    =NONE         RELWFN=NONE         LOCAL =NONE         NUMGRD=       F
- ISPHER=      -1     NOSYM =       0     MAXIT =      30     UNITS =ANGS    
- PLTORB=       F     MOLPLT=       F     AIMPAC=       F     FRIEND=        
- NPRINT=       7     IREST =       0     GEOM  =INPUT   
+ ISPHER=      -1     NOSYM =       0     MAXIT =      30     UNITS =ANGS
+ PLTORB=       F     MOLPLT=       F     AIMPAC=       F     FRIEND=
+ NPRINT=       7     IREST =       0     GEOM  =INPUT
  NORMF =       0     NORMP =       0     ITOL  =      20     ICUT  =       9
  INTTYP=BEST         GRDTYP=BEST         QMTTOL= 1.0E-06
 
@@ -211,7 +211,7 @@ unset echo
 
 
      -----------------------------------
-     INPUT FOR PCM SOLVATION CALCULATION 
+     INPUT FOR PCM SOLVATION CALCULATION
      -----------------------------------
      IEF   =     -10
      ICOMP =       0     IFIELD=       0     ICAV  =       1
@@ -227,7 +227,7 @@ unset echo
      TABS  =298.0000     IPRINT=       0
 
      --------------------------------
-     INPUT FOR ITERATIVE C-PCM METHOD 
+     INPUT FOR ITERATIVE C-PCM METHOD
      --------------------------------
      IPCMIT  =         1     MXDIIS  =        50
      MXITR1  =        50     MXITR2  =        50
@@ -244,7 +244,7 @@ unset echo
      -------------------------------
      EPS=    78.39
 
-     INPUT FOR CAVITY DEFINITION 
+     INPUT FOR CAVITY DEFINITION
      ---------------------------
    ATOM               COORDINATES                RADIUS       EPS
       1      0.0000     -0.0000      0.0000      1.7000     78.3900
@@ -284,8 +284,8 @@ unset echo
 
      MOMENTS            FIELD           POTENTIAL          DENSITY
  IEMOM =       1   IEFLD =       0   IEPOT =       0   IEDEN =       0
- WHERE =COMASS     WHERE =NUCLEI     WHERE =NUCLEI     WHERE =NUCLEI  
- OUTPUT=BOTH       OUTPUT=BOTH       OUTPUT=BOTH       OUTPUT=BOTH    
+ WHERE =COMASS     WHERE =NUCLEI     WHERE =NUCLEI     WHERE =NUCLEI
+ OUTPUT=BOTH       OUTPUT=BOTH       OUTPUT=BOTH       OUTPUT=BOTH
  IEMINT=       0   IEFINT=       0                     IEDINT=       0
                                                        MORB  =       0
           EXTRAPOLATION IN EFFECT
@@ -296,7 +296,7 @@ unset echo
      -------------------------------
      NWORD  =            0
      CUTOFF = 1.0E-09     MPTRAN =       0
-     DIRTRF =       F     AOINTS =DUP     
+     DIRTRF =       F     AOINTS =DUP
 
           ----------------------
           INTEGRAL INPUT OPTIONS
@@ -342,16 +342,16 @@ unset echo
 
  SYMMETRIES FOR INITIAL GUESS ORBITALS FOLLOW.   BOTH SET(S).
      4 ORBITALS ARE OCCUPIED (    0 CORE ORBITALS).
-     1=A        2=A        3=A        4=A        5=A        6=A        7=A   
-     8=A   
+     1=A        2=A        3=A        4=A        5=A        6=A        7=A
+     8=A
  ...... END OF INITIAL ORBITAL SELECTION ......
  STEP CPU TIME =     0.00 TOTAL CPU TIME =          0.0 (      0.0 MIN)
  TOTAL WALL CLOCK TIME=          0.0 SECONDS, CPU UTILIZATION IS     0.00%
-  
+
  DONE CAVITATION ENERGY
  STEP CPU TIME =     0.00 TOTAL CPU TIME =          0.0 (      0.0 MIN)
  TOTAL WALL CLOCK TIME=          0.0 SECONDS, CPU UTILIZATION IS     0.00%
-  
+
  DONE DISPERSION-REPULSION ENERGY
  STEP CPU TIME =     0.01 TOTAL CPU TIME =          0.0 (      0.0 MIN)
  TOTAL WALL CLOCK TIME=          0.0 SECONDS, CPU UTILIZATION IS   100.00%
@@ -393,7 +393,7 @@ unset echo
 
                       1          2          3          4          5
                    -1.0961    -0.5009    -0.5009    -0.5009     0.1553
-                     A          A          A          A          A   
+                     A          A          A          A          A
     1  C  1  S    0.745771  -0.000000   0.000000   0.000000   0.666203
     2  C  1  X    0.000000  -0.062086   0.704240  -0.000000   0.000000
     3  C  1  Y    0.000000   0.704240   0.062086   0.000000   0.000000
@@ -405,7 +405,7 @@ unset echo
 
                       6          7          8
                     0.1684     0.1684     0.1684
-                     A          A          A   
+                     A          A          A
     1  C  1  S    0.000000  -0.000000  -0.000000
     2  C  1  X    0.000000  -0.073080   0.703456
     3  C  1  Y    0.000000   0.703456   0.073080
@@ -472,7 +472,7 @@ unset echo
      ------------------------------
 
 
-     INPUT FOR CAVITY DEFINITION 
+     INPUT FOR CAVITY DEFINITION
      ---------------------------
    ATOM               COORDINATES                RADIUS       EPS
       1      0.0000     -0.0000      0.0000      1.7000     78.3900
@@ -538,7 +538,7 @@ unset echo
 
  HEAT OF FORMATION IS       -11.75835 KCAL/MOL
 
-  
+
    PCM ASC=      0.0088737135
    GCAVP  =      0.0112185944
    GDISP  =     -0.0113022164
@@ -550,7 +550,7 @@ unset echo
 
                       1          2          3          4          5
                    -1.0987    -0.5035    -0.5035    -0.5035     0.1528
-                     A          A          A          A          A   
+                     A          A          A          A          A
     1  C  1  S    0.745938  -0.000065   0.000000  -0.000039   0.666011
     2  C  1  X    0.000014   0.648443   0.000000  -0.282736   0.001072
     3  C  1  Y    0.000000  -0.000000   0.707481   0.000000   0.000000
@@ -562,7 +562,7 @@ unset echo
 
                       6          7          8
                     0.1657     0.1658     0.1658
-                     A          A          A   
+                     A          A          A
     1  C  1  S    0.001863  -0.001230  -0.000000
     2  C  1  X   -0.609104  -0.358571  -0.000000
     3  C  1  Y    0.000000  -0.000000   0.706732
@@ -601,7 +601,7 @@ unset echo
  STEP CPU TIME =     0.00 TOTAL CPU TIME =          0.0 (      0.0 MIN)
  TOTAL WALL CLOCK TIME=          0.0 SECONDS, CPU UTILIZATION IS    66.67%
 
-     INPUT FOR CAVITY DEFINITION 
+     INPUT FOR CAVITY DEFINITION
      ---------------------------
    ATOM               COORDINATES                RADIUS       EPS
       1      0.0000     -0.0000      0.0000      1.7000     78.3900
@@ -613,7 +613,7 @@ unset echo
  CREATION OF A NEW CAVITY WITH THE ORIGINAL SPHERE
  SIZES FOR THE COMPUTATION OF THE CAVITATION ENERGY.
 
-     INPUT FOR CAVITY DEFINITION 
+     INPUT FOR CAVITY DEFINITION
      ---------------------------
    ATOM               COORDINATES                RADIUS       EPS
       1      0.0000     -0.0000      0.0000      1.7000     78.3900
@@ -675,7 +675,7 @@ unset echo
  ABSOLUTE TEMPERATURE =       298.000000
  CAVITY DIAMETER =              4.005868 ANG.
 
-     INPUT FOR CAVITY DEFINITION 
+     INPUT FOR CAVITY DEFINITION
      ---------------------------
    ATOM               COORDINATES                RADIUS       EPS
       1      0.0000     -0.0000      0.0000      1.7000     78.3900
@@ -690,7 +690,7 @@ DISPERSION-REPULSION FREE ENERGY:  ATOM-ATOM INTERACTION.
 CAVITY REFERRED TO SOLVENT ATOM OF TYPE  1
 
 
-     INPUT FOR CAVITY DEFINITION 
+     INPUT FOR CAVITY DEFINITION
      ---------------------------
    ATOM               COORDINATES                RADIUS       EPS
       1      0.0000     -0.0000      0.0000      1.7000     78.3900
@@ -723,7 +723,7 @@ CAVITY REFERRED TO SOLVENT ATOM OF TYPE  1
 CAVITY REFERRED TO SOLVENT ATOM OF TYPE  2
 
 
-     INPUT FOR CAVITY DEFINITION 
+     INPUT FOR CAVITY DEFINITION
      ---------------------------
    ATOM               COORDINATES                RADIUS       EPS
       1      0.0000     -0.0000      0.0000      1.7000     78.3900

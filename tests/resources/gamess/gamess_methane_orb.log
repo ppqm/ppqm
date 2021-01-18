@@ -14,7 +14,7 @@ unset echo
 
  Distributed Data Interface kickoff program.
  Initiating 1 compute processes on 1 nodes to run the following command:
- /home/charnley/opt/gamess/gamess-github/gamess.00.x gamess_methane_orb 
+ /home/charnley/opt/gamess/gamess-github/gamess.00.x gamess_methane_orb
 
           ******************************************************
           *         GAMESS VERSION = 30 SEP 2018 (R3)         *
@@ -94,23 +94,23 @@ unset echo
  EXECUTION OF GAMESS BEGUN Tue Dec 31 19:14:09 2019
 
             ECHO OF THE FIRST FEW INPUT CARDS -
- INPUT CARD> $contrl                                                                        
- INPUT CARD> coord=cart                                                                     
- INPUT CARD> units=angs                                                                     
- INPUT CARD> scftyp=rhf                                                                     
- INPUT CARD> icharg=0                                                                       
- INPUT CARD> maxit=60                                                                       
- INPUT CARD> $end                                                                           
- INPUT CARD> $basis gbasis=sto ngauss=3 $end                                                
- INPUT CARD> $data                                                                          
- INPUT CARD>Title                                                                           
- INPUT CARD>C1                                                                              
- INPUT CARD>C     6.0    0.000000     -0.000000    0.000000                                 
- INPUT CARD>H     1.0    0.000000     -0.890000    -0.629300                                
- INPUT CARD>H     1.0    0.000000     0.890000    -0.629300                                 
- INPUT CARD>H     1.0    -0.890000     -0.000000    0.629300                                
- INPUT CARD>H     1.0    0.890000     -0.000000    0.629300                                 
- INPUT CARD> $end                                                                           
+ INPUT CARD> $contrl
+ INPUT CARD> coord=cart
+ INPUT CARD> units=angs
+ INPUT CARD> scftyp=rhf
+ INPUT CARD> icharg=0
+ INPUT CARD> maxit=60
+ INPUT CARD> $end
+ INPUT CARD> $basis gbasis=sto ngauss=3 $end
+ INPUT CARD> $data
+ INPUT CARD>Title
+ INPUT CARD>C1
+ INPUT CARD>C     6.0    0.000000     -0.000000    0.000000
+ INPUT CARD>H     1.0    0.000000     -0.890000    -0.629300
+ INPUT CARD>H     1.0    0.000000     0.890000    -0.629300
+ INPUT CARD>H     1.0    -0.890000     -0.000000    0.629300
+ INPUT CARD>H     1.0    0.890000     -0.000000    0.629300
+ INPUT CARD> $end
     1000000 WORDS OF MEMORY AVAILABLE
 
 
@@ -135,16 +135,16 @@ unset echo
 
      BASIS OPTIONS
      -------------
-     GBASIS=STO          IGAUSS=       3      POLAR=NONE    
+     GBASIS=STO          IGAUSS=       3      POLAR=NONE
      NDFUNC=       0     NFFUNC=       0     DIFFSP=       F
-     NPFUNC=       0      DIFFS=       F     BASNAM=        
+     NPFUNC=       0      DIFFS=       F     BASNAM=
 
 
      RUN TITLE
      ---------
- Title                                                                           
+ Title
 
- THE POINT GROUP OF THE MOLECULE IS C1      
+ THE POINT GROUP OF THE MOLECULE IS C1
  THE ORDER OF THE PRINCIPAL AXIS IS     0
 
  THE MOMENTS OF INERTIA ARE (AMU-ANGSTROM**2)
@@ -161,13 +161,13 @@ unset echo
           INTERNUCLEAR DISTANCES (ANGS.)
           ------------------------------
 
-                1 C          2 H          3 H          4 H          5 H     
+                1 C          2 H          3 H          4 H          5 H
 
    1 C       0.0000000    1.0900085 *  1.0900085 *  1.0900085 *  1.0900085 *
    2 H       1.0900085 *  0.0000000    1.7800000 *  1.7799646 *  1.7799646 *
    3 H       1.0900085 *  1.7800000 *  0.0000000    1.7799646 *  1.7799646 *
    4 H       1.0900085 *  1.7799646 *  1.7799646 *  0.0000000    1.7800000 *
-   5 H       1.0900085 *  1.7799646 *  1.7799646 *  1.7800000 *  0.0000000  
+   5 H       1.0900085 *  1.7799646 *  1.7799646 *  1.7800000 *  0.0000000
 
   * ... LESS THAN  3.000
 
@@ -179,7 +179,7 @@ unset echo
 
   SHELL TYPE  PRIMITIVE        EXPONENT          CONTRACTION COEFFICIENT(S)
 
- C         
+ C
 
       1   S       1            71.6168373    0.154328967295
       1   S       2            13.0450963    0.535328142282
@@ -189,25 +189,25 @@ unset echo
       2   L       5             0.6834831    0.399512826089    0.607683718598
       2   L       6             0.2222899    0.700115468880    0.391957393099
 
- H         
+ H
 
       3   S       7             3.4252509    0.154328967295
       3   S       8             0.6239137    0.535328142282
       3   S       9             0.1688554    0.444634542185
 
- H         
+ H
 
       4   S      10             3.4252509    0.154328967295
       4   S      11             0.6239137    0.535328142282
       4   S      12             0.1688554    0.444634542185
 
- H         
+ H
 
       5   S      13             3.4252509    0.154328967295
       5   S      14             0.6239137    0.535328142282
       5   S      15             0.1688554    0.444634542185
 
- H         
+ H
 
       6   S      16             3.4252509    0.154328967295
       6   S      17             0.6239137    0.535328142282
@@ -225,14 +225,14 @@ unset echo
 
      $CONTRL OPTIONS
      ---------------
- SCFTYP=RHF          RUNTYP=ENERGY       EXETYP=RUN     
- MPLEVL=       0     CITYP =NONE         CCTYP =NONE         VBTYP =NONE    
- DFTTYP=NONE         TDDFT =NONE    
+ SCFTYP=RHF          RUNTYP=ENERGY       EXETYP=RUN
+ MPLEVL=       0     CITYP =NONE         CCTYP =NONE         VBTYP =NONE
+ DFTTYP=NONE         TDDFT =NONE
  MULT  =       1     ICHARG=       0     NZVAR =       0     COORD =PRINAXIS
  PP    =NONE         RELWFN=NONE         LOCAL =NONE         NUMGRD=       F
- ISPHER=      -1     NOSYM =       0     MAXIT =      60     UNITS =ANGS    
- PLTORB=       F     MOLPLT=       F     AIMPAC=       F     FRIEND=        
- NPRINT=       7     IREST =       0     GEOM  =INPUT   
+ ISPHER=      -1     NOSYM =       0     MAXIT =      60     UNITS =ANGS
+ PLTORB=       F     MOLPLT=       F     AIMPAC=       F     FRIEND=
+ NPRINT=       7     IREST =       0     GEOM  =INPUT
  NORMF =       0     NORMP =       0     ITOL  =      20     ICUT  =       9
  INTTYP=BEST         GRDTYP=BEST         QMTTOL= 1.0E-06
 
@@ -252,8 +252,8 @@ unset echo
 
      MOMENTS            FIELD           POTENTIAL          DENSITY
  IEMOM =       1   IEFLD =       0   IEPOT =       0   IEDEN =       0
- WHERE =COMASS     WHERE =NUCLEI     WHERE =NUCLEI     WHERE =NUCLEI  
- OUTPUT=BOTH       OUTPUT=BOTH       OUTPUT=BOTH       OUTPUT=BOTH    
+ WHERE =COMASS     WHERE =NUCLEI     WHERE =NUCLEI     WHERE =NUCLEI
+ OUTPUT=BOTH       OUTPUT=BOTH       OUTPUT=BOTH       OUTPUT=BOTH
  IEMINT=       0   IEFINT=       0                     IEDINT=       0
                                                        MORB  =       0
           EXTRAPOLATION IN EFFECT
@@ -264,7 +264,7 @@ unset echo
      -------------------------------
      NWORD  =            0
      CUTOFF = 1.0E-09     MPTRAN =       0
-     DIRTRF =       F     AOINTS =DUP     
+     DIRTRF =       F     AOINTS =DUP
 
           ----------------------
           INTEGRAL INPUT OPTIONS
@@ -302,8 +302,8 @@ unset echo
 
  SYMMETRIES FOR INITIAL GUESS ORBITALS FOLLOW.   BOTH SET(S).
      5 ORBITALS ARE OCCUPIED (    1 CORE ORBITALS).
-     2=A        3=A        4=A        5=A        6=A        7=A        8=A   
-     9=A   
+     2=A        3=A        4=A        5=A        6=A        7=A        8=A
+     9=A
  ...... END OF INITIAL ORBITAL SELECTION ......
  STEP CPU TIME =     0.00 TOTAL CPU TIME =          0.0 (      0.0 MIN)
  TOTAL WALL CLOCK TIME=          0.0 SECONDS, CPU UTILIZATION IS   100.00%
@@ -374,7 +374,7 @@ unset echo
 
                       1          2          3          4          5
                   -11.0303    -0.9085    -0.5177    -0.5177    -0.5177
-                     A          A          A          A          A   
+                     A          A          A          A          A
     1  C  1  S    0.991958  -0.221166  -0.000000  -0.000000   0.000000
     2  C  1  S    0.038029   0.629537  -0.000000  -0.000000   0.000000
     3  C  1  X   -0.000000  -0.000000   0.569963  -0.036235   0.000000
@@ -387,7 +387,7 @@ unset echo
 
                       6          7          8          9
                     0.7130     0.7130     0.7130     0.7505
-                     A          A          A          A   
+                     A          A          A          A
     1  C  1  S    0.000000   0.000000   0.000000  -0.251678
     2  C  1  S    0.000000   0.000000   0.000000   1.614585
     3  C  1  X    0.000000   1.101147  -0.028786   0.000000

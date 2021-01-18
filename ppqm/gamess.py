@@ -59,7 +59,7 @@ class GamessCalculator(BaseCalculator):
             "scr": self.scr,
             "gamess_scr": gamess_scr,
             "gamess_userscr": gamess_userscr,
-            "filename": self.filename
+            "filename": self.filename,
         }
 
         self._health_check()
@@ -142,9 +142,7 @@ class GamessCalculator(BaseCalculator):
         return "GamessCalc(cmd={self.cmd},scr={self.scr},met={self.method})"
 
 
-def properties_from_axyzc(
-    atoms, coords, charge, options, return_stdout=False, **kwargs
-):
+def properties_from_axyzc(atoms, coords, charge, options, return_stdout=False, **kwargs):
     """"""
 
     # Prepare input
@@ -537,7 +535,9 @@ def get_properties_vibration(lines):
 
     properties = {}
 
-    idx = linesio.get_rev_index(lines, "SCF DOES NOT CONVERGE AT VIB", stoppattern="END OF PROPERTY EVALUATION")
+    idx = linesio.get_rev_index(
+        lines, "SCF DOES NOT CONVERGE AT VIB", stoppattern="END OF PROPERTY EVALUATION"
+    )
 
     if idx is not None:
         properties["error"] = "Unable to vibrate structure"
@@ -558,9 +558,7 @@ def get_properties_vibration(lines):
     hof = float(line[4])
 
     # Check linear
-    idx = linesio.get_index(
-        lines, "THIS MOLECULE IS RECOGNIZED AS BEING LINEAR"
-    )
+    idx = linesio.get_index(lines, "THIS MOLECULE IS RECOGNIZED AS BEING LINEAR")
 
     is_linear = idx is not None
 
@@ -623,9 +621,7 @@ def get_properties_orbitals(lines):
 
     idx_start = linesio.get_index(lines, "EIGENVECTORS")
     idx_start += 4
-    idx_end = linesio.get_index(
-        lines, "END OF RHF CALCULATION", offset=idx_start
-    )
+    idx_end = linesio.get_index(lines, "END OF RHF CALCULATION", offset=idx_start)
 
     energies = []
 
@@ -692,11 +688,7 @@ def get_properties_solvation(lines):
     line = lines[idx + 4].split()
     total_interaction = float(line[-2])
 
-    total_non_polar = (
-        pierotti_cavitation_energy
-        + dispersion_free_energy
-        + repulsion_free_energy
-    )
+    total_non_polar = pierotti_cavitation_energy + dispersion_free_energy + repulsion_free_energy
 
     idx = linesio.get_index(lines, "CHARGE OF MOLECULE")
     line = lines[idx]

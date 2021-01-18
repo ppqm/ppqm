@@ -14,7 +14,7 @@ unset echo
 
  Distributed Data Interface kickoff program.
  Initiating 1 compute processes on 1 nodes to run the following command:
- /home/charnley/opt/gamess/gamess-github/gamess.00.x gamess_methane_vib 
+ /home/charnley/opt/gamess/gamess-github/gamess.00.x gamess_methane_vib
 
           ******************************************************
           *         GAMESS VERSION = 30 SEP 2018 (R3)         *
@@ -94,39 +94,39 @@ unset echo
  EXECUTION OF GAMESS BEGUN Tue Dec 31 16:14:49 2019
 
             ECHO OF THE FIRST FEW INPUT CARDS -
- INPUT CARD> $basis                                                                         
- INPUT CARD>     gbasis=PM3                                                                 
- INPUT CARD> $end                                                                           
- INPUT CARD>                                                                                
- INPUT CARD> $contrl                                                                        
- INPUT CARD>    scftyp=RHF                                                                  
- INPUT CARD>    runtyp=hessian                                                              
- INPUT CARD>    icharg=0                                                                    
- INPUT CARD>    maxit=60                                                                    
- INPUT CARD> $end                                                                           
- INPUT CARD> $data                                                                          
- INPUT CARD>Title                                                                           
- INPUT CARD>C1                                                                              
- INPUT CARD>C     6.0    0.000000     -0.000000    0.000000                                 
- INPUT CARD>H     1.0    -0.000000     -0.887550    -0.627544                               
- INPUT CARD>H     1.0    -0.000000     0.887550    -0.627544                                
- INPUT CARD>H     1.0    -0.887550     0.000000    0.627544                                 
- INPUT CARD>H     1.0    0.887550     0.000000    0.627544                                  
- INPUT CARD> $end                                                                           
+ INPUT CARD> $basis
+ INPUT CARD>     gbasis=PM3
+ INPUT CARD> $end
+ INPUT CARD>
+ INPUT CARD> $contrl
+ INPUT CARD>    scftyp=RHF
+ INPUT CARD>    runtyp=hessian
+ INPUT CARD>    icharg=0
+ INPUT CARD>    maxit=60
+ INPUT CARD> $end
+ INPUT CARD> $data
+ INPUT CARD>Title
+ INPUT CARD>C1
+ INPUT CARD>C     6.0    0.000000     -0.000000    0.000000
+ INPUT CARD>H     1.0    -0.000000     -0.887550    -0.627544
+ INPUT CARD>H     1.0    -0.000000     0.887550    -0.627544
+ INPUT CARD>H     1.0    -0.887550     0.000000    0.627544
+ INPUT CARD>H     1.0    0.887550     0.000000    0.627544
+ INPUT CARD> $end
     1000000 WORDS OF MEMORY AVAILABLE
 
      BASIS OPTIONS
      -------------
-     GBASIS=PM3          IGAUSS=       0      POLAR=NONE    
+     GBASIS=PM3          IGAUSS=       0      POLAR=NONE
      NDFUNC=       0     NFFUNC=       0     DIFFSP=       F
-     NPFUNC=       0      DIFFS=       F     BASNAM=        
+     NPFUNC=       0      DIFFS=       F     BASNAM=
 
 
      RUN TITLE
      ---------
- Title                                                                           
+ Title
 
- THE POINT GROUP OF THE MOLECULE IS C1      
+ THE POINT GROUP OF THE MOLECULE IS C1
  THE ORDER OF THE PRINCIPAL AXIS IS     0
 
  ATOM      ATOMIC                      COORDINATES (BOHR)
@@ -140,13 +140,13 @@ unset echo
           INTERNUCLEAR DISTANCES (ANGS.)
           ------------------------------
 
-                1 C          2 H          3 H          4 H          5 H     
+                1 C          2 H          3 H          4 H          5 H
 
    1 C       0.0000000    1.0869942 *  1.0869942 *  1.0869942 *  1.0869942 *
    2 H       1.0869942 *  0.0000000    1.7751000 *  1.7750312 *  1.7750312 *
    3 H       1.0869942 *  1.7751000 *  0.0000000    1.7750312 *  1.7750312 *
    4 H       1.0869942 *  1.7750312 *  1.7750312 *  0.0000000    1.7751000 *
-   5 H       1.0869942 *  1.7750312 *  1.7750312 *  1.7751000 *  0.0000000  
+   5 H       1.0869942 *  1.7750312 *  1.7750312 *  1.7751000 *  0.0000000
 
   * ... LESS THAN  3.000
 
@@ -163,22 +163,22 @@ unset echo
 
  THE PARAMETERS USED IN THIS CALCULATION ARE DESCRIBED IN:
 
-  H: (PM3): J. J. P. STEWART, J. COMP. CHEM.     10, 209 (1989).                
-  C: (PM3): J. J. P. STEWART, J. COMP. CHEM.     10, 209 (1989).                
+  H: (PM3): J. J. P. STEWART, J. COMP. CHEM.     10, 209 (1989).
+  C: (PM3): J. J. P. STEWART, J. COMP. CHEM.     10, 209 (1989).
 
  THERE ARE    1 HEAVY AND    4 LIGHT ATOMS,
  YIELDING A TOTAL OF        46 MOPAC 2E- INTEGRALS.
 
      $CONTRL OPTIONS
      ---------------
- SCFTYP=RHF          RUNTYP=HESSIAN      EXETYP=RUN     
- MPLEVL=       0     CITYP =NONE         CCTYP =NONE         VBTYP =NONE    
- DFTTYP=NONE         TDDFT =NONE    
- MULT  =       1     ICHARG=       0     NZVAR =       0     COORD =UNIQUE  
+ SCFTYP=RHF          RUNTYP=HESSIAN      EXETYP=RUN
+ MPLEVL=       0     CITYP =NONE         CCTYP =NONE         VBTYP =NONE
+ DFTTYP=NONE         TDDFT =NONE
+ MULT  =       1     ICHARG=       0     NZVAR =       0     COORD =UNIQUE
  PP    =NONE         RELWFN=NONE         LOCAL =NONE         NUMGRD=       F
- ISPHER=      -1     NOSYM =       0     MAXIT =      60     UNITS =ANGS    
- PLTORB=       F     MOLPLT=       F     AIMPAC=       F     FRIEND=        
- NPRINT=       7     IREST =       0     GEOM  =INPUT   
+ ISPHER=      -1     NOSYM =       0     MAXIT =      60     UNITS =ANGS
+ PLTORB=       F     MOLPLT=       F     AIMPAC=       F     FRIEND=
+ NPRINT=       7     IREST =       0     GEOM  =INPUT
  NORMF =       0     NORMP =       0     ITOL  =      20     ICUT  =       9
  INTTYP=BEST         GRDTYP=BEST         QMTTOL= 1.0E-06
 
@@ -198,8 +198,8 @@ unset echo
 
      MOMENTS            FIELD           POTENTIAL          DENSITY
  IEMOM =       1   IEFLD =       0   IEPOT =       0   IEDEN =       0
- WHERE =COMASS     WHERE =NUCLEI     WHERE =NUCLEI     WHERE =NUCLEI  
- OUTPUT=BOTH       OUTPUT=BOTH       OUTPUT=BOTH       OUTPUT=BOTH    
+ WHERE =COMASS     WHERE =NUCLEI     WHERE =NUCLEI     WHERE =NUCLEI
+ OUTPUT=BOTH       OUTPUT=BOTH       OUTPUT=BOTH       OUTPUT=BOTH
  IEMINT=       0   IEFINT=       0                     IEDINT=       0
                                                        MORB  =       0
           EXTRAPOLATION IN EFFECT
@@ -210,7 +210,7 @@ unset echo
      -------------------------------
      NWORD  =            0
      CUTOFF = 1.0E-09     MPTRAN =       0
-     DIRTRF =       F     AOINTS =DUP     
+     DIRTRF =       F     AOINTS =DUP
 
           ----------------------
           INTEGRAL INPUT OPTIONS
@@ -236,7 +236,7 @@ unset echo
      VIBANL=       T   DECOMP=       F   PROJCT=       F
      SCLFAC= 1.00000   PRTSCN=       F   NPRT  =       0
      PULCOR=       F   NPUN  =       0   REDOVB=       T
-     HSSTYP=GENERAL 
+     HSSTYP=GENERAL
      THERMOCHEMISTRY WILL BE PRINTED FOR    1 TEMPERATURES:
       298.15000
 1   ATOM  0
@@ -281,8 +281,8 @@ unset echo
 
  SYMMETRIES FOR INITIAL GUESS ORBITALS FOLLOW.   BOTH SET(S).
      4 ORBITALS ARE OCCUPIED (    0 CORE ORBITALS).
-     1=A        2=A        3=A        4=A        5=A        6=A        7=A   
-     8=A   
+     1=A        2=A        3=A        4=A        5=A        6=A        7=A
+     8=A
  ...... END OF INITIAL ORBITAL SELECTION ......
  STEP CPU TIME =     0.00 TOTAL CPU TIME =          0.0 (      0.0 MIN)
  TOTAL WALL CLOCK TIME=          0.0 SECONDS, CPU UTILIZATION IS   100.00%
@@ -324,7 +324,7 @@ unset echo
 
                       1          2          3          4          5
                    -1.0980    -0.5014    -0.5014    -0.5013     0.1560
-                     A          A          A          A          A   
+                     A          A          A          A          A
     1  C  1  S    0.745267   0.000000  -0.000000   0.000000   0.666766
     2  C  1  X   -0.000000   0.004864   0.707042  -0.000000  -0.000000
     3  C  1  Y    0.000000   0.707042  -0.004864  -0.000000  -0.000000
@@ -336,7 +336,7 @@ unset echo
 
                       6          7          8
                     0.1688     0.1688     0.1688
-                     A          A          A   
+                     A          A          A
     1  C  1  S    0.000000   0.000000   0.000000
     2  C  1  X    0.000000   0.291647   0.644212
     3  C  1  Y    0.000000   0.644212  -0.291647
@@ -378,13 +378,13 @@ unset echo
 
  THE VIB 0 GEOMETRY GRADIENT IS
 
- UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z 
+ UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z
     1 C                0.000000000       0.000000000       0.000000000
     2 H                0.000000000       0.000000030       0.000007401
     3 H                0.000000000      -0.000000030       0.000007401
     4 H                0.000000030       0.000000000      -0.000007401
     5 H               -0.000000030       0.000000000      -0.000007401
-  $VIB   
+  $VIB
           IVIB=   0 IATOM=   0 ICOORD=   0 E=       -6.6344799462
   0.000000000E+00 0.000000000E+00 0.000000000E+00 0.000000000E+00 3.044994718E-08
   7.401051994E-06 0.000000000E+00-3.044735629E-08 7.401054584E-06 3.044873810E-08
@@ -444,13 +444,13 @@ unset echo
  STEP CPU TIME =     0.00 TOTAL CPU TIME =          0.0 (      0.0 MIN)
  TOTAL WALL CLOCK TIME=          0.0 SECONDS, CPU UTILIZATION IS   100.00%
 
- UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z 
+ UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z
     1 C                0.005340847       0.000000000       0.000052805
     2 H               -0.000406795      -0.000004689       0.000003150
     3 H               -0.000406795       0.000004689       0.000003150
     4 H               -0.002242145       0.000000000       0.001283483
     5 H               -0.002285112       0.000000000      -0.001342588
-  $VIB   
+  $VIB
           IVIB=   1 IATOM=   1 ICOORD=   1 E=       -6.6344532456
   5.340846918E-03 0.000000000E+00 5.280495286E-05-4.067950690E-04-4.688593188E-06
   3.149877505E-06-4.067950703E-04 4.688594915E-06 3.149877160E-06-2.242145126E-03
@@ -510,13 +510,13 @@ unset echo
  STEP CPU TIME =     0.00 TOTAL CPU TIME =          0.0 (      0.0 MIN)
  TOTAL WALL CLOCK TIME=          0.0 SECONDS, CPU UTILIZATION IS     0.00%
 
- UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z 
+ UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z
     1 C                0.000000000       0.005340847      -0.000052805
     2 H                0.000000000      -0.002242145      -0.001283483
     3 H                0.000000000      -0.002285112       0.001342588
     4 H               -0.000004689      -0.000406795      -0.000003150
     5 H                0.000004689      -0.000406795      -0.000003150
-  $VIB   
+  $VIB
           IVIB=   1 IATOM=   1 ICOORD=   2 E=       -6.6344532456
   0.000000000E+00 5.340846917E-03-5.280494872E-05 0.000000000E+00-2.242145128E-03
  -1.283482847E-03 0.000000000E+00-2.285111648E-03 1.342587550E-03-4.688593360E-06
@@ -576,13 +576,13 @@ unset echo
  STEP CPU TIME =     0.01 TOTAL CPU TIME =          0.0 (      0.0 MIN)
  TOTAL WALL CLOCK TIME=          0.0 SECONDS, CPU UTILIZATION IS   100.00%
 
- UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z 
+ UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z
     1 C                0.000000000       0.000000000       0.005340033
     2 H                0.000000000      -0.001300206      -0.001324728
     3 H                0.000000000       0.001300206      -0.001324728
     4 H                0.001325578       0.000000000      -0.001345288
     5 H               -0.001325578       0.000000000      -0.001345288
-  $VIB   
+  $VIB
           IVIB=   1 IATOM=   1 ICOORD=   3 E=       -6.6344532487
   0.000000000E+00 0.000000000E+00 5.340032897E-03 0.000000000E+00-1.300205992E-03
  -1.324728130E-03 0.000000000E+00 1.300205991E-03-1.324728128E-03 1.325578337E-03
@@ -641,13 +641,13 @@ unset echo
  STEP CPU TIME =     0.00 TOTAL CPU TIME =          0.0 (      0.0 MIN)
  TOTAL WALL CLOCK TIME=          0.0 SECONDS, CPU UTILIZATION IS   100.00%
 
- UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z 
+ UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z
     1 C               -0.000407011       0.000004869       0.000003933
     2 H                0.000427199      -0.000004436       0.000005022
     3 H                0.000024789       0.000000305       0.000007420
     4 H               -0.000022251       0.000200050       0.000166971
     5 H               -0.000022727      -0.000200788      -0.000183347
-  $VIB   
+  $VIB
           IVIB=   1 IATOM=   2 ICOORD=   1 E=       -6.6344778139
  -4.070105475E-04 4.869033090E-06 3.933032563E-06 4.271990359E-04-4.436424478E-06
   5.022004132E-06 2.478919577E-05 3.052136957E-07 7.420415148E-06-2.225071051E-05
@@ -705,13 +705,13 @@ unset echo
  STEP CPU TIME =     0.00 TOTAL CPU TIME =          0.0 (      0.0 MIN)
  TOTAL WALL CLOCK TIME=          0.0 SECONDS, CPU UTILIZATION IS   100.00%
 
- UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z 
+ UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z
     1 C                0.000000000      -0.002284821      -0.001334948
     2 H                0.000000000       0.002656243       0.001588665
     3 H                0.000000000      -0.000326332      -0.000097728
     4 H                0.000052232      -0.000022545      -0.000077995
     5 H               -0.000052232      -0.000022545      -0.000077995
-  $VIB   
+  $VIB
           IVIB=   1 IATOM=   2 ICOORD=   2 E=       -6.6344667102
   0.000000000E+00-2.284821421E-03-1.334948023E-03 0.000000000E+00 2.656242810E-03
   1.588665127E-03 0.000000000E+00-3.263321137E-04-9.772789778E-05 5.223212647E-05
@@ -770,13 +770,13 @@ unset echo
  STEP CPU TIME =     0.00 TOTAL CPU TIME =          0.0 (      0.0 MIN)
  TOTAL WALL CLOCK TIME=          0.0 SECONDS, CPU UTILIZATION IS   100.00%
 
- UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z 
+ UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z
     1 C                0.000000000      -0.001325698      -0.001337355
     2 H                0.000000000       0.001572960       0.001540309
     3 H                0.000000000       0.000105892       0.000111404
     4 H                0.000071276      -0.000176577      -0.000157179
     5 H               -0.000071276      -0.000176577      -0.000157179
-  $VIB   
+  $VIB
           IVIB=   1 IATOM=   2 ICOORD=   3 E=       -6.6344722171
   0.000000000E+00-1.325697869E-03-1.337355005E-03 0.000000000E+00 1.572959961E-03
   1.540309326E-03 0.000000000E+00 1.058916637E-04 1.114043310E-04 7.127645616E-05
@@ -835,13 +835,13 @@ unset echo
  STEP CPU TIME =     0.00 TOTAL CPU TIME =          0.0 (      0.0 MIN)
  TOTAL WALL CLOCK TIME=          0.0 SECONDS, CPU UTILIZATION IS    50.00%
 
- UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z 
+ UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z
     1 C               -0.000407011      -0.000004869       0.000003933
     2 H                0.000024789      -0.000000305       0.000007420
     3 H                0.000427199       0.000004436       0.000005022
     4 H               -0.000022251      -0.000200050       0.000166971
     5 H               -0.000022727       0.000200788      -0.000183347
-  $VIB   
+  $VIB
           IVIB=   1 IATOM=   3 ICOORD=   1 E=       -6.6344778139
  -4.070105502E-04-4.869041381E-06 3.933032563E-06 2.478919543E-05-3.052133503E-07
   7.420413939E-06 4.271990376E-04 4.436426551E-06 5.022003787E-06-2.225070913E-05
@@ -899,13 +899,13 @@ unset echo
  STEP CPU TIME =     0.00 TOTAL CPU TIME =          0.0 (      0.0 MIN)
  TOTAL WALL CLOCK TIME=          0.0 SECONDS, CPU UTILIZATION IS    50.00%
 
- UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z 
+ UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z
     1 C                0.000000000      -0.002243117       0.001290644
     2 H                0.000000000      -0.000316732       0.000112042
     3 H                0.000000000       0.002605278      -0.001526791
     4 H               -0.000051119      -0.000022714       0.000062052
     5 H                0.000051119      -0.000022714       0.000062052
-  $VIB   
+  $VIB
           IVIB=   1 IATOM=   3 ICOORD=   2 E=       -6.6344668805
   0.000000000E+00-2.243117419E-03 1.290644469E-03 0.000000000E+00-3.167318910E-04
   1.120422428E-04 0.000000000E+00 2.605277625E-03-1.526791481E-03-5.111904540E-05
@@ -964,13 +964,13 @@ unset echo
  STEP CPU TIME =     0.00 TOTAL CPU TIME =          0.0 (      0.0 MIN)
  TOTAL WALL CLOCK TIME=          0.0 SECONDS, CPU UTILIZATION IS   100.00%
 
- UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z 
+ UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z
     1 C                0.000000000       0.001325698      -0.001337355
     2 H                0.000000000      -0.000105892       0.000111404
     3 H                0.000000000      -0.001572960       0.001540309
     4 H                0.000071276       0.000176577      -0.000157179
     5 H               -0.000071276       0.000176577      -0.000157179
-  $VIB   
+  $VIB
           IVIB=   1 IATOM=   3 ICOORD=   3 E=       -6.6344722171
   0.000000000E+00 1.325697865E-03-1.337355003E-03 0.000000000E+00-1.058916625E-04
   1.114043293E-04 0.000000000E+00-1.572959959E-03 1.540309324E-03 7.127645599E-05
@@ -1028,13 +1028,13 @@ unset echo
  STEP CPU TIME =     0.00 TOTAL CPU TIME =          0.0 (      0.0 MIN)
  TOTAL WALL CLOCK TIME=          0.0 SECONDS, CPU UTILIZATION IS   100.00%
 
- UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z 
+ UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z
     1 C               -0.002284821       0.000000000       0.001334948
     2 H               -0.000022545       0.000052232       0.000077995
     3 H               -0.000022545      -0.000052232       0.000077995
     4 H                0.002656243       0.000000000      -0.001588665
     5 H               -0.000326332       0.000000000       0.000097728
-  $VIB   
+  $VIB
           IVIB=   1 IATOM=   4 ICOORD=   1 E=       -6.6344667102
  -2.284821423E-03 0.000000000E+00 1.334948023E-03-2.254463688E-05 5.223212802E-05
   7.799460111E-05-2.254463671E-05-5.223212664E-05 7.799460232E-05 2.656242810E-03
@@ -1093,13 +1093,13 @@ unset echo
  STEP CPU TIME =     0.00 TOTAL CPU TIME =          0.0 (      0.0 MIN)
  TOTAL WALL CLOCK TIME=          0.0 SECONDS, CPU UTILIZATION IS   100.00%
 
- UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z 
+ UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z
     1 C                0.000004869      -0.000407011      -0.000003933
     2 H                0.000200050      -0.000022251      -0.000166971
     3 H               -0.000200788      -0.000022727       0.000183347
     4 H               -0.000004436       0.000427199      -0.000005022
     5 H                0.000000305       0.000024789      -0.000007420
-  $VIB   
+  $VIB
           IVIB=   1 IATOM=   4 ICOORD=   2 E=       -6.6344778139
   4.869039999E-06-4.070105475E-04-3.933036708E-06 2.000502084E-04-2.225070878E-05
  -1.669712203E-04-2.007880364E-04-2.272697504E-05 1.833466748E-04-4.436425514E-06
@@ -1158,13 +1158,13 @@ unset echo
  STEP CPU TIME =     0.00 TOTAL CPU TIME =          0.0 (      0.0 MIN)
  TOTAL WALL CLOCK TIME=          0.0 SECONDS, CPU UTILIZATION IS   100.00%
 
- UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z 
+ UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z
     1 C                0.001299933       0.000000000      -0.001332984
     2 H                0.000173750      -0.000068706      -0.000139880
     3 H                0.000173750       0.000068706      -0.000139880
     4 H               -0.001542979       0.000000000       0.001517003
     5 H               -0.000104454       0.000000000       0.000095741
-  $VIB   
+  $VIB
           IVIB=   1 IATOM=   4 ICOORD=   3 E=       -6.6344723935
   1.299933476E-03 0.000000000E+00-1.332984105E-03 1.737496755E-04-6.870602600E-05
  -1.398797747E-04 1.737496758E-04 6.870602427E-05-1.398797731E-04-1.542978636E-03
@@ -1222,13 +1222,13 @@ unset echo
  STEP CPU TIME =     0.01 TOTAL CPU TIME =          0.0 (      0.0 MIN)
  TOTAL WALL CLOCK TIME=          0.0 SECONDS, CPU UTILIZATION IS   150.00%
 
- UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z 
+ UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z
     1 C               -0.002243117       0.000000000      -0.001290644
     2 H               -0.000022714      -0.000051119      -0.000062052
     3 H               -0.000022714       0.000051119      -0.000062052
     4 H               -0.000316732       0.000000000      -0.000112042
     5 H                0.002605278       0.000000000       0.001526791
-  $VIB   
+  $VIB
           IVIB=   1 IATOM=   5 ICOORD=   1 E=       -6.6344668805
  -2.243117422E-03 0.000000000E+00-1.290644467E-03-2.271415788E-05-5.111904540E-05
  -6.205238522E-05-2.271415771E-05 5.111904540E-05-6.205238384E-05-3.167318898E-04
@@ -1287,13 +1287,13 @@ unset echo
  STEP CPU TIME =     0.00 TOTAL CPU TIME =          0.0 (      0.0 MIN)
  TOTAL WALL CLOCK TIME=          0.0 SECONDS, CPU UTILIZATION IS   100.00%
 
- UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z 
+ UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z
     1 C               -0.000004869      -0.000407011      -0.000003933
     2 H               -0.000200050      -0.000022251      -0.000166971
     3 H                0.000200788      -0.000022727       0.000183347
     4 H               -0.000000305       0.000024789      -0.000007420
     5 H                0.000004436       0.000427199      -0.000005022
-  $VIB   
+  $VIB
           IVIB=   1 IATOM=   5 ICOORD=   2 E=       -6.6344778139
  -4.869035854E-06-4.070105502E-04-3.933035327E-06-2.000502096E-04-2.225070896E-05
  -1.669712200E-04 2.007880349E-04-2.272697384E-05 1.833466748E-04-3.052150775E-07
@@ -1352,13 +1352,13 @@ unset echo
  STEP CPU TIME =     0.00 TOTAL CPU TIME =          0.0 (      0.0 MIN)
  TOTAL WALL CLOCK TIME=          0.0 SECONDS, CPU UTILIZATION IS   100.00%
 
- UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z 
+ UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z
     1 C               -0.001299933       0.000000000      -0.001332984
     2 H               -0.000173750      -0.000068706      -0.000139880
     3 H               -0.000173750       0.000068706      -0.000139880
     4 H                0.000104454       0.000000000       0.000095741
     5 H                0.001542979       0.000000000       0.001517003
-  $VIB   
+  $VIB
           IVIB=   1 IATOM=   5 ICOORD=   3 E=       -6.6344723935
  -1.299933479E-03 0.000000000E+00-1.332984106E-03-1.737496726E-04-6.870602410E-05
  -1.398797757E-04-1.737496755E-04 6.870602566E-05-1.398797731E-04 1.044541914E-04
@@ -1418,13 +1418,13 @@ unset echo
  STEP CPU TIME =     0.00 TOTAL CPU TIME =          0.0 (      0.0 MIN)
  TOTAL WALL CLOCK TIME=          0.0 SECONDS, CPU UTILIZATION IS   100.00%
 
- UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z 
+ UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z
     1 C               -0.005340847       0.000000000       0.000052805
     2 H                0.000406795      -0.000004689       0.000003150
     3 H                0.000406795       0.000004689       0.000003150
     4 H                0.002285112       0.000000000      -0.001342588
     5 H                0.002242145       0.000000000       0.001283483
-  $VIB   
+  $VIB
           IVIB=   2 IATOM=   1 ICOORD=   1 E=       -6.6344532456
  -5.340846917E-03 0.000000000E+00 5.280494872E-05 4.067950690E-04-4.688592151E-06
   3.149877332E-06 4.067950688E-04 4.688593360E-06 3.149880096E-06 2.285111651E-03
@@ -1484,13 +1484,13 @@ unset echo
  STEP CPU TIME =     0.00 TOTAL CPU TIME =          0.0 (      0.0 MIN)
  TOTAL WALL CLOCK TIME=          0.0 SECONDS, CPU UTILIZATION IS   100.00%
 
- UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z 
+ UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z
     1 C                0.000000000      -0.005340847      -0.000052805
     2 H                0.000000000       0.002285112       0.001342588
     3 H                0.000000000       0.002242145      -0.001283483
     4 H               -0.000004689       0.000406795      -0.000003150
     5 H                0.000004689       0.000406795      -0.000003150
-  $VIB   
+  $VIB
           IVIB=   2 IATOM=   1 ICOORD=   2 E=       -6.6344532456
   0.000000000E+00-5.340846914E-03-5.280495010E-05 0.000000000E+00 2.285111650E-03
   1.342587554E-03 0.000000000E+00 2.242145127E-03-1.283482846E-03-4.688593533E-06
@@ -1550,13 +1550,13 @@ unset echo
  STEP CPU TIME =     0.00 TOTAL CPU TIME =          0.0 (      0.0 MIN)
  TOTAL WALL CLOCK TIME=          0.0 SECONDS, CPU UTILIZATION IS   100.00%
 
- UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z 
+ UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z
     1 C                0.000000000       0.000000000      -0.005340033
     2 H                0.000000000       0.001325578       0.001345288
     3 H                0.000000000      -0.001325578       0.001345288
     4 H               -0.001300206       0.000000000       0.001324728
     5 H                0.001300206       0.000000000       0.001324728
-  $VIB   
+  $VIB
           IVIB=   2 IATOM=   1 ICOORD=   3 E=       -6.6344532487
   0.000000000E+00 0.000000000E+00-5.340032898E-03 0.000000000E+00 1.325578336E-03
   1.345288321E-03 0.000000000E+00-1.325578336E-03 1.345288321E-03-1.300205989E-03
@@ -1615,13 +1615,13 @@ unset echo
  STEP CPU TIME =     0.00 TOTAL CPU TIME =          0.0 (      0.0 MIN)
  TOTAL WALL CLOCK TIME=          0.0 SECONDS, CPU UTILIZATION IS    75.00%
 
- UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z 
+ UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z
     1 C                0.000407011       0.000004869       0.000003933
     2 H               -0.000427199      -0.000004436       0.000005022
     3 H               -0.000024789       0.000000305       0.000007420
     4 H                0.000022727      -0.000200788      -0.000183347
     5 H                0.000022251       0.000200050       0.000166971
-  $VIB   
+  $VIB
           IVIB=   2 IATOM=   2 ICOORD=   1 E=       -6.6344778139
   4.070105488E-04 4.869035854E-06 3.933033945E-06-4.271990371E-04-4.436424478E-06
   5.022005514E-06-2.478919422E-05 3.052154230E-07 7.420412557E-06 2.272697366E-05
@@ -1679,13 +1679,13 @@ unset echo
  STEP CPU TIME =     0.01 TOTAL CPU TIME =          0.0 (      0.0 MIN)
  TOTAL WALL CLOCK TIME=          0.0 SECONDS, CPU UTILIZATION IS   100.00%
 
- UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z 
+ UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z
     1 C                0.000000000       0.002243117       0.001290644
     2 H                0.000000000      -0.002605278      -0.001526791
     3 H                0.000000000       0.000316732       0.000112042
     4 H               -0.000051119       0.000022714       0.000062052
     5 H                0.000051119       0.000022714       0.000062052
-  $VIB   
+  $VIB
           IVIB=   2 IATOM=   2 ICOORD=   2 E=       -6.6344668805
   0.000000000E+00 2.243117419E-03 1.290644463E-03 0.000000000E+00-2.605277626E-03
  -1.526791480E-03 0.000000000E+00 3.167318894E-04 1.120422471E-04-5.111904436E-05
@@ -1744,13 +1744,13 @@ unset echo
  STEP CPU TIME =     0.00 TOTAL CPU TIME =          0.0 (      0.0 MIN)
  TOTAL WALL CLOCK TIME=          0.0 SECONDS, CPU UTILIZATION IS   100.00%
 
- UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z 
+ UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z
     1 C                0.000000000       0.001299933       0.001332984
     2 H                0.000000000      -0.001542979      -0.001517003
     3 H                0.000000000      -0.000104454      -0.000095741
     4 H               -0.000068706       0.000173750       0.000139880
     5 H                0.000068706       0.000173750       0.000139880
-  $VIB   
+  $VIB
           IVIB=   2 IATOM=   2 ICOORD=   3 E=       -6.6344723935
   0.000000000E+00 1.299933479E-03 1.332984102E-03 0.000000000E+00-1.542978635E-03
  -1.517002516E-03 0.000000000E+00-1.044541913E-04-9.574113675E-05-6.870602652E-05
@@ -1809,13 +1809,13 @@ unset echo
  STEP CPU TIME =     0.00 TOTAL CPU TIME =          0.0 (      0.0 MIN)
  TOTAL WALL CLOCK TIME=          0.0 SECONDS, CPU UTILIZATION IS   100.00%
 
- UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z 
+ UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z
     1 C                0.000407011      -0.000004869       0.000003933
     2 H               -0.000024789      -0.000000305       0.000007420
     3 H               -0.000427199       0.000004436       0.000005022
     4 H                0.000022727       0.000200788      -0.000183347
     5 H                0.000022251      -0.000200050       0.000166971
-  $VIB   
+  $VIB
           IVIB=   2 IATOM=   3 ICOORD=   1 E=       -6.6344778139
   4.070105502E-04-4.869034472E-06 3.933033945E-06-2.478919560E-05-3.052135230E-07
   7.420415320E-06-4.271990362E-04 4.436424305E-06 5.022002577E-06 2.272697418E-05
@@ -1873,13 +1873,13 @@ unset echo
  STEP CPU TIME =     0.00 TOTAL CPU TIME =          0.0 (      0.0 MIN)
  TOTAL WALL CLOCK TIME=          0.0 SECONDS, CPU UTILIZATION IS   100.00%
 
- UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z 
+ UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z
     1 C                0.000000000       0.002284821      -0.001334948
     2 H                0.000000000       0.000326332      -0.000097728
     3 H                0.000000000      -0.002656243       0.001588665
     4 H                0.000052232       0.000022545      -0.000077995
     5 H               -0.000052232       0.000022545      -0.000077995
-  $VIB   
+  $VIB
           IVIB=   2 IATOM=   3 ICOORD=   2 E=       -6.6344667102
   0.000000000E+00 2.284821424E-03-1.334948024E-03 0.000000000E+00 3.263321150E-04
  -9.772789761E-05 0.000000000E+00-2.656242813E-03 1.588665127E-03 5.223212630E-05
@@ -1938,13 +1938,13 @@ unset echo
  STEP CPU TIME =     0.00 TOTAL CPU TIME =          0.0 (      0.0 MIN)
  TOTAL WALL CLOCK TIME=          0.0 SECONDS, CPU UTILIZATION IS   100.00%
 
- UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z 
+ UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z
     1 C                0.000000000      -0.001299933       0.001332984
     2 H                0.000000000       0.000104454      -0.000095741
     3 H                0.000000000       0.001542979      -0.001517003
     4 H               -0.000068706      -0.000173750       0.000139880
     5 H                0.000068706      -0.000173750       0.000139880
-  $VIB   
+  $VIB
           IVIB=   2 IATOM=   3 ICOORD=   3 E=       -6.6344723935
   0.000000000E+00-1.299933478E-03 1.332984102E-03 0.000000000E+00 1.044541916E-04
  -9.574113537E-05 0.000000000E+00 1.542978636E-03-1.517002518E-03-6.870602496E-05
@@ -2002,13 +2002,13 @@ unset echo
  STEP CPU TIME =     0.00 TOTAL CPU TIME =          0.0 (      0.0 MIN)
  TOTAL WALL CLOCK TIME=          0.0 SECONDS, CPU UTILIZATION IS   125.00%
 
- UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z 
+ UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z
     1 C                0.002243117       0.000000000      -0.001290644
     2 H                0.000022714      -0.000051119      -0.000062052
     3 H                0.000022714       0.000051119      -0.000062052
     4 H               -0.002605278       0.000000000       0.001526791
     5 H                0.000316732       0.000000000      -0.000112042
-  $VIB   
+  $VIB
           IVIB=   2 IATOM=   4 ICOORD=   1 E=       -6.6344668805
   2.243117417E-03 0.000000000E+00-1.290644463E-03 2.271415874E-05-5.111904298E-05
  -6.205238384E-05 2.271415771E-05 5.111904419E-05-6.205238920E-05-2.605277624E-03
@@ -2067,13 +2067,13 @@ unset echo
  STEP CPU TIME =     0.00 TOTAL CPU TIME =          0.0 (      0.0 MIN)
  TOTAL WALL CLOCK TIME=          0.1 SECONDS, CPU UTILIZATION IS   100.00%
 
- UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z 
+ UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z
     1 C                0.000004869       0.000407011      -0.000003933
     2 H               -0.000200788       0.000022727       0.000183347
     3 H                0.000200050       0.000022251      -0.000166971
     4 H               -0.000004436      -0.000427199      -0.000005022
     5 H                0.000000305      -0.000024789      -0.000007420
-  $VIB   
+  $VIB
           IVIB=   2 IATOM=   4 ICOORD=   2 E=       -6.6344778139
   4.869037236E-06 4.070105488E-04-3.933038090E-06-2.007880333E-04 2.272697366E-05
   1.833466734E-04 2.000502067E-04 2.225070757E-05-1.669712202E-04-4.436424305E-06
@@ -2132,13 +2132,13 @@ unset echo
  STEP CPU TIME =     0.00 TOTAL CPU TIME =          0.0 (      0.0 MIN)
  TOTAL WALL CLOCK TIME=          0.1 SECONDS, CPU UTILIZATION IS   100.00%
 
- UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z 
+ UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z
     1 C               -0.001325698       0.000000000       0.001337355
     2 H               -0.000176577       0.000071276       0.000157179
     3 H               -0.000176577      -0.000071276       0.000157179
     4 H                0.001572960       0.000000000      -0.001540309
     5 H                0.000105892       0.000000000      -0.000111404
-  $VIB   
+  $VIB
           IVIB=   2 IATOM=   4 ICOORD=   3 E=       -6.6344722171
  -1.325697866E-03 0.000000000E+00 1.337355001E-03-1.765768805E-04 7.127645581E-05
   1.571793260E-04-1.765768777E-04-7.127645858E-05 1.571793288E-04 1.572959959E-03
@@ -2196,13 +2196,13 @@ unset echo
  STEP CPU TIME =     0.00 TOTAL CPU TIME =          0.0 (      0.0 MIN)
  TOTAL WALL CLOCK TIME=          0.1 SECONDS, CPU UTILIZATION IS   100.00%
 
- UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z 
+ UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z
     1 C                0.002284821       0.000000000       0.001334948
     2 H                0.000022545       0.000052232       0.000077995
     3 H                0.000022545      -0.000052232       0.000077995
     4 H                0.000326332       0.000000000       0.000097728
     5 H               -0.002656243       0.000000000      -0.001588665
-  $VIB   
+  $VIB
           IVIB=   2 IATOM=   5 ICOORD=   1 E=       -6.6344667102
   2.284821421E-03 0.000000000E+00 1.334948021E-03 2.254463705E-05 5.223212612E-05
   7.799460388E-05 2.254463843E-05-5.223212474E-05 7.799460370E-05 3.263321163E-04
@@ -2261,13 +2261,13 @@ unset echo
  STEP CPU TIME =     0.00 TOTAL CPU TIME =          0.0 (      0.0 MIN)
  TOTAL WALL CLOCK TIME=          0.1 SECONDS, CPU UTILIZATION IS   100.00%
 
- UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z 
+ UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z
     1 C               -0.000004869       0.000407011      -0.000003933
     2 H                0.000200788       0.000022727       0.000183347
     3 H               -0.000200050       0.000022251      -0.000166971
     4 H               -0.000000305      -0.000024789      -0.000007420
     5 H                0.000004436      -0.000427199      -0.000005022
-  $VIB   
+  $VIB
           IVIB=   2 IATOM=   5 ICOORD=   2 E=       -6.6344778139
  -4.869038618E-06 4.070105488E-04-3.933036708E-06 2.007880347E-04 2.272697349E-05
   1.833466736E-04-2.000502055E-04 2.225070896E-05-1.669712198E-04-3.052147321E-07
@@ -2326,13 +2326,13 @@ unset echo
  STEP CPU TIME =     0.00 TOTAL CPU TIME =          0.0 (      0.0 MIN)
  TOTAL WALL CLOCK TIME=          0.1 SECONDS, CPU UTILIZATION IS    83.33%
 
- UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z 
+ UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z
     1 C                0.001325698       0.000000000       0.001337355
     2 H                0.000176577       0.000071276       0.000157179
     3 H                0.000176577      -0.000071276       0.000157179
     4 H               -0.000105892       0.000000000      -0.000111404
     5 H               -0.001572960       0.000000000      -0.001540309
-  $VIB   
+  $VIB
           IVIB=   2 IATOM=   5 ICOORD=   3 E=       -6.6344722171
   1.325697863E-03 0.000000000E+00 1.337355001E-03 1.765768805E-04 7.127645478E-05
   1.571793274E-04 1.765768779E-04-7.127645460E-05 1.571793266E-04-1.058916639E-04
@@ -2346,7 +2346,7 @@ unset echo
           ENERGY GRADIENT
           ---------------
 
- UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z 
+ UNITS ARE HARTREE/BOHR    E'X               E'Y               E'Z
     1 C                0.000000000       0.000000000       0.000000000
     2 H                0.000000000       0.000000030       0.000007401
     3 H                0.000000000      -0.000000030       0.000007401
@@ -2358,7 +2358,7 @@ unset echo
           -------------------------------
 
                                    1                          2
-                               C                          H         
+                               C                          H
                           X        Y        Z        X        Y        Z
   1   C            X 0.534085 0.000000 0.000000-0.040690-0.000000 0.000000
                    Y 0.000000 0.534085 0.000000-0.000000-0.226380-0.131293
@@ -2377,7 +2377,7 @@ unset echo
                    Z-0.131293 0.000000-0.133509-0.017516-0.007001-0.014853
 
                                    3                          4
-                               H                          H         
+                               H                          H
                           X        Y        Z        X        Y        Z
   3   H            X 0.042720 0.000000 0.000000-0.002256-0.020042 0.017516
                    Y 0.000000 0.263076-0.155785-0.005168-0.002256 0.007001
@@ -2390,7 +2390,7 @@ unset echo
                    Z-0.017516 0.007001-0.014853 0.010503-0.000000 0.010357
 
                                    5
-                               H         
+                               H
                           X        Y        Z
   5   H            X 0.263076 0.000000 0.155785
                    Y 0.000000 0.042720-0.000000
@@ -2437,8 +2437,8 @@ unset echo
      REDUCED MASSES IN AMU.
 
                             1           2           3           4           5
-       FREQUENCY:         5.76        5.76        0.10       64.19       70.02  
-        SYMMETRY:         A           A           A           A           A   
+       FREQUENCY:         5.76        5.76        0.10       64.19       70.02
+        SYMMETRY:         A           A           A           A           A
     REDUCED MASS:      3.16069     3.16069     3.20674     1.00783     1.01249
     IR INTENSITY:      0.00000     0.00000     0.00000     0.00000     0.00000
 
@@ -2469,8 +2469,8 @@ unset echo
                TOTAL  0.27583140  0.27583106  0.00000149  3.36755132  3.35610492
 
                             6           7           8           9          10
-       FREQUENCY:        70.02     1362.61     1362.74     1362.74     1451.01  
-        SYMMETRY:         A           A           A           A           A   
+       FREQUENCY:        70.02     1362.61     1362.74     1362.74     1451.01
+        SYMMETRY:         A           A           A           A           A
     REDUCED MASS:      1.01249     1.19026     1.19020     1.19020     1.00782
     IR INTENSITY:      0.00000     1.00091     1.00157     1.00157     0.00000
 
@@ -2501,8 +2501,8 @@ unset echo
                TOTAL  3.35610490  0.00000000  0.00044123  0.00044123  0.00000001
 
                            11          12          13          14          15
-       FREQUENCY:      1451.23     3207.76     3207.86     3207.86     3311.31  
-        SYMMETRY:         A           A           A           A           A   
+       FREQUENCY:      1451.23     3207.76     3207.86     3207.86     3311.31
+        SYMMETRY:         A           A           A           A           A
     REDUCED MASS:      1.00782     1.09193     1.09195     1.09195     1.00782
     IR INTENSITY:      0.00000     0.02338     0.02386     0.02386     0.00000
 
@@ -2568,7 +2568,7 @@ unset echo
     159.00917   159.00917   158.99686
       7 -     15 VIBRATIONAL MODES ARE USED IN THERMOCHEMISTRY.
  THE HARMONIC ZERO POINT ENERGY IS (SCALED BY   1.000)
-        0.045393 HARTREE/MOLECULE     9962.562714 CM**-1/MOLECULE 
+        0.045393 HARTREE/MOLECULE     9962.562714 CM**-1/MOLECULE
        28.484425 KCAL/MOL              119.178833 KJ/MOL
 
                Q               LN Q
