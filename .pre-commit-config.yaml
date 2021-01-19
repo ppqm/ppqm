@@ -15,6 +15,7 @@ repos:
       - id: autoflake
         name: Removes unused variables
         args:
+          - --in-place
           - --remove-all-unused-imports
           - --remove-unused-variables
           - --expand-star-imports
