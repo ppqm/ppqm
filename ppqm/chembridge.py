@@ -1,15 +1,13 @@
 import copy
 import gzip
 from io import StringIO
-from typing import Any, Dict, List, Str
+from typing import Any, Dict, List
 
 import numpy as np
 from rdkit import Chem
 from rdkit.Chem import AllChem, Draw, Mol, rdFreeSASA, rdmolops
 from rdkit.Chem.EnumerateStereoisomers import EnumerateStereoisomers, StereoEnumerationOptions
 from rdkit.Chem.MolStandardize import rdMolStandardize
-
-# from rdkit.six import StringIO
 
 # spin-multiplicities 2,3,4,3,2 for the atoms H, C, N, O, F, respectively.
 MULTIPLICITY = {}
@@ -1134,7 +1132,7 @@ def read_smi(f, includes_name=False):
     return
 
 
-def sdfstrs_to_molobjs(sdfs: Str, remove_hs=False):
+def sdfstrs_to_molobjs(sdfs: str, remove_hs=False):
     """
 
     From a string of multiple SDF structures

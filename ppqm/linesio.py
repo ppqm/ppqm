@@ -18,44 +18,25 @@ def readlines_reverse(filename):
         yield line[::-1]
 
 
-def get_index(lines, pattern, offset=None, n_lines=None, stoppattern=None):
+def enumerate_reversed(lines, max_lines=None, length=None):
 
-    if offset is None:
-        offset = 0
-
-    if n_lines is None:
-        n_lines = len(lines)
-
-    for i in range(offset, n_lines):
-
-        if pattern in lines[i]:
-            return i
-
-        if stoppattern and stoppattern in lines[i]:
-            return None
-
-    return None
-
-
-def reverse_enum(L, max_lines=None, lenl=None):
-
-    if lenl is None:
-        lenl = len(L)
+    if length is None:
+        length = len(lines)
 
     if max_lines is None:
-        iterator = reversed(range(lenl))
+        iterator = reversed(range(length))
     else:
-        iterator = reversed(range(min(lenl, max_lines)))
+        iterator = reversed(range(min(length, max_lines)))
 
     for index in iterator:
-        yield index, L[index]
+        yield index, lines[index]
 
 
-def get_rev_index(lines, pattern, max_lines=None, lenl=None, stoppattern=False):
+def get_index(lines, pattern, stoppattern=None):
 
-    for i, line in reverse_enum(lines, max_lines=max_lines):
+    for i, line in enumerate(lines):
 
-        if line.find(pattern) != -1:
+        if pattern in line:
             return i
 
         if stoppattern and stoppattern in line:
@@ -64,33 +45,22 @@ def get_rev_index(lines, pattern, max_lines=None, lenl=None, stoppattern=False):
     return None
 
 
-def get_indexes(lines, pattern):
+def get_indices(lines, pattern, stoppattern=None):
 
     idxs = []
 
     for i, line in enumerate(lines):
+
         if pattern in line:
             idxs.append(i)
 
-    return idxs
-
-
-def get_indexes_with_stop(lines, pattern, stoppattern):
-
-    idxs = []
-
-    for i, line in enumerate(lines):
-        if pattern in line:
-            idxs.append(i)
-            continue
-
-        if stoppattern in line:
+        if stoppattern and stoppattern in line:
             break
 
     return idxs
 
 
-def get_indexes_patterns(lines, patterns):
+def get_indices_patterns(lines, patterns, stoppattern=None):
 
     n_patterns = len(patterns)
     i_patterns = list(range(n_patterns))
@@ -107,17 +77,36 @@ def get_indexes_patterns(lines, patterns):
                 idxs[ip] = i
                 i_patterns.remove(ip)
 
+        if stoppattern and stoppattern in line:
+            break
+
     return idxs
 
 
-def get_rev_indexes(lines, patterns):
+def get_rev_index(lines, pattern, stoppattern=None):
+
+    for i, line in enumerate_reversed(lines):
+
+        if pattern in line:
+            return i
+
+        if stoppattern and stoppattern in line:
+            return None
+
+    return None
+
+
+def get_rev_indices_patterns(lines, patterns, stoppattern=None):
 
     n_patterns = len(patterns)
     i_patterns = list(range(n_patterns))
 
     idxs = [None] * n_patterns
 
-    for i, line in reverse_enum(lines):
+    for i, line in enumerate_reversed(lines):
+
+        if stoppattern and stoppattern in line:
+            break
 
         for ip in i_patterns:
 
