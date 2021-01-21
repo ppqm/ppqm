@@ -352,6 +352,14 @@ def get_axyzc(molobj, confid=-1, atomfmt=int):
     return atoms, coordinates, charge
 
 
+def get_coordinates(molobj, confid=-1):
+    """ """
+    conformer = molobj.GetConformer(id=confid)
+    coordinates = conformer.GetPositions()
+    coordinates = np.array(coordinates)
+    return coordinates
+
+
 def get_boltzmann_weights(energies, temp=298.15):
     """
     Calcualte boltzmann weights

@@ -1,8 +1,21 @@
+import logging
+import multiprocessing
 import pickle
 import sys
+import threading
 from io import StringIO
 
 import numpy as np
+from tqdm import tqdm
+
+try:
+    import thread
+except ImportError:
+    import _thread as thread
+
+from ppqm import constants
+
+_logger = logging.getLogger("ppqm")
 
 
 def eprint(*args, **kwargs):
@@ -45,3 +58,114 @@ def merge_dict(a, b, path=None):
         else:
             a[key] = b[key]
     return a
+
+
+def meta_func(func, args, **kwargs):
+    """ meta func to translate positional args to tuple """
+    return func(*args, **kwargs)
+
+
+def func_parallel(
+    func,
+    arg_list,
+    show_progress=True,
+    n_cores=1,
+    n_jobs=None,
+    title="Parallel",
+):
+    """
+    Start pool of procs for function with arg_list.
+
+    Use partial to set kwargs and non-variable args
+
+    # TODO Finish example
+    >>> def most_important(x, y, z, add=5):
+    >>>     result = x + y + z + add
+    >>>     return result
+    >>>
+    >>> x_list =
+    >>>
+    >>>
+
+
+    """
+
+    if show_progress:
+
+        if n_jobs is None:
+            n_jobs = len(arg_list)
+
+        pbar = tqdm(
+            total=n_jobs,
+            desc=f"{title}({n_cores})",
+            **constants.TQDM_OPTIONS,
+        )
+
+    p = multiprocessing.Pool(processes=n_cores)
+
+    results = []
+
+    try:
+        results_iter = p.imap(func, arg_list, chunksize=1)
+
+        for result in results_iter:
+
+            if show_progress:
+                pbar.update(1)
+
+            results.append(result)
+
+    except KeyboardInterrupt:
+        eprint("got ^C while running pool of workers...")
+        p.terminate()
+
+    except Exception as e:
+        eprint("got exception: %r, terminating the pool" % (e,))
+        p.terminate()
+
+    finally:
+        p.terminate()
+
+    if show_progress:
+        pbar.close()
+
+    return results
+
+
+def exit_after(s):
+    """
+    use as decorator to exit process if function takes longer than s seconds
+
+    usage:
+
+    >>> @exit_after(5)
+    >>> def countdown(n):
+    >>>     i = 0
+    >>>     while True:
+    >>>         i += 1
+    >>>         time.sleep(1)
+    >>>         print(i)
+
+    """
+
+    def outer(fn):
+        def inner(*args, **kwargs):
+            timer = threading.Timer(s, quit_function, args=[fn.__name__])
+            timer.start()
+            try:
+                result = fn(*args, **kwargs)
+            finally:
+                timer.cancel()
+            return result
+
+        return inner
+
+    return outer
+
+
+def quit_function(fn_name):
+
+    _logger.error(f"function '{fn_name}' took too long")
+
+    sys.stderr.flush()  # Python 3 stderr is likely buffered.
+    thread.interrupt_main()  # raises KeyboardInterrupt
