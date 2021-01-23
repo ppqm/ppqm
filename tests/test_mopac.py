@@ -20,7 +20,7 @@ def test_optimize_water_and_get_energy(tmpdir):
 
     # Get molecule
     n_conformers = 2
-    molobj = tasks.generate_conformers(smi, max_conf=n_conformers, min_conf=n_conformers)
+    molobj = tasks.generate_conformers(smi, n_conformers=n_conformers)
 
     mopac_options = copy.deepcopy(MOPAC_OPTIONS)
     mopac_options["scr"] = tmpdir
@@ -79,9 +79,9 @@ def test_multiple_molecules_with_error():
 
     for i, smi in enumerate(smis):
 
-        molobj = tasks.generate_conformers(smi, max_conf=1, min_conf=1)
+        molobj = tasks.generate_conformers(smi, n_conformers=1)
 
-        atoms, coords, charge = chembridge.molobj_to_axyzc(molobj, atom_type=str)
+        atoms, coords, charge = chembridge.get_axyzc(molobj, atomfmt=str)
 
         if i == 2:
             coords[0, 0] = 0.01
@@ -141,10 +141,10 @@ def test_xyz_usage(tmpdir):
     method = "PM3"
 
     # Get molecule
-    molobj = tasks.generate_conformers(smi, max_conf=1, min_conf=1)
+    molobj = tasks.generate_conformers(smi, n_conformers=1)
 
     # Get XYZ
-    atoms, coords, charge = chembridge.molobj_to_axyzc(molobj, atom_type=str)
+    atoms, coords, charge = chembridge.get_axyzc(molobj, atomfmt=str)
 
     # Header
     title = "test"

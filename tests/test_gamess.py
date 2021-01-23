@@ -1,7 +1,8 @@
 import numpy as np
 import pytest
-from context import CONFIG, ppqm
+from context import CONFIG
 
+import ppqm
 from ppqm import chembridge, gamess, tasks
 
 TMPDIR = "_test_scr_gamess_"

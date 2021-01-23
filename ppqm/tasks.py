@@ -26,14 +26,17 @@ def generate_conformers_legacy(molobj, max_conf=20, min_conf=10, random_seed=1):
 
 
 def generate_conformers(
-    molobj,
+    molecule,
     n_conformers=None,
     max_conformers=500,
 ):
     """ Generate 3D conformers using RDKit ETKDGv3 """
 
-    molobj = chembridge.copy_molobj(molobj)
+    if isinstance(molecule, str):
+        # assume smiles
+        molecule = chembridge.smiles_to_molobj(molecule)
 
+    molobj = chembridge.copy_molobj(molecule)
     embed_parameters = rdDistGeom.ETKDGv3()
 
     if n_conformers is None:

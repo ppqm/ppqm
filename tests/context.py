@@ -1,13 +1,6 @@
 import configparser
 import os
 import pathlib
-import sys
-
-try:
-    pass
-except ImportError:
-    parent = str(pathlib.Path(__file__).absolute().parent.parent)
-    sys.path.insert(0, parent)
 
 
 def read_settings(filename):

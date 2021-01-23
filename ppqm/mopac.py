@@ -139,13 +139,13 @@ class MopacCalculator(BaseCalculator):
 
         n_confs = molobj.GetNumConformers()
 
-        atoms, _, charge = chembridge.molobj_to_axyzc(molobj, atom_type="str")
+        atoms, _, charge = chembridge.get_axyzc(molobj, atomfmt=str)
         header = get_header(options)
 
         txt = []
         for i in range(n_confs):
 
-            coord = chembridge.molobj_to_coordinates(molobj, idx=i)
+            coord = chembridge.get_coordinates(molobj, confid=i)
             header_prime = header.format(charge=charge, title=f"{title}_Conf_{i}")
             tx = get_input(atoms, coord, header_prime, opt_flag=opt_flag)
             txt.append(tx)
@@ -374,7 +374,7 @@ def is_1scf(lines):
     keyword = "1SCF WAS USED"
     stoppattern = "CYCLE"
 
-    idx = linesio.get_indexes_with_stop(lines, keyword, stoppattern)
+    idx = linesio.get_indices(lines, keyword, stoppattern=stoppattern)
 
     if idx is None or len(idx) == 0:
         return False

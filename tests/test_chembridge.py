@@ -1,6 +1,6 @@
 import numpy as np
 
-from ppqm import chembrige
+from ppqm import chembridge
 
 
 def test_axyzc_to_molobj():
@@ -9,15 +9,17 @@ def test_axyzc_to_molobj():
     charge = -1
     coord = np.array([[1.0, 0.0, 0.0], [2.0, 0.0, 0.0], [3.0, 0.0, 0.0]])
 
-    mol = chembrige.axyzc_to_molobj(atoms, coord, charge)
+    mol = chembridge.axyzc_to_molobj(atoms, coord, charge)
 
     assert mol is not None
     assert len(list(mol.GetAtoms())) == 3
     assert mol.GetNumConformers() == 1
 
-    atoms_prime, coord_prime, charge_prime = chembrige.get_axyzc(mol)
+    atoms_prime, coord_prime, charge_prime = chembridge.get_axyzc(mol)
 
     assert charge_prime == charge
+    assert atoms_prime == atoms
+    assert coord_prime == coord
 
 
 def test_bonds_to_molobj():

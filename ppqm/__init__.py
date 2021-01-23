@@ -1,1 +1,1 @@
-from ppqm import env, gamess, misc, shell, tasks, xtb
+from ppqm import chembridge, env, gamess, misc, shell, tasks, xtb
