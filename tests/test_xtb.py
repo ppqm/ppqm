@@ -22,8 +22,15 @@ if "xtb" in CONFIG._sections:
     XTB_OPTIONS["cmd"] = CONFIG["xtb"]["cmd"]
 
 
+def _get_options(tmpdir):
+    xtb_options = {"scr": tmpdir, **XTB_OPTIONS}
+    return xtb_options
+
+
 @pytest.mark.parametrize("smiles, energy", TEST_ENERGIES)
-def test_axyzc_optimize(smiles, energy):
+def test_axyzc_optimize(smiles, energy, tmpdir):
+
+    xtb_options = _get_options(tmpdir)
 
     # TODO Get distances between heavy atoms
     # TODO assert distances between heavy atoms approx(distance, 0.5)
@@ -43,7 +50,7 @@ def test_axyzc_optimize(smiles, energy):
     # TODO Get distances between heavy atoms
 
     properties = xtb.get_properties_from_axyzc(
-        atoms, coordinates, charge, options=calculation_options, **XTB_OPTIONS
+        atoms, coordinates, charge, options=calculation_options, **xtb_options
     )
 
     total_energy = properties[xtb.COLUMN_ENERGY]

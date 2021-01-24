@@ -15,7 +15,14 @@ GAMESS_OPTIONS = {
 }
 
 
-def test_optimization():
+def _get_options(tmpdir):
+    gamess_options = {"scr": tmpdir, **GAMESS_OPTIONS}
+    return gamess_options
+
+
+def test_optimization(tmpdir):
+
+    gamess_options = _get_options(tmpdir)
 
     methane = """
 
@@ -40,7 +47,7 @@ $$$$
     }
 
     molobj = chembridge.sdfstr_to_molobj(methane)
-    calc = gamess.GamessCalculator(method_options={"method": "pm3"}, **GAMESS_OPTIONS)
+    calc = gamess.GamessCalculator(method_options={"method": "pm3"}, **gamess_options)
 
     # calculate returns List(properties) for every conformer
     results = calc.calculate(molobj, calculation_options)
