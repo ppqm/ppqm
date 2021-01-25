@@ -45,6 +45,20 @@ def load_array(txt):
     return arr
 
 
+def is_float(value, return_value=False):
+    """ Return value as float, if possible """
+    try:
+        value = float(value)
+    except ValueError:
+        if not return_value:
+            return False
+
+    if return_value:
+        return value
+
+    return True
+
+
 def merge_dict(a, b, path=None):
     "merges dictionary b into a"
     if path is None:

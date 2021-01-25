@@ -187,7 +187,39 @@ def test_sdfstrs_to_molobjs():
 
 
 def test_sdfstr_to_molobj():
-    pass
+
+    # TODO Add some properties
+
+    sdfstr = """
+
+
+  7  6  0  0  0  0  0  0  0  0999 V2000
+   -0.0110    0.9628    0.0073 O   0  0  0  0  0  0  0  0  0  0  0  0
+    1.2864    1.5618   -0.0018 C   0  0  0  0  0  0  0  0  0  0  0  0
+    1.1542    2.9846    0.0071 O   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0021   -0.0041    0.0020 H   0  0  0  0  0  0  0  0  0  0  0  0
+    1.8401    1.2428    0.8812 H   0  0  0  0  0  0  0  0  0  0  0  0
+    1.8231    1.2523   -0.8987 H   0  0  0  0  0  0  0  0  0  0  0  0
+    1.9974    3.4580    0.0016 H   0  0  0  0  0  0  0  0  0  0  0  0
+  1  2  1  0  0  0  0
+  1  4  1  0  0  0  0
+  2  3  1  0  0  0  0
+  2  5  1  0  0  0  0
+  2  6  1  0  0  0  0
+  3  7  1  0  0  0  0
+M  END
+$$$$
+
+
+"""
+
+    molobj = chembridge.sdfstr_to_molobj(sdfstr)
+
+    print(molobj)
+
+    assert False
+
+    assert molobj is not None
 
 
 def test_sdfstr_to_smiles():
