@@ -1,5 +1,8 @@
+import copy
+import json
 import logging
 import multiprocessing
+import pathlib
 import pickle
 import sys
 import threading
@@ -43,6 +46,60 @@ def load_array(txt):
     s = StringIO(txt)
     arr = np.loadtxt(s)
     return arr
+
+
+def save_json(name, obj, indent=4, translate_types=False):
+    """Save dictionary as a JSON file.
+
+    translate_types: Change instances types of dictionary values to make it
+    json friendly
+
+    """
+
+    if translate_types:
+        obj = json_friendly(obj)
+
+    if isinstance(name, str):
+        name = pathlib.Path(name)
+
+    if not name.suffix == ".json":
+        name = name.with_suffix(".json")
+
+    with open(name, "w") as f:
+        json.dump(obj, f, indent=indent)
+
+
+def json_friendly(dictionary):
+    """ Change the types of a dictionary to make it JSON friendly """
+
+    dictionary = copy.deepcopy(dictionary)
+
+    for key, value in dictionary.items():
+
+        if isinstance(value, dict):
+            value = json_friendly(value)
+            dictionary[key] = value
+
+        elif isinstance(value, np.ndarray):
+            value = value.tolist()
+            dictionary[key] = value
+
+    return dictionary
+
+
+def load_json(name):
+
+    if isinstance(name, str):
+        name = pathlib.Path(name)
+
+    if not name.suffix == ".json":
+        name = name.with_suffix(".json")
+
+    with open(name, "r") as f:
+        content = f.read()
+        content = json.loads(content)
+
+    return content
 
 
 def is_float(value, return_value=False):
