@@ -15,11 +15,19 @@ def test_axyzc_to_molobj():
     assert len(list(mol.GetAtoms())) == 3
     assert mol.GetNumConformers() == 1
 
-    atoms_prime, coord_prime, charge_prime = chembridge.get_axyzc(mol)
+    atoms_prime, coord_prime, charge_prime = chembridge.get_axyzc(mol, atomfmt=str)
+
+    print(atoms)
+    print(coord)
+    print(charge)
+
+    print(atoms_prime)
+    print(coord_prime)
+    print(charge_prime)
 
     assert charge_prime == charge
-    assert atoms_prime == atoms
-    assert coord_prime == coord
+    assert all([a == b for a, b in zip(atoms_prime, atoms)])
+    np.testing.assert_array_equal(coord_prime, coord)
 
 
 def test_bonds_to_molobj():

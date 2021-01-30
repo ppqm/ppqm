@@ -30,3 +30,11 @@ if not configfile.is_file():
     configfile = pathlib.Path("default.ini")
 
 CONFIG = read_settings(configfile)
+
+# gamess standard
+GAMESS_OPTIONS = {
+    "scr": CONFIG["scr"]["scr"],
+    "cmd": CONFIG["gamess"]["cmd"],
+    "gamess_scr": CONFIG["gamess"]["scr"],
+    "gamess_userscr": CONFIG["gamess"]["userscr"],
+}

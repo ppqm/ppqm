@@ -125,11 +125,11 @@ class GamessCalculator(BaseCalculator):
         properties_list = []
         n_confs = molobj.GetNumConformers()
 
-        atoms, _, charge = chembridge.molobj_to_axyzc(molobj, atom_type="str")
+        atoms, _, charge = chembridge.get_axyzc(molobj, atomfmt=str)
 
         for conf_idx in range(n_confs):
 
-            coord = chembridge.molobj_get_coordinates(molobj, idx=conf_idx)
+            coord = chembridge.get_coordinates(molobj, confid=conf_idx)
             properties = properties_from_axyzc(
                 atoms, coord, charge, options_prime, **self.gamess_options
             )
@@ -143,7 +143,7 @@ class GamessCalculator(BaseCalculator):
 
 
 def properties_from_axyzc(atoms, coords, charge, options, return_stdout=False, **kwargs):
-    """"""
+    """ """
 
     # Prepare input
     header = get_header(options)
@@ -174,7 +174,7 @@ def prepare_atoms(atoms, coordinates):
     line = "{:2s}    {:2.1f}    {:f}     {:f}    {:f}"
 
     for atom, coord in zip(atoms, coordinates):
-        iat = chembridge.int_atom(atom)
+        iat = chembridge.get_atom_int(atom)
         lines.append(line.format(atom, iat, *coord))
 
     lines = [" $data", "Title", "C1"] + lines + [" $end"]
@@ -330,6 +330,14 @@ def get_errors(lines):
         msg["error"] = line + ". Only multiplicity 1 allowed."
         return msg
 
+    key = "ERROR"
+    idx = linesio.get_index(lines, key, stoppattern=safeword)
+    if idx is not None:
+        line = lines[idx]
+        line = line.replace("***", "").strip()
+        msg["error"] = line
+        return msg
+
     idx = linesio.get_rev_index(
         lines,
         "FAILURE TO LOCATE STATIONARY POINT, TOO MANY STEPS TAKEN",
@@ -353,7 +361,10 @@ def get_errors(lines):
     return msg
 
 
-def get_properties(lines):
+def get_properties(lines, options=None):
+    """
+    Read GAMESS output based on calculation options
+    """
 
     # TODO Better keywords
     # TODO Make a reader list?
@@ -621,7 +632,7 @@ def get_properties_orbitals(lines):
 
     idx_start = linesio.get_index(lines, "EIGENVECTORS")
     idx_start += 4
-    idx_end = linesio.get_index(lines, "END OF RHF CALCULATION", offset=idx_start)
+    idx_end = linesio.get_index(lines, "END OF RHF CALCULATION")
 
     energies = []
 

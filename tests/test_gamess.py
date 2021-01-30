@@ -1,22 +1,15 @@
 import numpy as np
 import pytest
-from context import CONFIG
+from context import GAMESS_OPTIONS
 
 import ppqm
 from ppqm import chembridge, gamess, tasks
 
 TMPDIR = "_test_scr_gamess_"
 
-GAMESS_OPTIONS = {
-    "scr": CONFIG["scr"]["scr"],
-    "cmd": CONFIG["gamess"]["cmd"],
-    "gamess_scr": CONFIG["gamess"]["scr"],
-    "gamess_userscr": CONFIG["gamess"]["userscr"],
-}
 
-
-def _get_options(tmpdir):
-    gamess_options = {"scr": tmpdir, **GAMESS_OPTIONS}
+def _get_options(scr):
+    gamess_options = {"scr": scr, **GAMESS_OPTIONS}
     return gamess_options
 
 
@@ -316,7 +309,7 @@ def test_water():
 
     # Get molecule with three conformers
     n_conformers = 3
-    molobj = tasks.generate_conformers(smi, max_conf=n_conformers, min_conf=n_conformers)
+    molobj = tasks.generate_conformers(smi, n_conformers=n_conformers)
 
     # Get gamess calculator
     method = "PM3"
@@ -335,7 +328,7 @@ def test_fail_wrong_method():
 
     # Get molecule with three conformers
     smi = "O"
-    molobj = tasks.generate_conformers(smi, max_conf=1, min_conf=1)
+    molobj = tasks.generate_conformers(smi, n_conformers=1)
 
     # Set bad options
     options = {
@@ -353,9 +346,8 @@ def test_fail_wrong_method():
     # will return None for each failed conformer
 
     assert results is not None
-    assert results[0] is None
-
-    return
+    assert isinstance(results[0], dict)
+    assert "error" in results[0]
 
 
 def test_get_header():
