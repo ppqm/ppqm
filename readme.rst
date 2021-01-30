@@ -12,52 +12,64 @@ Assume all codesnippets below are using RDKit molecule objs
 
 .. code-block:: python
 
-    mol = Chem.MolFromSmiles("O")
+    molecule = Chem.MolFromSmiles("O")
     Chem.AddHydrogens(mol)
-    AllChem.UFFOptimizeMolecule(molobj, maxIters=max_steps)
+    AllChem.UFFOptimizeMolecule(molobj)
 
-Optimize using MNDO
+Optimize using XTB
 
 .. code-block:: python
 
-    from ppqm import MndoCalculator
-    calc = MndoCalculator()
-    mol = calc.optimize(mol, return_copy=True)
+    from ppqm.xtblib import XtbCalculator
+    xtb = XtbCalculator()
+    molecule2 = xtb.optimize(molecule, return_copy=True)
 
-Example of using GAMESS calculator and using specific options
+Example of using GAMESS calculator and using specific options.
+As you notice, GAMESS needs a lot of settings to work with.
 
 .. code-block:: python
 
     from ppqm import GamessCalculator
-    calc = GamessCalculator(method_options={"method": "pm3"})
 
-    # Overwrite calculation options with GAMESS specific options
-    options = dict()
-    options["contrl"] = {
+    # Let's set the complicated GAMESS settings
+    gamess_options = {
+        "scr": "/tmp/node/scr/space/slurm/id",
+        "cmd": "/opt/gamess/rungms",
+        "gamess_scr": "~/scr",
+        "gamess_userscr": "~/userscr",
+    }
+    gamess = GamessCalculator(**gamess_options)
+
+    # Now that we have gamess setup, we can then the GAMESS options we all know
+    # and love. Knowing exactly what keywords to set in GAMESS, you'll have to
+    # read the manual
+    calculation_option = {
         "runtyp": "optimize",
+        "statpt": {
+            "opttol": 0.005,
+            "nstep": 300,
+            "projct": False,
+        }
     }
-    options["statpt"] = {
-        "opttol": 0.005,
-        "nstep": 300,
-        "projct": False
-    }
 
-    # Get properties for each conformer in mol
-    properties_list = calc.calculate(mol, options)
+    # We then use the options to get properties for the molecule.
+    # The return will be a list of dictionaries, per conformer in the molobj.
+    properties_list = gamess.calculate(molecule, calculation_option)
 
 
-different calculation types
+Contributions
+=============
 
-.. code-block:: python
+Fork, branch and use pre-commit.
 
-    results = calc.properties(molobj)
-    results = calc.optimize(molobj)
-    results = calc.gradient(molobj)
-    results = calc.hessian(molobj)
 
 
 Other code bases
 ================
+
+"is this the first python wrapper for quantum chemistry?" No, check the others
+and find the one right for your project. Know one, not on the list? Add it.
+
 
 - https://github.com/kzfm/pygamess
 - https://github.com/duartegroup/autodE/
