@@ -1,4 +1,5 @@
 import numpy as np
+from rdkit import Chem
 
 from ppqm import chembridge
 
@@ -223,11 +224,8 @@ $$$$
 
     molobj = chembridge.sdfstr_to_molobj(sdfstr)
 
-    print(molobj)
-
-    assert False
-
     assert molobj is not None
+    assert isinstance(molobj, Chem.Mol)
 
 
 def test_sdfstr_to_smiles():
