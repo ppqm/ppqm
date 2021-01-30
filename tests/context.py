@@ -1,6 +1,10 @@
 import configparser
+import logging
 import os
 import pathlib
+
+# Set default logging to debug for all tests
+logging.basicConfig(level=logging.DEBUG)
 
 
 def read_settings(filename):

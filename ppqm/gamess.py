@@ -266,7 +266,7 @@ def run_gamess(
     _logger.debug(f"scr {scr}")
     _logger.debug(f"cmd {command}")
 
-    stdout, stderr = shell.execute(command, chdir=scr)
+    stdout, stderr = shell.execute(command, cwd=scr)
 
     if post_clean:
         clean(gamess_scr, filename)

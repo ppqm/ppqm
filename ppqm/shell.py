@@ -1,9 +1,13 @@
+import logging
 import os
 import shutil
 import subprocess
+from subprocess import TimeoutExpired
+
+_logger = logging.getLogger("ppqm.sh")
 
 
-def check_cmd(cmd):
+def command_exists(cmd):
     """ Does this command even exists? """
 
     path = shutil.which(cmd)
@@ -14,7 +18,7 @@ def check_cmd(cmd):
     return True
 
 
-def check_path(path):
+def switch_workdir(path):
     """ Check if it makes sense to change directory """
 
     if path is None:
@@ -29,17 +33,24 @@ def check_path(path):
     if path == ".":
         return False
 
-    assert os.path.exists(path), f"Cannot chdir, directory does not exists {path}"
+    assert os.path.exists(path), f"Cannot change directory, does not exists {path}"
 
     return True
 
 
-def stream(cmd, chdir=None, shell=True):
-    """ Execute command in chdir directory, and stream stdout. Last yield is stderr """
+def stream(cmd, cwd=None, shell=True):
+    """Execute command in directory, and stream stdout. Last yield is
+    stderr
 
-    # TODO Is there a better way to run command from directory
-    if check_path(chdir):
-        cmd = f"cd {chdir}; " + cmd
+    :param cmd: The shell command
+    :param cwd: Change directory to work directory
+    :param shell: Use shell or not in subprocess
+    :param timeout: Stop the process at timeout (seconds)
+    :returns: Generator of stdout lines. Last yield is stderr.
+    """
+
+    if not switch_workdir(cwd):
+        cwd = None
 
     popen = subprocess.Popen(
         cmd,
@@ -47,6 +58,7 @@ def stream(cmd, chdir=None, shell=True):
         stderr=subprocess.PIPE,
         universal_newlines=True,
         shell=shell,
+        cwd=cwd,
     )
 
     for stdout_line in iter(popen.stdout.readline, ""):
@@ -60,14 +72,32 @@ def stream(cmd, chdir=None, shell=True):
     return
 
 
-def execute(cmd, chdir=None, shell=True):
-    """ Execute command in chdir directory, and return stdout and stderr """
+def execute(cmd, cwd=None, shell=True, timeout=None):
+    """Execute command in directory, and return stdout and stderr
 
-    if check_path(chdir):
-        cmd = f"cd {chdir}; " + cmd
+    :param cmd: The shell command
+    :param cwd: Change directory to work directory
+    :param shell: Use shell or not in subprocess
+    :param timeout: Stop the process at timeout (seconds)
+    :returns: stdout and stderr as string
+    """
 
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=shell)
+    if not switch_workdir(cwd):
+        cwd = None
 
-    stdout, stderr = p.communicate()
+    process = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        universal_newlines=True,
+        shell=shell,
+        cwd=cwd,
+    )
 
-    return stdout.decode(), stderr.decode()
+    try:
+        stdout, stderr = process.communicate(timeout=timeout)
+    except TimeoutExpired:
+        stdout = None
+        stderr = None
+
+    return stdout, stderr

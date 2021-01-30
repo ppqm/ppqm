@@ -158,7 +158,7 @@ class MopacCalculator(BaseCalculator):
 
         runcmd = f"{self.cmd} {self.filename}"
 
-        stdout, stderr = shell.execute(runcmd, chdir=self.scr)
+        stdout, stderr = shell.execute(runcmd, cwd=self.scr)
 
         # TODO Check stderr and stdout
 
@@ -202,7 +202,7 @@ def run_mopac(filename, cmd=MOPAC_CMD, scr=None, debug=False):
     command = [cmd, filename]
     command = " ".join(command)
 
-    stdout, stderr = shell.execute(command, chdir=scr)
+    stdout, stderr = shell.execute(command, cwd=scr)
 
     # TODO Check stdout and stderr for error and return False
 

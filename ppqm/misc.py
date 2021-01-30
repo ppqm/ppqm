@@ -203,7 +203,7 @@ def func_parallel(
     return results
 
 
-def exit_after(s):
+def exit_after(sec):
     """
     use as decorator to exit process if function takes longer than s seconds
 
@@ -221,7 +221,7 @@ def exit_after(s):
 
     def outer(fn):
         def inner(*args, **kwargs):
-            timer = threading.Timer(s, quit_function, args=[fn.__name__])
+            timer = threading.Timer(sec, quit_function, args=[fn.__name__])
             timer.start()
             try:
                 result = fn(*args, **kwargs)

@@ -108,7 +108,7 @@ class MndoCalculator(BaseCalculator):
 
         runcmd = f"{self.cmd} < {self.filename}"
 
-        lines = shell.stream(runcmd, chdir=self.scr)
+        lines = shell.stream(runcmd, cwd=self.scr)
 
         molecule_lines = []
 
