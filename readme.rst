@@ -13,16 +13,16 @@ Assume all codesnippets below are using RDKit molecule objs
 .. code-block:: python
 
     molecule = Chem.MolFromSmiles("O")
-    Chem.AddHydrogens(mol)
-    AllChem.UFFOptimizeMolecule(molobj)
+    Chem.AddHydrogens(molecule)
+    AllChem.UFFOptimizeMolecule(molecule)
 
 Optimize using XTB
 
 .. code-block:: python
 
-    from ppqm.xtblib import XtbCalculator
-    xtb = XtbCalculator()
-    molecule2 = xtb.optimize(molecule, return_copy=True)
+    from ppqm import XtbCalculator
+    xc = XtbCalculator()
+    molecule2 = xc.optimize(molecule, return_copy=True)
 
 Example of using GAMESS calculator and using specific options.
 As you notice, GAMESS needs a lot of settings to work with.
