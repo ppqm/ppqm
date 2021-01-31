@@ -4,8 +4,7 @@ from context import GAMESS_OPTIONS
 
 import ppqm
 from ppqm import chembridge, gamess, tasks
-
-TMPDIR = "_test_scr_gamess_"
+from ppqm.gamess import GamessCalculator
 
 
 def _get_options(scr):
@@ -71,7 +70,9 @@ def test_optimization_read():
     assert properties[ppqm.constants.COLUMN_COORDINATES] is not None
 
 
-def test_vibration():
+def test_vibration(tmpdir):
+
+    gamess_options = _get_options(tmpdir)
 
     methane = """
 
@@ -113,7 +114,7 @@ $$$$
     }
 
     molobj = chembridge.sdfstr_to_molobj(methane)
-    calc = gamess.GamessCalculator(method_options=method_options, **GAMESS_OPTIONS)
+    calc = GamessCalculator(method_options=method_options, **gamess_options)
 
     # calculate returns List(properties) for every conformer
     results = calc.calculate(molobj, calculation_options)
@@ -171,7 +172,9 @@ def test_vibration_read():
     return
 
 
-def test_orbitals():
+def test_orbitals(tmpdir):
+
+    gamess_options = _get_options(tmpdir)
 
     methane = """
 
@@ -201,7 +204,7 @@ $$$$
     }
 
     molobj = chembridge.sdfstr_to_molobj(methane)
-    calc = gamess.GamessCalculator(**GAMESS_OPTIONS)
+    calc = gamess.GamessCalculator(**gamess_options)
 
     # calculate returns List(properties) for every conformer
     results = calc.calculate(molobj, options)
@@ -250,7 +253,9 @@ def test_orbitals_read():
     return
 
 
-def test_solvation():
+def test_solvation(tmpdir):
+
+    gamess_options = _get_options(tmpdir)
 
     methane = """
 
@@ -276,7 +281,7 @@ $$$$
     options["pcm"] = {"solvnt": "water", "mxts": 15000, "icav": 1, "idisp": 1}
     options["tescav"] = {"mthall": 4, "ntsall": 60}
 
-    calc = gamess.GamessCalculator(method_options={"method": "pm3"}, **GAMESS_OPTIONS)
+    calc = gamess.GamessCalculator(method_options={"method": "pm3"}, **gamess_options)
 
     results = calc.calculate(molobj, options)
     properties = results[0]
@@ -302,7 +307,9 @@ def test_solvation_read():
     return
 
 
-def test_water():
+def test_water(tmpdir):
+
+    gamess_options = _get_options(tmpdir)
 
     smi = "O"
     reference_energy = -53.426
@@ -314,7 +321,7 @@ def test_water():
     # Get gamess calculator
     method = "PM3"
     method_options = {"method": method}
-    calc = gamess.GamessCalculator(method_options=method_options, **GAMESS_OPTIONS)
+    calc = gamess.GamessCalculator(method_options=method_options, **gamess_options)
 
     results = calc.optimize(molobj, return_properties=True)
 
@@ -324,7 +331,9 @@ def test_water():
     return
 
 
-def test_fail_wrong_method():
+def test_fail_wrong_method(tmpdir):
+
+    gamess_options = _get_options(tmpdir)
 
     # Get molecule with three conformers
     smi = "O"
@@ -340,7 +349,7 @@ def test_fail_wrong_method():
     }
 
     # Get gamess calculator and calculate molobj with bad methods
-    calc = gamess.GamessCalculator(**GAMESS_OPTIONS)
+    calc = gamess.GamessCalculator(**gamess_options)
     results = calc.calculate(molobj, options)
 
     # will return None for each failed conformer
@@ -359,7 +368,7 @@ def test_get_header():
         "system": {"mwords": 30},
     }
 
-    header = ppqm.gamess.get_header(options)
+    header = gamess.get_header(options)
     n_lines = len(header.split("\n"))
 
     assert n_lines == 4
