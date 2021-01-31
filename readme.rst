@@ -78,3 +78,4 @@ and find the one right for your project. Know one, not on the list? Add it.
 - https://github.com/duartegroup/autodE/
 - https://github.com/JelfsMaterialsGroup/stko
 - https://github.com/lukasturcani/stk
+- https://github.com/MolSSI
