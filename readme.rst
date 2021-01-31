@@ -38,7 +38,7 @@ As you notice, GAMESS needs a lot of settings to work with.
         "gamess_scr": "~/scr",
         "gamess_userscr": "~/userscr",
     }
-    gamess = GamessCalculator(**gamess_options)
+    gc = GamessCalculator(**gamess_options)
 
     # Now that we have gamess setup, we can then the GAMESS options we all know
     # and love. Knowing exactly what keywords to set in GAMESS, you'll have to
@@ -54,7 +54,10 @@ As you notice, GAMESS needs a lot of settings to work with.
 
     # We then use the options to get properties for the molecule.
     # The return will be a list of dictionaries, per conformer in the molobj.
-    properties_list = gamess.calculate(molecule, calculation_option)
+    results = gc.calculate(molecule, calculation_option)
+
+    for properties in results:
+        print(properties)
 
 
 Contributions
