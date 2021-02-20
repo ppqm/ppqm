@@ -13,9 +13,9 @@ def read_settings(filename):
     return config
 
 
+# Default scratch space
 SCR = os.environ.get("TMPDIR", "./_tmp_test_")
 SCR = pathlib.Path(SCR)
-SCR.mkdir(parents=True, exist_ok=True)
 
 # Resources path
 RESOURCES = pathlib.Path("tests/resources")
@@ -33,7 +33,6 @@ CONFIG = read_settings(configfile)
 
 # gamess standard
 GAMESS_OPTIONS = {
-    "scr": CONFIG["scr"]["scr"],
     "cmd": CONFIG["gamess"]["cmd"],
     "gamess_scr": CONFIG["gamess"]["scr"],
     "gamess_userscr": CONFIG["gamess"]["userscr"],

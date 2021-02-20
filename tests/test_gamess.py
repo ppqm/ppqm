@@ -385,7 +385,7 @@ def test_type():
     return
 
 
-def test_dinitrogen():
+def test_dinitrogen(tmpdir):
 
     sdf = """
 
@@ -396,8 +396,10 @@ def test_dinitrogen():
   1  2  3  0
 M  END """
 
+    gamess_options = _get_options(tmpdir)
+
     molobj = chembridge.sdfstr_to_molobj(sdf)
-    calc = gamess.GamessCalculator(**GAMESS_OPTIONS)
+    calc = gamess.GamessCalculator(**gamess_options)
     results = calc.optimize(molobj, return_properties=True)
 
     assert isinstance(results, list)
