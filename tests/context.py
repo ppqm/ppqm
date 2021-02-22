@@ -33,7 +33,24 @@ CONFIG = read_settings(configfile)
 
 # gamess standard
 GAMESS_OPTIONS = {
+    "scr": SCR,
     "cmd": CONFIG["gamess"]["cmd"],
     "gamess_scr": CONFIG["gamess"]["scr"],
     "gamess_userscr": CONFIG["gamess"]["userscr"],
 }
+
+MOPAC_OPTIONS = {
+    "scr": SCR,
+    "cmd": CONFIG["mopac"]["cmd"],
+}
+
+MNDO_OPTIONS = {
+    "scr": SCR,
+    "cmd": CONFIG["mndo"]["cmd"],
+}
+
+XTB_OPTIONS = dict()
+XTB_OPTIONS["scr"] = SCR
+
+if "xtb" in CONFIG._sections:
+    XTB_OPTIONS["cmd"] = CONFIG["xtb"]["cmd"]

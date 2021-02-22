@@ -1,17 +1,13 @@
-import copy
-
 import numpy as np
 import pytest
-from context import CONFIG
+from context import MOPAC_OPTIONS
 
 from ppqm import chembridge, mopac, tasks
 
-# TODO use tempfile
 
-MOPAC_OPTIONS = {
-    "scr": CONFIG["scr"]["scr"],
-    "cmd": CONFIG["mopac"]["cmd"],
-}
+def _get_options(scr):
+    mopac_options = {"scr": scr, **MOPAC_OPTIONS}
+    return mopac_options
 
 
 def test_optimize_water_and_get_energy(tmpdir):
@@ -22,8 +18,7 @@ def test_optimize_water_and_get_energy(tmpdir):
     n_conformers = 2
     molobj = tasks.generate_conformers(smi, n_conformers=n_conformers)
 
-    mopac_options = copy.deepcopy(MOPAC_OPTIONS)
-    mopac_options["scr"] = tmpdir
+    mopac_options = _get_options(tmpdir)
 
     # Get mopac calculator
     method = "PM6"
@@ -48,7 +43,7 @@ def test_multiple_molecules():
     return
 
 
-def test_multiple_molecules_with_error():
+def test_multiple_molecules_with_error(tmpdir):
     """
     Test for calculating multiple molecules, and error handling for one
     molecule crashing.
@@ -61,7 +56,7 @@ def test_multiple_molecules_with_error():
         "cmd": "mopac",
         "optimize": True,
         "filename": "mopac_error",
-        "scr": MOPAC_OPTIONS["scr"],
+        "scr": tmpdir,
         "debug": True,
     }
 
@@ -134,8 +129,7 @@ def test_read_properties():
 
 def test_xyz_usage(tmpdir):
 
-    mopac_options = copy.deepcopy(MOPAC_OPTIONS)
-    mopac_options["scr"] = tmpdir
+    mopac_options = _get_options(tmpdir)
 
     smi = "O"
     method = "PM3"

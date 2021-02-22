@@ -1,7 +1,7 @@
 import logging
 
 import pytest
-from context import CONFIG, SCR
+from context import XTB_OPTIONS
 
 from ppqm import chembridge, tasks, xtb
 
@@ -14,12 +14,6 @@ TEST_ENERGIES = [
 ]
 
 TEST_SMILES = ["O", "N"]
-
-XTB_OPTIONS = dict()
-XTB_OPTIONS["scr"] = SCR
-
-if "xtb" in CONFIG._sections:
-    XTB_OPTIONS["cmd"] = CONFIG["xtb"]["cmd"]
 
 
 def _get_options(tmpdir):

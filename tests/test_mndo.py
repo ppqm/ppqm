@@ -1,24 +1,26 @@
 import pytest
-from context import CONFIG
+from context import MNDO_OPTIONS
 
 from ppqm import chembridge, mndo, tasks
-
-MNDO_OPTIONS = {
-    "scr": CONFIG["scr"]["scr"],
-    "cmd": CONFIG["mndo"]["cmd"],
-}
 
 pytest.skip("Broken module", allow_module_level=True)
 
 
-def test_optimize_water():
+def _get_options(scr):
+    _options = {"scr": scr, **MNDO_OPTIONS}
+    return _options
+
+
+def test_optimize_water(tmpdir):
+
+    mndo_options = _get_options(tmpdir)
 
     # Get molecule
     smi = "O"
     molobj = tasks.generate_conformers(smi, max_conf=1, min_conf=1)
 
     # Get mndo calculator
-    calc = mndo.MndoCalculator(**MNDO_OPTIONS)
+    calc = mndo.MndoCalculator(**mndo_options)
 
     # Optimize water
     properties = calc.optimize(molobj, return_copy=False, return_properties=True)
