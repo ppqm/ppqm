@@ -60,6 +60,23 @@ As you notice, GAMESS needs a lot of settings to work with.
         print(properties)
 
 
+Notes on Jupyter usage
+======================
+
+Example notebooks uses nglview to visualize the molecules in notebooks
+
+
+.. code-block:: bash
+
+    # install nglview
+    conda install nglview -c conda-forge
+    # install plugin for jupyter lab
+    jupyter labextension install nglview-js-widgets
+
+Please note, if you are using Jupyter Lab (not notebook) there are som
+additional notes to consider
+
+
 Contributions
 =============
 
