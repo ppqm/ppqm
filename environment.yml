@@ -1,0 +1,14 @@
+name: ppqm
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.9
+  - rdkit
+  - numpy
+  - scipy
+  - networkx
+  - pip
+    - tqdm
+    - rich
+    - rmsd
