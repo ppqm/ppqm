@@ -9,6 +9,9 @@ from rdkit.Chem import AllChem, Draw, Mol, rdFreeSASA, rdmolops
 from rdkit.Chem.EnumerateStereoisomers import EnumerateStereoisomers, StereoEnumerationOptions
 from rdkit.Chem.MolStandardize import rdMolStandardize
 
+# Get Van der Waals radii (angstrom)
+PTABLE = Chem.GetPeriodicTable()
+
 # spin-multiplicities 2,3,4,3,2 for the atoms H, C, N, O, F, respectively.
 MULTIPLICITY = {}
 MULTIPLICITY["H"] = 2
@@ -354,6 +357,7 @@ def get_axyzc(molobj, confid=-1, atomfmt=int):
 
 def get_coordinates(molobj, confid=-1):
     """ """
+    confid = int(confid)  # rdkit needs int type
     conformer = molobj.GetConformer(id=confid)
     coordinates = conformer.GetPositions()
     coordinates = np.array(coordinates)
@@ -629,9 +633,7 @@ def get_sasa(molobj, extra_radius=0.0):
 
     """
 
-    # Get Van der Waals radii (angstrom)
-    ptable = Chem.GetPeriodicTable()
-    radii = [ptable.GetRvdw(atom.GetAtomicNum()) for atom in molobj.GetAtoms()]
+    radii = [PTABLE.GetRvdw(atom.GetAtomicNum()) for atom in molobj.GetAtoms()]
 
     n = molobj.GetNumConformers()
 
