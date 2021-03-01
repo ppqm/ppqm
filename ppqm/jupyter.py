@@ -30,9 +30,13 @@ Notes on nglviewer usage
 
 """
 
-import ipywidgets
-import nglview
-from ipywidgets import Layout, interact
+try:
+    import ipywidgets
+    import nglview
+    from ipywidgets import Layout, interact
+except ImportError:
+    pass
+
 from rdkit.Chem import rdMolAlign
 
 from ppqm import chembridge
