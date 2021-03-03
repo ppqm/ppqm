@@ -50,7 +50,7 @@ def generate_conformers(
     return molobj
 
 
-def optimize_molobj(molobj, max_steps=1000):
+def optimize_molobj_uff(molobj, max_steps=1000):
     """ Optimize molobj with UFF """
 
     status_embed = AllChem.EmbedMolecule(molobj)

@@ -360,7 +360,7 @@ def get_coordinates(molobj, confid=-1):
     confid = int(confid)  # rdkit needs int type
     conformer = molobj.GetConformer(id=confid)
     coordinates = conformer.GetPositions()
-    coordinates = np.array(coordinates)
+    coordinates = np.asarray(coordinates)
     return coordinates
 
 
@@ -1168,7 +1168,10 @@ def sdfstr_to_molobj(sdfstr, remove_hs=False, embed_properties=True):
 
     suppl = Chem.SDMolSupplier()
     suppl.SetData(sdfstr, removeHs=remove_hs)
-    molobj = next(suppl)
+    try:
+        molobj = next(suppl)
+    except StopIteration:
+        molobj = None
 
     # molobj = Chem.MolFromMolBlock(sdfstr, removeHs=remove_hs)
     #

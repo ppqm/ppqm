@@ -30,6 +30,7 @@ Notes on nglviewer usage
 
 """
 
+import IPython
 import ipywidgets
 import nglview
 from ipywidgets import Layout, interact
@@ -64,6 +65,8 @@ def show_molobj(molobj, align_conformers=True):
         idx=ipywidgets.IntSlider(min=0, max=n_conformers - 1, step=1),
         layout=Layout(width="100%", height="80px"),
     )
+
+    IPython.core.display.display(view)
 
     return view
 
