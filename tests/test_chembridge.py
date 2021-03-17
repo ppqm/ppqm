@@ -1,6 +1,7 @@
 import numpy as np
 from rdkit import Chem
 
+import ppqm
 from ppqm import chembridge
 
 
@@ -31,10 +32,6 @@ def test_axyzc_to_molobj():
     np.testing.assert_array_equal(coord_prime, coord)
 
 
-def test_bonds_to_molobj():
-    pass
-
-
 def test_clean_sdf_header():
     pass
 
@@ -44,63 +41,146 @@ def test_conformer_set_coordinates():
 
 
 def test_copy_molobj():
-    pass
+
+    smiles = "CCCCO"
+    molobj = Chem.MolFromSmiles(smiles)
+    molobj = ppqm.tasks.generate_conformers(molobj)
+    assert molobj.GetNumConformers() > 1
+
+    # Copy only graph from molobj
+    molobj_prime = chembridge.copy_molobj(molobj)
+    assert molobj_prime.GetNumConformers() == 0
 
 
 def test_enumerate_stereocenters():
-    pass
+
+    smiles_prime = "F[C@@](Cl)(Br)I"  # find this
+    smiles = "FC(Cl)(Br)I"  # in this
+    molobj = Chem.MolFromSmiles(smiles)
+    assert molobj is not None
+
+    # Get all enuerated stereo-centers
+    molobj_list = chembridge.enumerate_stereocenters(molobj)
+    smiles_list = [Chem.MolToSmiles(mol) for mol in molobj_list]
+
+    assert len(smiles_list) == 2
+    assert smiles_prime in smiles_list
 
 
 def test_find_max_feature():
-    pass
+    smiles = "CCCCCC.CCCCO"
+    smiles_prime = "CCCCO"
+    smiles_tau = chembridge.find_max_feature(smiles)
+    assert smiles_tau == smiles_prime
 
 
 def test_find_max_str():
-    pass
+    smiles = "CCCCC.[Cl-]"
+    smiles_prime = "CCCCC"
+    smiles_tau = chembridge.find_max_feature(smiles)
+    assert smiles_tau == smiles_prime
 
 
 def test_get_atom_charges():
-    pass
+
+    smiles = "CCC[NH+](C)C"  # n,n-dimethylpropan-1-amine
+    molobj = Chem.MolFromSmiles(smiles)
+    charges = chembridge.get_atom_charges(molobj)
+    charges = list(charges)
+
+    assert charges == [0, 0, 0, 1, 0, 0]
 
 
 def test_get_atom_int():
-    pass
+    assert chembridge.get_atom_int("C") == 6
+    assert chembridge.get_atom_int("c") == 6
+    assert chembridge.get_atom_int("  C") == 6
+    assert chembridge.get_atom_int("Cl ") == 17
+    assert chembridge.get_atom_int("cl ") == 17
+    assert chembridge.get_atom_int("CL") == 17
 
 
 def test_get_atom_str():
-    pass
+    assert chembridge.get_atom_str(6) == "C"
+    assert chembridge.get_atom_str(17) == "Cl"
 
 
 def test_get_atoms():
-    pass
+    smiles = "CCC[NH+](C)C"  # n,n-dimethylpropan-1-amine
+    molobj = Chem.MolFromSmiles(smiles)
+
+    atoms = chembridge.get_atoms(molobj)
+    atoms = list(atoms)
+    assert atoms == [6, 6, 6, 7, 6, 6]
+
+    atoms = chembridge.get_atoms(molobj, type=str)
+    atoms = list(atoms)
+    assert atoms == ["C", "C", "C", "N", "C", "C"]
 
 
 def test_get_axyzc():
-    pass
+    smiles = "CCC[NH+](C)C"  # n,n-dimethylpropan-1-amine
+    n_hydrogens = 14
+
+    molobj = Chem.MolFromSmiles(smiles)
+    molobj = ppqm.tasks.generate_conformers(molobj)
+
+    atoms, coord, charge = chembridge.get_axyzc(molobj)
+
+    assert list(atoms) == [6, 6, 6, 7, 6, 6] + [[1]] * n_hydrogens
+    assert isinstance(coord, np.ndarray)
+    assert coord.shape == (6 + n_hydrogens, 3)
+    assert charge == 1
 
 
 def test_get_boltzmann_weights():
-    pass
+
+    conformer_energies = [5.0, 1.0, 20.0, 0.5, 0.0]
+    conformer_energies = np.asarray(conformer_energies)
+
+    weights = chembridge.get_boltzmann_weights(conformer_energies)
+    weights = np.round(weights, 2)
+    assert list(weights) == [0, 0.11, 0, 0.27, 0.62]
 
 
 def test_get_bonds():
-    pass
+
+    smiles = "CCC[NH+](C)C"  # n,n-dimethylpropan-1-amine
+    bonds_prime = [(0, 1), (1, 2), (2, 3), (3, 4), (3, 5)]
+
+    molobj = Chem.MolFromSmiles(smiles)
+    bonds = chembridge.get_bonds(molobj)
+    assert bonds == bonds_prime
 
 
 def test_get_canonical_smiles():
-    pass
+    smiles = "C[NH+](CCC)C"  # n,n-dimethylpropan-1-amine
+    smiles_prime = "CCC[NH+](C)C"  # n,n-dimethylpropan-1-amine
+    assert chembridge.get_canonical_smiles(smiles) == smiles_prime
 
 
 def test_get_center_of_mass():
-    pass
+    smiles = "C[NH+](CCC)C"  # n,n-dimethylpropan-1-amine
+    molobj = Chem.MolFromSmiles(smiles)
+    molobj = ppqm.tasks.generate_conformers(molobj)
+
+    atoms, coordinates, _ = chembridge.get_axyzc(molobj)
+    center = chembridge.get_center_of_mass(atoms, coordinates)
+    center = np.round(center, 2)
+
+    assert list(center) == [-0.03, 0.0, -0.01]
 
 
 def test_get_dipole_moments():
-    pass
+    smiles = "C[NH+](CCC)C"  # n,n-dimethylpropan-1-amine
+    n_conformers = 4
+    molobj = Chem.MolFromSmiles(smiles)
+    molobj = ppqm.tasks.generate_conformers(molobj, n_conformers=n_conformers)
 
-
-def test_get_dipole_moment():
-    pass
+    moments = chembridge.get_dipole_moments(molobj)
+    assert moments is not None
+    assert isinstance(moments, np.ndarray)
+    assert moments.shape == (n_conformers,)
 
 
 def test_get_inertia():
@@ -226,6 +306,7 @@ $$$$
 
     assert molobj is not None
     assert isinstance(molobj, Chem.Mol)
+    assert molobj.GetNumConformers() == 1
 
 
 def test_sdfstr_to_smiles():

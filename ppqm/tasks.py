@@ -6,9 +6,10 @@ from rdkit.Chem import rdDistGeom
 from ppqm import chembridge
 
 
-def generate_conformers_legacy(molobj, max_conf=20, min_conf=10, random_seed=1):
+def generate_conformers_legacy(molobj, max_conf=20, min_conf=10, random_seed=1, return_copy=True):
 
-    molobj = chembridge.copy_molobj(molobj)
+    if return_copy:
+        molobj = chembridge.copy_molobj(molobj)
 
     rot_bond = rdMolDescriptors.CalcNumRotatableBonds(molobj)
 
@@ -29,6 +30,7 @@ def generate_conformers(
     molecule,
     n_conformers=None,
     max_conformers=500,
+    return_copy=True,
 ):
     """ Generate 3D conformers using RDKit ETKDGv3 """
 
@@ -36,7 +38,11 @@ def generate_conformers(
         # assume smiles
         molecule = chembridge.smiles_to_molobj(molecule)
 
-    molobj = chembridge.copy_molobj(molecule)
+    if return_copy:
+        molobj = chembridge.copy_molobj(molecule)
+    else:
+        molobj = molecule
+
     embed_parameters = rdDistGeom.ETKDGv3()
 
     if n_conformers is None:

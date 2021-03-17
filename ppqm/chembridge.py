@@ -9,6 +9,8 @@ from rdkit.Chem import AllChem, Draw, Mol, rdFreeSASA, rdmolops
 from rdkit.Chem.EnumerateStereoisomers import EnumerateStereoisomers, StereoEnumerationOptions
 from rdkit.Chem.MolStandardize import rdMolStandardize
 
+from ppqm import units
+
 # Get Van der Waals radii (angstrom)
 PTABLE = Chem.GetPeriodicTable()
 
@@ -312,7 +314,7 @@ def get_atom_charges(molobj):
 
 def get_atom_int(atmstr):
     """ Get atom number from atom label """
-    atom = atmstr.lower()
+    atom = atmstr.strip().lower()
     atom = ATOM_LIST.index(atom) + 1
     return atom
 
@@ -345,7 +347,7 @@ def get_atoms(mol, type=int):
     return atoms
 
 
-def get_axyzc(molobj, confid=-1, atomfmt=int):
+def get_axyzc(molobj: Mol, confid: int = -1, atomfmt=int):
     """ Get atoms, XYZ coordinates and formal charge of a molecule """
     conformer = molobj.GetConformer(id=confid)
     coordinates = conformer.GetPositions()
@@ -364,25 +366,25 @@ def get_coordinates(molobj, confid=-1):
     return coordinates
 
 
-def get_boltzmann_weights(energies, temp=298.15):
+def get_boltzmann_weights(energies, temp=units.kelvin_room, k=units.k_kcalmolkelvin):
     """
     Calcualte boltzmann weights
 
     Assume energies in kcal/mol
 
-    p_i=\\frac{1}{Q}} {e^{- {\\varepsilon}_i / k T}=\\frac{e^{- {\varepsilon}_i /
-    k T}}{\\sum_{j=1}^{M}{e^{- {\\varepsilon}_j / k T}}}
+    p_i =
+        = \\frac{1}{Q}} {e^{- {\\varepsilon}_i / k T}
+        = \\frac{e^{- {\varepsilon}_i / k T}}{\\sum_{j=1}^{M}{e^{- {\\varepsilon}_j / k T}}}
 
     """
 
-    k = 0.001985875  # kcal/(mol *k)
     inv_kt = 1.0 / (k * temp)
     energies = copy.deepcopy(energies)
     energies -= energies.min()
     energies = np.exp(-energies * inv_kt)
     energy_sum = np.sum(energies)
 
-    # to save mem
+    # translate energies to weights
     # weights = energies / energy_sum
     energies /= energy_sum
 

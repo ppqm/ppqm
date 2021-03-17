@@ -12,13 +12,6 @@ ev_to_kcalmol = hartree_to_kcalmol / hartree_to_ev
 kcalmol_to_ev = hartree_to_ev / hartree_to_kcalmol
 
 
-def convert(value, from_unit, to_unit):
-    """
-
-    Possible to set on Calculator class
-
-    """
-
-    # TODO
-
-    return
+# Physical constants
+k_kcalmolkelvin = 0.001985875  # kcal/(mol *k)
+kelvin_room = 298.15  # kelvin
