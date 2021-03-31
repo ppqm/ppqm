@@ -48,6 +48,12 @@ def load_array(txt):
     return arr
 
 
+def str_json(dictionary, indent=4, translate_types=False):
+    if translate_types:
+        dictionary = json_friendly(dictionary)
+    return json.dumps(dictionary, indent=indent)
+
+
 def save_json(name, obj, indent=4, translate_types=False):
     """Save dictionary as a JSON file.
 
