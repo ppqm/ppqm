@@ -1214,3 +1214,10 @@ def set_properties_on_molobj(molobj, properties):
     for key, value in properties.items():
         molobj.SetProp(key, str(value))
     return
+
+
+def unique(molobjs: List[Mol]) -> List[Mol]:
+    """ Return only unique molecules, based on canonical SMILES """
+    smiles_list = [Chem.MolToSmiles(x, canonical=True) for x in molobjs]
+    values, indices = np.unique(smiles_list, return_index=True)
+    return [molobjs[idx] for idx in indices]
