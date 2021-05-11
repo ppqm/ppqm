@@ -1,4 +1,4 @@
-python="python"
+python=python
 
 setup-dev:
 	pre-commit install

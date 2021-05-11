@@ -201,6 +201,29 @@ class XtbCalculator(BaseCalculator):
         # Default xtb options
         self.options = {}
 
+        # Check version and command
+        self.health_check()
+
+    def health_check(self):
+
+        assert env.which(self.cmd), f"Cannot find {self.cmd}"
+
+        stdout, stderr = shell.execute(f"{self.cmd} --version")
+
+        try:
+            stdout = stdout.split("\n")
+            stdout = [x for x in stdout if "*" in x]
+            version = stdout[0].strip()
+            version = version.split()
+            version = version[3]
+            version = version.split(".")
+            major, minor, patch = version
+        except Exception:
+            assert False, "too old xtb version"
+
+        assert int(major) >= 6, "too old xtb version"
+        assert int(minor) >= 4, "too old xtb version"
+
     def _generate_options(self, optimize=True, hessian=False, gradient=False):
         # TODO
         options = ...
@@ -278,7 +301,7 @@ class XtbCalculator(BaseCalculator):
         return results
 
     def __repr__(self):
-        return f"XtbCalc(cmd={self.cmd},scr={self.scr})"
+        return f"XtbCalc(cmd={self.cmd},scr={self.scr},n_cores={self.n_cores})"
 
 
 def clean_dir(scr="./"):
