@@ -1,4 +1,5 @@
 import numpy as np
+from context import RESOURCES
 from rdkit import Chem
 
 import ppqm
@@ -155,15 +156,18 @@ def test_get_canonical_smiles():
 
 
 def test_get_center_of_mass():
-    smiles = "C[NH+](CCC)C"  # n,n-dimethylpropan-1-amine
-    molobj = Chem.MolFromSmiles(smiles)
-    molobj = ppqm.tasks.generate_conformers(molobj)
+
+    filename = RESOURCES / "compounds/CHEMBL1234757.sdf"
+    filename = str(filename)
+
+    suppl = chembridge.read(filename)
+    molobj = next(suppl)
 
     atoms, coordinates, _ = chembridge.get_axyzc(molobj)
     center = chembridge.get_center_of_mass(atoms, coordinates)
     center = np.round(center, 2)
 
-    assert list(center) == [-0.03, 0.0, -0.01]
+    assert list(center) == [0.06, -0.2, -0.36]
 
 
 def test_get_dipole_moments():
