@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
-from context import MOPAC_OPTIONS
+import rmsd
+from context import MOPAC_OPTIONS, RESOURCES
 
 from ppqm import chembridge, mopac, tasks
 
@@ -131,14 +132,13 @@ def test_xyz_usage(tmpdir):
 
     mopac_options = _get_options(tmpdir)
 
-    smi = "O"
+    xyz_file = RESOURCES / "compounds/CHEMBL1234757.xyz"
+
     method = "PM3"
 
-    # Get molecule
-    molobj = tasks.generate_conformers(smi, n_conformers=1)
-
     # Get XYZ
-    atoms, coords, charge = chembridge.get_axyzc(molobj, atomfmt=str)
+    atoms, coords = rmsd.get_coordinates_xyz(xyz_file)
+    charge = 0
 
     # Header
     title = "test"
@@ -149,14 +149,11 @@ def test_xyz_usage(tmpdir):
 
     # Check energy
     # energy in kcal/mol
-    water_atomization = -50.88394
+    water_atomization = -131.09284
     assert pytest.approx(water_atomization, rel=1e-2) == properties["h"]
-
-    return
 
 
 def test_options():
-
     options = dict()
     options["pm6"] = None
     options["1scf"] = None
@@ -169,7 +166,3 @@ def test_options():
     assert type(header) == str
     assert "Test Mol" in header
     assert len(header.split("\n")) == 3
-
-
-if __name__ == "__main__":
-    test_optimize_water_and_get_energy()

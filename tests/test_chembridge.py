@@ -1,4 +1,5 @@
 import numpy as np
+from context import RESOURCES
 from rdkit import Chem
 
 import ppqm
@@ -41,7 +42,6 @@ def test_conformer_set_coordinates():
 
 
 def test_copy_molobj():
-
     smiles = "CCCCO"
     molobj = Chem.MolFromSmiles(smiles)
     molobj = ppqm.tasks.generate_conformers(molobj)
@@ -53,7 +53,6 @@ def test_copy_molobj():
 
 
 def test_enumerate_stereocenters():
-
     smiles_prime = "F[C@@](Cl)(Br)I"  # find this
     smiles = "FC(Cl)(Br)I"  # in this
     molobj = Chem.MolFromSmiles(smiles)
@@ -82,7 +81,6 @@ def test_find_max_str():
 
 
 def test_get_atom_charges():
-
     smiles = "CCC[NH+](C)C"  # n,n-dimethylpropan-1-amine
     molobj = Chem.MolFromSmiles(smiles)
     charges = chembridge.get_atom_charges(molobj)
@@ -134,7 +132,6 @@ def test_get_axyzc():
 
 
 def test_get_boltzmann_weights():
-
     conformer_energies = [5.0, 1.0, 20.0, 0.5, 0.0]
     conformer_energies = np.asarray(conformer_energies)
 
@@ -144,7 +141,6 @@ def test_get_boltzmann_weights():
 
 
 def test_get_bonds():
-
     smiles = "CCC[NH+](C)C"  # n,n-dimethylpropan-1-amine
     bonds_prime = [(0, 1), (1, 2), (2, 3), (3, 4), (3, 5)]
 
@@ -160,15 +156,18 @@ def test_get_canonical_smiles():
 
 
 def test_get_center_of_mass():
-    smiles = "C[NH+](CCC)C"  # n,n-dimethylpropan-1-amine
-    molobj = Chem.MolFromSmiles(smiles)
-    molobj = ppqm.tasks.generate_conformers(molobj)
+
+    filename = RESOURCES / "compounds/CHEMBL1234757.sdf"
+    filename = str(filename)
+
+    suppl = chembridge.read(filename)
+    molobj = next(suppl)
 
     atoms, coordinates, _ = chembridge.get_axyzc(molobj)
     center = chembridge.get_center_of_mass(atoms, coordinates)
     center = np.round(center, 2)
 
-    assert list(center) == [-0.03, 0.0, -0.01]
+    assert list(center) == [0.06, -0.2, -0.36]
 
 
 def test_get_dipole_moments():
