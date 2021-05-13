@@ -1,3 +1,5 @@
+from collections import ChainMap
+
 import pytest
 from context import RESOURCES, XTB_OPTIONS
 from rdkit import Chem
@@ -14,8 +16,10 @@ TEST_SMILES = ["O", "N"]
 
 
 def _get_options(tmpdir):
-    xtb_options = {"scr": tmpdir, **XTB_OPTIONS}
-    return xtb_options
+    xtb_options = {"scr": tmpdir}
+    options_prime = ChainMap(xtb_options, XTB_OPTIONS)
+    options_prime = dict(options_prime)
+    return options_prime
 
 
 @pytest.mark.parametrize("smiles, energy", TEST_ENERGIES)
@@ -38,8 +42,7 @@ def test_axyzc_optimize(smiles, energy, tmpdir):
 
     calculation_options = {"opt": None, "gfn": 2, "gbsa": "water"}
 
-    # TODO Get distances between heavy atoms
-
+    print(xtb_options)
     properties = xtb.get_properties_from_axyzc(
         atoms, coordinates, charge, options=calculation_options, **xtb_options
     )
@@ -73,7 +76,7 @@ def test_calc_options(smiles, energy, tmpdir):
 
 def test_parseproperties():
 
-    filename = "tests/resources/water.log"
+    filename = RESOURCES / "xtb/water.log"
 
     with open(filename, "r") as f:
         lines = f.readlines()
@@ -149,8 +152,7 @@ def test_parse_sum_table():
          ::    -> Gshift               0.001857443127 Eh    ::
          :: repulsion energy           0.060069453613 Eh    ::
          :: add. restraining           0.000000000000 Eh    ::
-         :::::::::::::::::::::::::::::::::::::::::::::::::::::
-"""
+         :::::::::::::::::::::::::::::::::::::::::::::::::::::"""
 
     lines = sumtable.split("\n")
     properties = xtb.parse_sum_table(lines)
@@ -201,7 +203,7 @@ def test_read_orbitals():
     # 6                          0.2725561               7.4166
 
     # big molecule
-    logfilename = RESOURCES / "chembl3586573.log"
+    logfilename = RESOURCES / "xtb/chembl3586573.log"
     with open(logfilename, "r") as f:
         lines = f.readlines()
     properties = xtb.read_properties_orbitals(lines)
@@ -212,7 +214,7 @@ def test_read_orbitals():
     assert properties["homo-1"] == -0.3635471
 
     # small molecule
-    logfilename = RESOURCES / "water.log"
+    logfilename = RESOURCES / "xtb/water.log"
     with open(logfilename, "r") as f:
         lines = f.readlines()
     properties = xtb.read_properties_orbitals(lines)
@@ -230,7 +232,7 @@ def test_read_fukui():
     # 1O      -0.086   -0.598   -0.342
     # 2H      -0.457   -0.201   -0.329
     # 3H      -0.457   -0.201   -0.329
-    logfilename = RESOURCES / "water_fukui.log"
+    logfilename = RESOURCES / "xtb/water_fukui.log"
 
     with open(logfilename, "r") as f:
         lines = f.readlines()
@@ -248,7 +250,7 @@ def test_read_omega():
 
     # Global electrophilicity index (eV):    0.0058
 
-    logfilename = RESOURCES / "water_omega.log"
+    logfilename = RESOURCES / "xtb/water_omega.log"
 
     with open(logfilename, "r") as f:
         lines = f.readlines()
