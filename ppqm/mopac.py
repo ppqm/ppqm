@@ -112,26 +112,6 @@ class MopacCalculator(BaseCalculator):
 
         return options
 
-    # def optimize_axyzc(
-    #     self,
-    #     atoms,
-    #     coords,
-    #     charge,
-    # ):
-    #     """ INCOMPLETE """
-    #
-    #     # TODO Get header?
-    #
-    #     header_prime = header.format(
-    #         method=self.method, charge=charge, title=""
-    #     )
-    #
-    #     properties = self.calculate_axyzc(
-    #         atoms, coords, header_prime, optimize=True
-    #     )
-    #
-    #     return properties
-
     def _get_input_str(self, molobj, options, title="", opt_flag=False):
         """
         Create MOPAC input string from molobj

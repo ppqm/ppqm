@@ -3,8 +3,8 @@ import os
 
 import numpy as np
 
-from . import chembridge, constants, linesio, shell
-from .calculator import BaseCalculator
+from ppqm import chembridge, constants, linesio, shell
+from ppqm.calculator import BaseCalculator
 
 MNDO_CMD = "mndo"
 MNDO_ATOMLINE = "{atom:2s} {x} {opt_flag} {y} {opt_flag} {z} {opt_flag}"
