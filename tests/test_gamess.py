@@ -115,6 +115,7 @@ $$$$
 
     molobj = chembridge.sdfstr_to_molobj(methane)
     calc = GamessCalculator(method_options=method_options, **gamess_options)
+    print(calc)
 
     # calculate returns List(properties) for every conformer
     results = calc.calculate(molobj, calculation_options)

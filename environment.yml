@@ -9,6 +9,8 @@ dependencies:
   - scipy
   - networkx
   - rmsd
+  - pytest
+  - pytest-cov
   - pip:
     - tqdm
     - rich
