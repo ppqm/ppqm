@@ -97,6 +97,6 @@ repos:
   #       language: python
       - id: nbconvert
         name: Removes ipynb content
-        entry: jupyter nbconvert --ClearOutputPreprocessor.enabled=True --ClearMetadataPreprocessor.enabled=True --to=notebook --log-level=ERROR --inplace
+        entry: jupyter nbconvert --to 3 --ClearOutputPreprocessor.enabled=True --ClearMetadataPreprocessor.enabled=True --to=notebook --log-level=ERROR --inplace
         files: .ipynb
         language: python
