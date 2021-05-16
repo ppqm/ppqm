@@ -286,6 +286,7 @@ def get_properties_from_axyzc(
     cmd=XTB_CMD,
     filename="_tmp_xtb_input.xyz",
     n_cores=1,
+    n_threads=1,
     **kwargs,
 ):
     """Get XTB properties from atoms, coordinates and charge for a molecule."""
@@ -314,10 +315,8 @@ def get_properties_from_axyzc(
     with open(scr / ".CHRG", "w") as f:
         f.write(str(charge))
 
-    # Check and set threads
-    n_omp = env.get_threads()
-    if n_omp is not None and n_omp > 2:
-        env.set_threads(n_cores)
+    # Overwrite threads
+    env.set_threads(n_threads)
 
     # Run subprocess command
     cmd = [cmd, f"{filename}"]
@@ -333,10 +332,6 @@ def get_properties_from_axyzc(
 
     lines = shell.stream(cmd)
     lines = list(lines)
-
-    # Reset threads
-    if n_omp is not None:
-        env.set_threads(n_omp)
 
     error_pattern = "abnormal termination of xtb"
     idx = linesio.get_rev_index(lines, error_pattern, stoppattern="#")
