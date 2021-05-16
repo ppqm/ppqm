@@ -63,6 +63,6 @@ repos:
     hooks:
       - id: nbconvert
         name: Removes ipynb content
-        entry: jupyter nbconvert --ClearOutputPreprocessor.enabled=True --ClearMetadataPreprocessor.enabled=True --to=notebook --log-level=ERROR --inplace
+        entry: jupyter nbconvert --ClearOutputPreprocessor.enabled=True --ClearMetadataPreprocessor.enabled=True --to=notebook --format 4 --log-level=ERROR --inplace
         files: .ipynb
         language: python
