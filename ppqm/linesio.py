@@ -32,7 +32,7 @@ def enumerate_reversed(lines, max_lines=None, length=None):
         yield index, lines[index]
 
 
-def get_index(lines, pattern, stoppattern=None):
+def get_index(lines, pattern, stoppattern=None, maxiter=None):
 
     for i, line in enumerate(lines):
 
@@ -40,6 +40,9 @@ def get_index(lines, pattern, stoppattern=None):
             return i
 
         if stoppattern and stoppattern in line:
+            return None
+
+        if maxiter and i > maxiter:
             return None
 
     return None
@@ -96,16 +99,22 @@ def get_rev_index(lines, pattern, stoppattern=None):
     return None
 
 
-def get_rev_indices_patterns(lines, patterns, stoppattern=None):
+def get_rev_indices_patterns(lines, patterns, stoppattern=None, maxiter=None):
 
     n_patterns = len(patterns)
     i_patterns = list(range(n_patterns))
 
     idxs = [None] * n_patterns
 
+    # TODO Better way of admin how many lines are read
+    n_read = 0
+
     for i, line in enumerate_reversed(lines):
 
         if stoppattern and stoppattern in line:
+            break
+
+        if maxiter and n_read > maxiter:
             break
 
         for ip in i_patterns:
@@ -115,5 +124,9 @@ def get_rev_indices_patterns(lines, patterns, stoppattern=None):
             if pattern in line:
                 idxs[ip] = i
                 i_patterns.remove(ip)
+
+        n_read += 1
+
+        continue
 
     return idxs

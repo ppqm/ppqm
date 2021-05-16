@@ -29,7 +29,7 @@ COLUMN_TOTAL_CHARGE = "total_charge"
 COLUMN_DIPOLE_VEC = "dipole"
 COLUMN_DIPOLE_TOTAL = "dipole_total"
 
-_logger = logging.getLogger("ppqm.gamess")
+_logger = logging.getLogger("gamess")
 
 
 class GamessCalculator(BaseCalculator):
@@ -40,6 +40,8 @@ class GamessCalculator(BaseCalculator):
         gamess_userscr=GAMESS_USERSCR,
         filename=GAMESS_FILENAME,
         method_options=GAMESS_DEFAULT_OPTIONS,
+        n_cores=None,
+        show_progress=False,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -139,7 +141,7 @@ class GamessCalculator(BaseCalculator):
         return properties_list
 
     def __repr__(self):
-        return "GamessCalc(cmd={self.cmd},scr={self.scr},met={self.method})"
+        return f"GamessCalc(cmd={self.cmd},scr={self.scr})"
 
 
 def properties_from_axyzc(atoms, coords, charge, options, return_stdout=False, **kwargs):
@@ -263,8 +265,7 @@ def run_gamess(
     command = [cmd, filename]
     command = " ".join(command)
 
-    _logger.debug(f"scr {scr}")
-    _logger.debug(f"cmd {command}")
+    _logger.debug(f"{scr} {command}")
 
     stdout, stderr = shell.execute(command, cwd=scr)
 

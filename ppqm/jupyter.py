@@ -42,8 +42,6 @@ from ppqm import chembridge
 def show_molobj(molobj, align_conformers=True):
     """
     Show molobj in jupyter with a slider for each conformer
-
-
     """
 
     if align_conformers:
@@ -68,11 +66,9 @@ def show_molobj(molobj, align_conformers=True):
 
     IPython.core.display.display(view)
 
-    return view
-
 
 def show_molobjs(molobjs, align_conformers=True):
-    """"""
+    """ """
 
     n_molobjs = len(molobjs)
 
@@ -84,5 +80,3 @@ def show_molobjs(molobjs, align_conformers=True):
         idx=ipywidgets.IntSlider(min=0, max=n_molobjs - 1, step=1),
         layout=Layout(width="100%", height="80px"),
     )
-
-    return ...
