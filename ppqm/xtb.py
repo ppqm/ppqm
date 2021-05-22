@@ -115,6 +115,13 @@ class XtbCalculator(BaseCalculator):
 
         atoms, _, charge = chembridge.get_axyzc(molobj, atomfmt=str)
 
+        if self.show_progress:
+            pbar = tqdm(
+                total=n_confs,
+                desc="xtb(1)",
+                **constants.TQDM_OPTIONS,
+            )
+
         for conf_idx in range(n_confs):
 
             coord = chembridge.get_coordinates(molobj, confid=conf_idx)
@@ -124,6 +131,12 @@ class XtbCalculator(BaseCalculator):
             )
 
             properties_list.append(properties)
+
+            if self.show_progress:
+                pbar.update(1)
+
+        if self.show_progress:
+            pbar.close()
 
         return properties_list
 
