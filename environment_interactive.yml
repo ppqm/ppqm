@@ -7,17 +7,20 @@ dependencies:
   - ipywidgets
   - jupyter
   - jupyterlab
+  - jupytext
   - matplotlib
   - networkx
   - nglview
   - numpy
   - pandas
   - pip
+  - pre-commit
   - pytest
   - pytest-cov
   - rdkit
   - rmsd
   - scipy
+  - xtb
   - pip:
     - tqdm
     - rich
