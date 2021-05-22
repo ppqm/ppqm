@@ -20,7 +20,5 @@ dependencies:
   - rdkit
   - rmsd
   - scipy
+  - tqdm
   - xtb
-  - pip:
-    - tqdm
-    - rich
