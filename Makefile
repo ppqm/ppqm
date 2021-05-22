@@ -1,5 +1,13 @@
 python=python
+mamba=mamba
 pkg=ppqm
+
+
+env:
+	${mamba} env create -f ./environment.yml -p ./env
+
+env_interactive:
+	${mamba} env create -f ./environment_interactive.yml -p ./env
 
 setup-dev:
 	pre-commit install
