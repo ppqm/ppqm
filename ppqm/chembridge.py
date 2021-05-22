@@ -156,9 +156,7 @@ def axyzc_to_molobj(atoms, coord, charge):
     # Set charge on a random atom
     atoms = list(mol.GetAtoms())
     for atom in atoms:
-        if atom.GetAtomicNum() == 1:
-            continue
-        else:
+        if atom.GetAtomicNum() != 1:
             break
 
     atom.SetFormalCharge(charge)
@@ -251,10 +249,7 @@ def enumerate_stereocenters(
         return [molobj]
 
     # The isomer can contain steorecenter enumerating that is non-unique
-    smis = [molobj_to_smiles(mol) for mol in isomers]
-    smis = set(smis)
-
-    isomers = [smiles_to_molobj(mol) for mol in smis]
+    isomers = unique(isomers)
 
     # Set whatever properties the original molecule had
     for mol in isomers:
@@ -442,11 +437,10 @@ def get_dipole_moments(molobj):
     """
     Compute dipole moment for all conformers, using Gasteiger charges and
     coordinates from conformers
-    """
 
-    n_conformers = molobj.GetNumConformers()
-    if n_conformers == 0:
-        AllChem.Compute2DCoords(molobj)
+    Expects molobj to contain conformers
+
+    """
 
     # Conformer independent
     AllChem.ComputeGasteigerCharges(molobj)
@@ -470,7 +464,7 @@ def get_dipole_moments(molobj):
     return moments
 
 
-def get_dipole_moment(atoms, coordinates, charges, is_centered=False, return_axis=False):
+def get_dipole_moment(atoms, coordinates, charges, is_centered=False):
     """
 
     from wikipedia:
@@ -495,9 +489,6 @@ def get_dipole_moment(atoms, coordinates, charges, is_centered=False, return_axi
     z = np.sum(Z)
 
     xyz = np.array([x, y, z])
-
-    if return_axis:
-        return xyz
 
     # Calculate total moment vector length
     total_moment = np.linalg.norm(xyz)
@@ -687,7 +678,7 @@ def get_torsions(mol):
     return np.array(rtnidxs, dtype=int)
 
 
-def get_undefined_stereocenters(molobj):
+def get_undefined_stereocenters(molobj: Mol) -> int:
     """ Count number of undefined steorecenter in molobj """
     chiral_centers = dict(Chem.FindMolChiralCenters(molobj, includeUnassigned=True))
     n_undefined_centers = sum(1 for (x, y) in chiral_centers.items() if y == "?")
