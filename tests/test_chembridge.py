@@ -210,7 +210,9 @@ def test_get_inertia_ratios():
     molobj = Chem.MolFromSmiles(smiles)
     molobj = ppqm.tasks.generate_conformers(molobj, n_conformers=n_conformers)
     ratios = chembridge.get_inertia_ratios(molobj)
-    assert ratios[0] == [0.25484739, 0.90477425]
+
+    reference = [0.25484739, 0.90477425]
+    np.testing.assert_array_almost_equal(ratios[0], reference)
 
 
 def test_get_properties_from_molobj():
@@ -282,11 +284,37 @@ def test_molobj_select_conformers():
 
 
 def test_molobj_set_coordinates():
-    pass
+
+    smiles = "C[NH+](CCC)C"  # n,n-dimethylpropan-1-amine
+    molobj = Chem.MolFromSmiles(smiles)
+
+    molobj_prime = ppqm.tasks.generate_conformers(molobj, n_conformers=1)
+    n_atoms = molobj_prime.GetNumAtoms()
+    coord = np.zeros((n_atoms, 3))
+
+    chembridge.molobj_set_coordinates(molobj_prime, coord)
+    # TODO Assert something
 
 
 def test_molobjs_to_molobj():
-    pass
+
+    smiles = "C[NH+](CCC)C"  # n,n-dimethylpropan-1-amine
+    molobj = Chem.MolFromSmiles(smiles)
+
+    molobj_1 = ppqm.tasks.generate_conformers(molobj, n_conformers=1)
+    molobj_2 = ppqm.tasks.generate_conformers(molobj, n_conformers=1)
+    molobj_3 = ppqm.tasks.generate_conformers(molobj, n_conformers=1)
+    molobj_4 = ppqm.tasks.generate_conformers(molobj, n_conformers=1)
+
+    molobjs = [
+        molobj_1,
+        molobj_2,
+        molobj_3,
+        molobj_4,
+    ]
+
+    molobj_prime = chembridge.molobjs_to_molobj(molobjs)
+    assert molobj_prime.GetNumConformers() == 4
 
 
 def test_molobjs_to_properties():
@@ -294,27 +322,46 @@ def test_molobjs_to_properties():
 
 
 def test_molobj_to_mol2():
-    pass
+    smiles = "C[NH+](CCC)C"  # n,n-dimethylpropan-1-amine
+    molobj = Chem.MolFromSmiles(smiles)
+    molobj = ppqm.tasks.generate_conformers(molobj, n_conformers=5)
+
+    mol2str = chembridge.molobj_to_mol2(molobj)
+
+    assert isinstance(mol2str, str)
+    # TODO What else to assert?
 
 
 def test_molobj_to_molobjs():
-    pass
+    smiles = "C[NH+](CCC)C"  # n,n-dimethylpropan-1-amine
+    molobj = Chem.MolFromSmiles(smiles)
+
+    molobj_prime = ppqm.tasks.generate_conformers(molobj, n_conformers=5)
+
+    molobjs = chembridge.molobj_to_molobjs(molobj_prime)
+
+    assert len(molobjs) == 5
 
 
 def test_molobj_to_sdfstr():
-    pass
+    smiles = "C[NH+](CCC)C"  # n,n-dimethylpropan-1-amine
+    molobj = Chem.MolFromSmiles(smiles)
+    molobj = ppqm.tasks.generate_conformers(molobj, n_conformers=5)
 
+    sdfstr = chembridge.molobj_to_sdfstr(molobj)
+    assert isinstance(sdfstr, str)
 
-def test_molobj_to_smiles():
-    pass
-
-
-def test_molobj_to_svgstr():
-    pass
+    sdfstr = chembridge.molobj_to_sdfstr(molobj, use_v3000=True)
+    assert isinstance(sdfstr, str)
 
 
 def test_neutralize_molobj():
-    pass
+    smiles = "C[NH+](CCC)C"  # n,n-dimethylpropan-1-amine
+    molobj = Chem.MolFromSmiles(smiles)
+    assert chembridge.get_charge(molobj) == 1
+
+    molobj_prime = chembridge.neutralize_molobj(molobj)
+    assert chembridge.get_charge(molobj_prime) == 0
 
 
 def test_read():

@@ -4,12 +4,15 @@ from io import StringIO
 from typing import Any, Dict, List
 
 import numpy as np
-from rdkit import Chem
+from rdkit import Chem, RDLogger
 from rdkit.Chem import AllChem, Draw, Mol, rdFreeSASA, rdmolops
 from rdkit.Chem.EnumerateStereoisomers import EnumerateStereoisomers, StereoEnumerationOptions
 from rdkit.Chem.MolStandardize import rdMolStandardize
 
 from ppqm import units
+
+lg = RDLogger.logger()
+lg.setLevel(RDLogger.ERROR)
 
 # Get Van der Waals radii (angstrom)
 PTABLE = Chem.GetPeriodicTable()
@@ -348,8 +351,13 @@ def get_axyzc(molobj: Mol, confid: int = -1, atomfmt=int):
     coordinates = conformer.GetPositions()
     coordinates = np.array(coordinates)
     atoms = get_atoms(molobj, type=atomfmt)
-    charge = rdmolops.GetFormalCharge(molobj)
+    charge = get_charge(molobj)
     return atoms, coordinates, charge
+
+
+def get_charge(molobj):
+    charge = rdmolops.GetFormalCharge(molobj)
+    return charge
 
 
 def get_coordinates(molobj, confid=-1):
