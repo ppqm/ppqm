@@ -101,3 +101,46 @@ def execute(cmd, cwd=None, shell=True, timeout=None):
         stderr = None
 
     return stdout, stderr
+
+
+def source(bashfile):
+    """
+    Return resulting environment variables from sourceing a bashfile
+
+    usage:
+        env_dict = source("/path/to/aws_cred_ang")
+        os.environ.update(env_dict)
+
+    :returns: dict of variables
+    """
+
+    cmd = f'env -i sh -c "source {bashfile} && env"'
+    stdout, stderr = execute(cmd)
+    lines = stdout.split("\n")
+
+    variables = dict()
+
+    for line in lines:
+
+        line = line.split("=")
+
+        # Ignore wrong lines
+        # - empty
+        # - multiple =
+        if len(line) != 2:
+            continue
+
+        key, var = line
+
+        if key == "PWD":
+            continue
+
+        if key == "_":
+            continue
+
+        if key == "SHLVL":
+            continue
+
+        variables[key] = var
+
+    return variables
