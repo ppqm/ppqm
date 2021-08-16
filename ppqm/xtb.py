@@ -880,10 +880,16 @@ def read_properties_sp(lines):
         COLUMN_DIPOLE: dipole_tot,
         **properties,
     }
+    
+    # Get covalent properties
+    properties_covalent = read_covalent_coordination(lines)    
 
     # Get orbitals
     properties_orbitals = read_properties_orbitals(lines)
-    properties = {**properties, **properties_orbitals}
+    properties = {
+        **properties,
+        **properties_orbitals,
+        **properties_covalent}
 
     return properties
 
@@ -1011,6 +1017,9 @@ def read_properties_opt(lines, convert_coords=False, debug=False):
         line = line.split()
         n_cycles = line[-3]
         n_cycles = int(n_cycles)
+    
+    # Get covCN and alpha
+    properties_covalent = read_covalent_coordination(lines)
 
     properties = {
         COLUMN_ATOMS: atoms,
@@ -1018,6 +1027,7 @@ def read_properties_opt(lines, convert_coords=False, debug=False):
         COLUMN_DIPOLE: dipole_tot,
         COLUMN_CONVERGED: is_converged,
         COLUMN_STEPS: n_cycles,
+        **properties_covalent,
         **properties,
     }
 
@@ -1221,6 +1231,43 @@ def read_properties_orbitals(lines, n_offset=2):
 
     return properties
 
+
+def read_covalent_coordination(lines):
+    """ 
+    Read computed covalent coordination number.
+
+    format:
+    
+    #   Z          covCN         q      C6AA      α(0)
+    1   6 C        3.743    -0.105    22.589     6.780
+    2   6 C        3.731     0.015    20.411     6.449
+    3   7 N        2.732    -0.087    22.929     7.112
+    ...
+    
+    Mol. C6AA /au·bohr
+
+    """
+    properties = {
+        "covCN": [],
+        "alpha": []
+    }
+
+    if (start_line := linesio.get_rev_index(lines, "covCN")) is None:
+        properties["covCN"] = None
+        properties["alpha"] = None
+    else:
+        for line in lines[start_line+1:]:
+            if set(line).issubset(set(['\n'])):
+                break
+        
+            line = line.strip().split()
+            covCN = float(line[3])
+            alpha = float(line[-1])
+        
+            properties["covCN"].append(covCN)
+            properties["alpha"].append(alpha)
+        
+    return properties
 
 def parse_options(options, return_list=True):
     """ Parse dictionary/json of options, and return arg list for xtb """
