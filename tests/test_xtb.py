@@ -173,18 +173,14 @@ def test_multiple_solvents():
 
     assert molobj.GetNumConformers() == 1
 
-    properties = xtb.get_properties_from_molobj(
-        molobj, options=first_gen_options, **kwargs
-    )
+    properties = xtb.get_properties_from_molobj(molobj, options=first_gen_options, **kwargs)
 
     properties = properties[0]
 
     assert "gsolv" in properties
     assert pytest.approx(0.00034, abs=1e-4) == properties["gsolv"]
 
-    properties = xtb.get_properties_from_molobj(
-        molobj, options=second_gen_options, **kwargs
-    )
+    properties = xtb.get_properties_from_molobj(molobj, options=second_gen_options, **kwargs)
     properties = properties[0]
 
     print(properties)
@@ -300,9 +296,7 @@ def test_calculate_fukui():
     }
 
     # Optimize structure
-    properties_list = xtb.get_properties_from_molobj(
-        molobj, options=optimize_options, **kwargs
-    )
+    properties_list = xtb.get_properties_from_molobj(molobj, options=optimize_options, **kwargs)
     properties = properties_list[0]
     assert xtb.COLUMN_COORD in properties
 
@@ -311,9 +305,7 @@ def test_calculate_fukui():
     chembridge.molobj_set_coordinates(molobj, coord)
 
     # Get fukui
-    properties_list = xtb.get_properties_from_molobj(
-        molobj, options=fukui_options, **kwargs
-    )
+    properties_list = xtb.get_properties_from_molobj(molobj, options=fukui_options, **kwargs)
     assert isinstance(properties_list, list)
     assert len(properties_list) == n_conformers
 
@@ -353,9 +345,7 @@ def test_calculate_electrophilicity():
     }
 
     # Optimize structure
-    properties_list = xtb.get_properties_from_molobj(
-        molobj, options=optimize_options, **kwargs
-    )
+    properties_list = xtb.get_properties_from_molobj(molobj, options=optimize_options, **kwargs)
     properties = properties_list[0]
     assert xtb.COLUMN_COORD in properties
 
@@ -364,9 +354,7 @@ def test_calculate_electrophilicity():
     chembridge.molobj_set_coordinates(molobj, coord)
 
     # Get electrophilicity (vomega)
-    properties_list = xtb.get_properties_from_molobj(
-        molobj, options=omega_options, **kwargs
-    )
+    properties_list = xtb.get_properties_from_molobj(molobj, options=omega_options, **kwargs)
     assert isinstance(properties_list, list)
     assert len(properties_list) == n_conformers
 
@@ -380,7 +368,7 @@ def test_calculate_electrophilicity():
 
 
 def test_read_covalent():
-    
+
     #  #   Z          covCN         q      C6AA      alpha
     #  1   6 C        3.743    -0.105    22.589     6.780
     #  2   6 C        3.731     0.015    20.411     6.449
@@ -391,7 +379,7 @@ def test_read_covalent():
         lines = f.readlines()
 
     properties = xtb.read_covalent_coordination(lines)
-    
+
     assert "covCN" and "alpha" in properties
 
     assert len(properties["covCN"]) == 41
