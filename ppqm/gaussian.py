@@ -147,7 +147,7 @@ def get_properties_from_axyzc(
     inputstr = get_inputfile(
         atoms_str, coordinates, charge, spin, input_header, footer=footer, title="g16 input"
     )
-    print(inputstr)
+
     with open(scr / filename, "w") as f:
         f.write(inputstr)
 
