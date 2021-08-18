@@ -734,6 +734,10 @@ def parse_sum_table(lines):
         if "..." in line:
             continue
 
+        # Needs a loop break when the Hessian is computed.
+        if "Hessian" in line:
+            break
+
         line = (
             line.replace("w/o", "without")
             .replace(":", "")
@@ -775,7 +779,7 @@ def read_properties(lines, options=None, scr=None):
         reader = read_properties_omega
         read_files = False
 
-    elif "opt" in options:
+    elif "opt" in options or "ohess" in options:
         reader = read_properties_opt
 
     else:
@@ -791,6 +795,9 @@ def read_properties(lines, options=None, scr=None):
         properties["charges"] = charges
         properties["bonds"] = bonds
         properties["bondorders"] = bondorders
+
+        if "vibspectrum" in os.listdir(scr):
+            properties["frequencies"] = get_frequencies(scr=scr)
 
     return properties
 
@@ -1262,6 +1269,39 @@ def read_covalent_coordination(lines):
             properties["alpha"].append(alpha)
 
     return properties
+
+
+def get_frequencies(scr=None):
+    """ """
+
+    if scr is None:
+        scr = pathlib.Path(".")
+
+    filename = scr / "vibspectrum"
+
+    if not filename.is_file():
+        return None
+
+    # Read WBO file
+    with open(filename, "r") as f:
+        lines = f.readlines()
+
+    frequencies = read_frequencies(lines)
+    return frequencies
+
+
+def read_frequencies(lines):
+    """" """
+    frequencies = []
+    for line in lines[3:]:
+
+        if "$end" in line:
+            break
+        if "-" in line:  # non vib modes
+            continue
+        frequencies.append(float(line.strip().split()[2]))
+
+    return frequencies
 
 
 def parse_options(options, return_list=True):
