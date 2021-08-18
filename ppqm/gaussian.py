@@ -202,14 +202,14 @@ def get_header(options, **kwargs):
     header = f"%mem={kwargs.pop('memory')}gb\n"
     header += "# "
     for key, value in options.items():
-        if (value is None) or (len(value) == 0):
+        if (value is None) or (not value):
             header += f"{key} "
         elif isinstance(value, str):
             header += f"{key}={value} "
         else:
             header += f"{key}=("
             for subkey, subvalue in value.items():
-                if (subvalue is None) or (len(subvalue) == 0):
+                if (subvalue is None) or (not subvalue):
                     header += f"{subkey}, "
                 else:
                     header += f"{subkey}={subvalue}, "
@@ -234,7 +234,7 @@ def read_properties(lines, options):
         if "nboread" in options["pop"]:
             readers.append(get_nbo_bond_orders)
 
-        if "hirsfeld" in options["pop"]:
+        if "hirshfeld" in options["pop"]:
             readers.append(get_hirsfeld_charges)
             readers.append(get_cm5_charges)
 
