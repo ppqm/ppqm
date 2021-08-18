@@ -1,5 +1,4 @@
 import logging
-import os
 import pathlib
 import tempfile
 from collections import ChainMap
@@ -36,7 +35,7 @@ class GaussianCalculator(BaseCalculator):
 
         super().__init__(**kwargs)
 
-        self.cmd = os.environ[cmd]
+        self.cmd = cmd
         self.filename = filename
         self.n_cores = n_cores
         self.memory = memory
@@ -61,17 +60,17 @@ class GaussianCalculator(BaseCalculator):
     def health_check(self):
         """ """
 
-    def calculate(self, molobj, options):
+    def calculate(self, molobj, options, footer=None):
         """ """
 
         if self.n_cores > 1:
             raise NotImplementedError("Parallel not implemented yet.")
         else:
-            results = self.calculate_serial(molobj, options)
+            results = self.calculate_serial(molobj, options, footer=footer)
 
         return results
 
-    def calculate_serial(self, molobj, options):
+    def calculate_serial(self, molobj, options, footer=None):
         """ """
 
         # If not singlet "spin" is part of options
@@ -99,7 +98,13 @@ class GaussianCalculator(BaseCalculator):
             coord = chembridge.get_coordinates(molobj, confid=conf_idx)
 
             properties = get_properties_from_axyzc(
-                atoms, coord, charge, spin, options=options_prime, **self.g16_options
+                atoms,
+                coord,
+                charge,
+                spin,
+                options=options_prime,
+                footer=footer,
+                **self.g16_options,
             )
 
             properties_list.append(properties)
@@ -142,7 +147,7 @@ def get_properties_from_axyzc(
     inputstr = get_inputfile(
         atoms_str, coordinates, charge, spin, input_header, footer=footer, title="g16 input"
     )
-
+    print(inputstr)
     with open(scr / filename, "w") as f:
         f.write(inputstr)
 
@@ -197,18 +202,18 @@ def get_header(options, **kwargs):
     header = f"%mem={kwargs.pop('memory')}gb\n"
     header += "# "
     for key, value in options.items():
-        if value is None:
+        if (value is None) or (len(value) == 0):
             header += f"{key} "
         elif isinstance(value, str):
             header += f"{key}={value} "
         else:
             header += f"{key}=("
             for subkey, subvalue in value.items():
-                if subvalue is None:
+                if (subvalue is None) or (len(subvalue) == 0):
                     header += f"{subkey}, "
                 else:
                     header += f"{subkey}={subvalue}, "
-            header += ") "
+            header = header[:-2] + ") "
 
     return header
 
