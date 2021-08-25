@@ -393,3 +393,26 @@ def test_read_covalent():
 
     assert properties["alpha"][0] == 6.780
     assert properties["alpha"][-1] == 2.316
+
+
+def test_read_CM5_charges():
+
+    logfilename = RESOURCES / "xtb/chembl3586573_gfn1.log"
+    with open(logfilename, "r") as f:
+        gfn1_lines = f.readlines()
+
+    calc_props = xtb.get_cm5_charges(gfn1_lines)
+
+    assert "cm5_charges" in calc_props
+    assert len(calc_props["cm5_charges"]) == 41
+
+    assert calc_props["cm5_charges"][0] == -0.22402
+    assert calc_props["cm5_charges"][-1] == 0.09875
+
+    # Test if GFN2 and no charges it should not break
+    logfilename = RESOURCES / "xtb/chembl3586573.log"
+    with open(logfilename, "r") as f:
+        gfn2_lines = f.readlines()
+
+    calc_props_gfn2 = xtb.get_cm5_charges(gfn2_lines)
+    assert len(calc_props_gfn2) == 0

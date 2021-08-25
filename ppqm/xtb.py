@@ -789,10 +789,11 @@ def read_properties(lines, options=None, scr=None):
 
     if scr is not None and read_files:
         # Parse file properties
-        charges = get_charges(scr=scr)
+        charges = get_mulliken_charges(scr=scr)
         bonds, bondorders = get_wbo(scr=scr)
 
-        properties["charges"] = charges
+        properties["mulliken_charges"] = charges
+        properties.update(get_cm5_charges(lines))  # Can return {} if not GFN1
         properties["bonds"] = bonds
         properties["bondorders"] = bondorders
 
@@ -1114,7 +1115,7 @@ def read_properties_fukui(lines):
     return properties
 
 
-def get_charges(scr=None):
+def get_mulliken_charges(scr=None):
 
     if scr is None:
         scr = pathlib.Path(".")
@@ -1128,6 +1129,23 @@ def get_charges(scr=None):
     charges = np.loadtxt(filename)
 
     return charges
+
+
+def get_cm5_charges(lines):
+    """ Get CM5 charges from gfn1-xTB calculation """
+
+    keywords = ["Mulliken/CM5 charges", "Wiberg/Mayer (AO) data"]
+    start, stop = linesio.get_rev_indices_patterns(lines, keywords)
+
+    if start is None:  # No CM5 charges -> not GFN1 calculation
+        return {}
+
+    cm5_charges = []
+    for line in lines[start + 1 : stop]:
+        if (line := line.strip()) :
+            cm5_charges.append(float(line.split()[2]))
+
+    return {"cm5_charges": cm5_charges}
 
 
 def get_wbo(scr=None):
