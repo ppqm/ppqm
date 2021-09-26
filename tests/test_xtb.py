@@ -365,3 +365,54 @@ def test_calculate_electrophilicity():
     assert "global_electrophilicity_index" in properties
     assert isinstance(properties.get("global_electrophilicity_index"), float)
     assert properties.get("global_electrophilicity_index") == pytest.approx(2, rel=1)
+
+
+def test_read_covalent():
+
+    #  #   Z          covCN         q      C6AA      alpha
+    #  1   6 C        3.743    -0.105    22.589     6.780
+    #  2   6 C        3.731     0.015    20.411     6.449
+    #  3   7 N        2.732    -0.087    22.929     7.112
+
+    logfilename = RESOURCES / "xtb/chembl3586573.log"
+    with open(logfilename, "r") as f:
+        lines = f.readlines()
+
+    properties = xtb.read_covalent_coordination(lines)
+
+    assert "covCN" and "alpha" in properties
+
+    assert len(properties["covCN"]) == 41
+    assert len(properties["alpha"]) == 41
+
+    assert isinstance(properties["covCN"][0], float)
+    assert isinstance(properties["alpha"][0], float)
+
+    assert properties["covCN"][0] == 3.743
+    assert properties["covCN"][-1] == 0.923
+
+    assert properties["alpha"][0] == 6.780
+    assert properties["alpha"][-1] == 2.316
+
+
+def test_read_CM5_charges():
+
+    logfilename = RESOURCES / "xtb/chembl3586573_gfn1.log"
+    with open(logfilename, "r") as f:
+        gfn1_lines = f.readlines()
+
+    calc_props = xtb.get_cm5_charges(gfn1_lines)
+
+    assert "cm5_charges" in calc_props
+    assert len(calc_props["cm5_charges"]) == 41
+
+    assert calc_props["cm5_charges"][0] == -0.22402
+    assert calc_props["cm5_charges"][-1] == 0.09875
+
+    # Test if GFN2 and no charges it should not break
+    logfilename = RESOURCES / "xtb/chembl3586573.log"
+    with open(logfilename, "r") as f:
+        gfn2_lines = f.readlines()
+
+    calc_props_gfn2 = xtb.get_cm5_charges(gfn2_lines)
+    assert len(calc_props_gfn2) == 0
