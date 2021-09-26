@@ -19,14 +19,18 @@ def test_optimize_water_and_get_energy(tmpdir):
     n_conformers = 2
     molobj = tasks.generate_conformers(smi, n_conformers=n_conformers)
 
+    assert molobj.GetNumAtoms() == 3
+
     mopac_options = _get_options(tmpdir)
 
     # Get mopac calculator
-    method = "PM6"
-    calc = mopac.MopacCalculator(method=method, **mopac_options)
+    calculation_options = {"PM6": None}
+    calc = mopac.MopacCalculator(**mopac_options)
 
     # Optimize water
-    properties_per_conformer = calc.optimize(molobj, return_copy=False, return_properties=True)
+    properties_per_conformer = calc.optimize(
+        molobj, options=calculation_options, return_copy=False, return_properties=True
+    )
 
     assert len(properties_per_conformer) == n_conformers
 
@@ -35,8 +39,6 @@ def test_optimize_water_and_get_energy(tmpdir):
         enthalpy_of_formation = properties["h"]  # kcal/mol
 
         assert pytest.approx(-54.30636, rel=1e-2) == enthalpy_of_formation
-
-    return
 
 
 def test_multiple_molecules():
@@ -58,7 +60,6 @@ def test_multiple_molecules_with_error(tmpdir):
         "optimize": True,
         "filename": "mopac_error",
         "scr": tmpdir,
-        "debug": True,
     }
 
     smis = ["O", "N", "CC", "CC", "CCO"]
@@ -122,7 +123,7 @@ def test_read_properties():
     assert result_list[0]["h"] is not None
     assert not np.isnan(result_list[0]["h"])
 
-    # Could not read error molecule
+    # Could not read error molecule idx=2
     assert np.isnan(result_list[error_idx]["h"])
 
     return

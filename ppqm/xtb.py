@@ -8,6 +8,7 @@ import logging
 import multiprocessing
 import os
 import pathlib
+import shutil
 import tempfile
 from collections import ChainMap
 
@@ -44,7 +45,7 @@ class XtbCalculator(BaseCalculator):
         self,
         cmd=XTB_CMD,
         filename=XTB_FILENAME,
-        show_progress=True,
+        show_progress=False,
         n_cores=None,
         **kwargs,
     ):
@@ -92,23 +93,21 @@ class XtbCalculator(BaseCalculator):
         options = ...
         return options
 
-    def calculate(self, molobj, options):
-        """ """
-
-        if self.n_cores and self.n_cores > 1:
-            results = self.calculate_parallel(molobj, options)
-
-        else:
-            results = self.calculate_serial(molobj, options)
-
-        return results
-
-    def calculate_serial(self, molobj, options):
-        """ """
+    def calculate(self, molobj, options, **kwargs):
 
         # Merge options
         options_prime = ChainMap(options, self.options)
         options_prime = dict(options_prime)
+
+        if self.n_cores and self.n_cores > 1:
+            results = self.calculate_parallel(molobj, options_prime, **kwargs)
+
+        else:
+            results = self.calculate_serial(molobj, options_prime, **kwargs)
+
+        return results
+
+    def calculate_serial(self, molobj, options, **kwargs):
 
         properties_list = []
         n_confs = molobj.GetNumConformers()
@@ -127,7 +126,7 @@ class XtbCalculator(BaseCalculator):
             coord = chembridge.get_coordinates(molobj, confid=conf_idx)
 
             properties = get_properties_from_axyzc(
-                atoms, coord, charge, options_prime, **self.xtb_options
+                atoms, coord, charge, options, **self.xtb_options, **kwargs
             )
 
             properties_list.append(properties)
@@ -147,10 +146,6 @@ class XtbCalculator(BaseCalculator):
         if not n_cores:
             n_cores = self.n_cores
 
-        # Merge options
-        options_prime = ChainMap(options, self.options)
-        options_prime = dict(options_prime)
-
         atoms, _, charge = chembridge.get_axyzc(molobj, atomfmt=str)
         n_conformers = molobj.GetNumConformers()
 
@@ -162,7 +157,7 @@ class XtbCalculator(BaseCalculator):
         results = []
 
         func = functools.partial(
-            get_properties_from_acxyz, atoms, charge, options=options_prime, **self.xtb_options
+            get_properties_from_acxyz, atoms, charge, options=options, **self.xtb_options
         )
 
         results = misc.func_parallel(
@@ -294,8 +289,7 @@ def get_properties_from_axyzc(
     charge,
     options=None,
     scr=constants.SCR,
-    use_tempfile=True,
-    clean_tempfile=True,
+    clean_files=True,
     cmd=XTB_CMD,
     filename="_tmp_xtb_input.xyz",
     n_cores=1,
@@ -312,20 +306,19 @@ def get_properties_from_axyzc(
     if not filename.endswith(".xyz"):
         filename += ".xyz"
 
-    if use_tempfile:
-        temp = tempfile.TemporaryDirectory(dir=scr, prefix="xtb_")
-        scr = pathlib.Path(temp.name)
+    temp_scr = tempfile.mkdtemp(dir=scr, prefix="xtb_")
+    temp_scr = pathlib.Path(temp_scr)
 
     xtb_cmd = cmd
 
     # Write input file
     inputstr = rmsd.set_coordinates(atoms_str, coordinates, title="xtb input")
 
-    with open(scr / filename, "w") as f:
+    with open(temp_scr / filename, "w") as f:
         f.write(inputstr)
 
     # Set charge in file
-    with open(scr / ".CHRG", "w") as f:
+    with open(temp_scr / ".CHRG", "w") as f:
         f.write(str(charge))
 
     # Overwrite threads
@@ -339,7 +332,7 @@ def get_properties_from_axyzc(
 
     # Merge to string
     cmd = " ".join(cmd)
-    cmd = f"cd {scr}; " + cmd
+    cmd = f"cd {temp_scr}; " + cmd
 
     _logger.debug(cmd)
 
@@ -370,11 +363,11 @@ def get_properties_from_axyzc(
         return None
 
     # Parse properties from xtb output
-    properties = read_properties(lines, options=options, scr=scr)
+    properties = read_properties(lines, options=options, scr=temp_scr)
 
     # clean your room
-    if use_tempfile and clean_tempfile:
-        temp.cleanup()
+    if clean_files:
+        shutil.rmtree(temp_scr)
 
     return properties
 

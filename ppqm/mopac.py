@@ -296,10 +296,6 @@ def read_output(filename, scr=None, translate_filename=True):
 
     molecule_lines = []
 
-    # Check for erros
-    if has_error(lines):
-        return []
-
     for line in lines:
 
         molecule_lines.append(line.strip("\n"))
