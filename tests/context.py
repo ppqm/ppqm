@@ -54,3 +54,8 @@ XTB_OPTIONS["scr"] = SCR
 
 if "xtb" in CONFIG._sections:
     XTB_OPTIONS["cmd"] = CONFIG["xtb"]["cmd"]
+
+
+G16_OPTIONS = dict()
+G16_OPTIONS["scr"] = SCR
+G16_OPTIONS["cmd"] = CONFIG["gaussian16"]["cmd"]

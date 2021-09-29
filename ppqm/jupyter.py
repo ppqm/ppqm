@@ -73,7 +73,7 @@ def show_molobjs(molobjs, align_conformers=True):
     n_molobjs = len(molobjs)
 
     def _view_molobj(idx):
-        show_molobj(molobjs[idx])
+        show_molobj(molobjs[idx], align_conformers=align_conformers)
 
     interact(
         _view_molobj,
