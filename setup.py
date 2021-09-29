@@ -1,4 +1,12 @@
-from setuptools import setup
+#!/usr/bin/env python
 
-if __name__ == "__main__":
-    setup()
+import setuptools  # type:ignore
+
+setuptools.setup(
+    name="ppqm",
+    version="0",
+    maintainer="Jimmy Kromann",
+    python_requires=">=3.6",
+    install_requires=[],
+    packages=["ppqm"],
+)
