@@ -13,9 +13,9 @@ import tempfile
 from collections import ChainMap
 
 import numpy as np
-import rmsd
 from tqdm import tqdm
 
+import rmsd
 from ppqm import chembridge, constants, env, linesio, misc, shell, units
 from ppqm.calculator import BaseCalculator
 
@@ -193,7 +193,7 @@ def health_check(config=None, cmd=XTB_CMD):
 
     path = env.which(cmd)
 
-    assert path is not None
+    assert path is not None, f"{cmd} was not found in your environment"
 
     return True
 
