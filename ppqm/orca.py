@@ -14,7 +14,6 @@ from ppqm.calculator import BaseCalculator
 
 ORCA_CMD = "orca"
 ORCA_FILENAME = "_tmp_orca_input.inp"
-ORCA_FILES = ["_tmp_orca_input.gbw", "_tmp_orca_input.out", "_tmp_orca_input.prop"]
 
 COLUMN_SCF_ENERGY = "scf_energy"
 COLUMN_MULIKEN_CHARGES = "mulliken_charges"
@@ -26,10 +25,7 @@ COLUMN_SHIELDING_CONSTANTS = "shielding_constants"
 _logger = logging.getLogger("orca")
 
 class OrcaCalculator(BaseCalculator):
-    """Orca wrapper
-
-    This class should not be used directly, use a class appropriate for your
-    quantum calculations (e.g. MopacCalculator or GamessCalculator) instead.
+    """Implementation of an Orca wrapper for ppqm.
     """
 
     def __init__(
