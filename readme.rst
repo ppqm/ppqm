@@ -97,3 +97,4 @@ and find the one right for your project. Know one, not on the list? Add it.
 - https://github.com/lukasturcani/stk
 - https://github.com/MolSSI
 - https://github.com/datamol-org/datamol
+- https://github.com/ekwan/cctk
