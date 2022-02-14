@@ -1,8 +1,12 @@
 import abc
 import copy
+import logging
 import pathlib
+from collections import ChainMap
 
 from . import chembridge, constants
+
+_logger = logging.getLogger(__name__)
 
 
 class BaseCalculator(abc.ABC):
@@ -11,10 +15,6 @@ class BaseCalculator(abc.ABC):
     This class should not be used directly, use a class appropriate for your
     quantum calculations (e.g. MopacCalculator or GamessCalculator) instead.
     """
-
-    # TODO CPU admin?
-    # TODO Better option generation?
-    # TODO Use options dictionary instead of header?
 
     def __init__(self, scr=constants.SCR):
 
@@ -63,7 +63,7 @@ class BaseCalculator(abc.ABC):
 
         return results
 
-    def optimize(self, molobj, return_copy=True, return_properties=False):
+    def optimize(self, molobj, options={}, return_copy=True, return_properties=False):
         """
 
         Parameters
@@ -91,12 +91,15 @@ class BaseCalculator(abc.ABC):
 
         """
 
-        options = self._generate_options(optimize=True)
+        # Merge options
+        options_ = self._generate_options(optimize=True)
+        options_prime = ChainMap(options, options_)
+        options_prime = dict(options_prime)
 
         if return_copy:
             molobj = copy.deepcopy(molobj)
 
-        result_properties = self.calculate(molobj, options)
+        result_properties = self.calculate(molobj, options_prime)
 
         if return_properties:
             return list(result_properties)
@@ -108,6 +111,7 @@ class BaseCalculator(abc.ABC):
 
             if constants.COLUMN_COORDINATES not in properties:
                 # TODO Unable to set coordinates, skip for now
+                _logger.error(f"Unable to optimize, conformer {i} skipped")
                 continue
 
             coord = properties[constants.COLUMN_COORDINATES]

@@ -33,13 +33,14 @@ Notes on nglviewer usage
 import IPython
 import ipywidgets
 import nglview
+import pandas as pd
 from ipywidgets import Layout, interact
 from rdkit.Chem import rdMolAlign
 
 from ppqm import chembridge
 
 
-def show_molobj(molobj, align_conformers=True):
+def show_molobj(molobj, align_conformers=True, show_properties=False):
     """
     Show molobj in jupyter with a slider for each conformer
     """
@@ -58,22 +59,30 @@ def show_molobj(molobj, align_conformers=True):
 
         print(f"Conformer {idx} / {n_conformers - 1}")
 
-    interact(
-        _view_conformer,
-        idx=ipywidgets.IntSlider(min=0, max=n_conformers - 1, step=1),
-        layout=Layout(width="100%", height="80px"),
-    )
+    if n_conformers > 1:
+        interact(
+            _view_conformer,
+            idx=ipywidgets.IntSlider(min=0, max=n_conformers - 1, step=1),
+            layout=Layout(width="100%", height="80px"),
+        )
 
+    _view_conformer(0)
     IPython.core.display.display(view)
+    if show_properties:
+        properties = molobj.GetPropsAsDict()
+        pdf = pd.DataFrame([properties]).transpose()
+        IPython.core.display.display(pdf)
 
 
-def show_molobjs(molobjs, align_conformers=True):
+def show_molobjs(molobjs, align_conformers=True, show_properties=False):
     """ """
 
     n_molobjs = len(molobjs)
 
     def _view_molobj(idx):
-        show_molobj(molobjs[idx])
+        show_molobj(
+            molobjs[idx], align_conformers=align_conformers, show_properties=show_properties
+        )
 
     interact(
         _view_molobj,

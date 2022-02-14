@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 from context import RESOURCES
 from rdkit import Chem
 
@@ -34,7 +35,12 @@ def test_axyzc_to_molobj():
 
 
 def test_clean_sdf_header():
-    pass
+    smiles = "Cc1cc(NCCO)nc(-c2ccc(Br)cc2)n1"  # CHEMBL1956589
+    molobj = Chem.MolFromSmiles(smiles)
+    sdfstr = chembridge.molobj_to_sdfstr(molobj)
+    assert "RDKit" in sdfstr
+    sdfstr = chembridge.clean_sdf_header(sdfstr)
+    assert "RDKit" not in sdfstr
 
 
 def test_conformer_set_coordinates():
@@ -76,7 +82,7 @@ def test_find_max_feature():
 def test_find_max_str():
     smiles = "CCCCC.[Cl-]"
     smiles_prime = "CCCCC"
-    smiles_tau = chembridge.find_max_feature(smiles)
+    smiles_tau = chembridge.find_max_str(smiles)
     assert smiles_tau == smiles_prime
 
 
@@ -114,6 +120,10 @@ def test_get_atoms():
     atoms = chembridge.get_atoms(molobj, type=str)
     atoms = list(atoms)
     assert atoms == ["C", "C", "C", "N", "C", "C"]
+
+    # RDkit atom type
+    atoms = chembridge.get_atoms(molobj, type=None)
+    assert isinstance(atoms[0], Chem.Atom)
 
 
 def test_get_axyzc():
@@ -195,7 +205,14 @@ def test_get_inertia_ratio():
 
 
 def test_get_inertia_ratios():
-    pass
+    smiles = "C[NH+](CCC)C"  # n,n-dimethylpropan-1-amine
+    n_conformers = 1
+    molobj = Chem.MolFromSmiles(smiles)
+    molobj = ppqm.tasks.generate_conformers(molobj, n_conformers=n_conformers)
+    ratios = chembridge.get_inertia_ratios(molobj)
+
+    reference = [0.25484739, 0.90477425]
+    np.testing.assert_array_almost_equal(ratios[0], reference)
 
 
 def test_get_properties_from_molobj():
@@ -203,35 +220,101 @@ def test_get_properties_from_molobj():
 
 
 def test_get_sasa():
-    pass
+    smiles = "C[NH+](CCC)C"  # n,n-dimethylpropan-1-amine
+    n_conformers = 1
+    molobj = Chem.MolFromSmiles(smiles)
+    molobj = ppqm.tasks.generate_conformers(molobj, n_conformers=n_conformers)
+    sasa_list = chembridge.get_sasa(molobj)
+
+    assert sasa_list[0] == pytest.approx(290.31720547, 3)
 
 
 def test_get_torsions():
-    pass
+    smiles = "CCCC"
+    molobj = Chem.MolFromSmiles(smiles)
+    indices = chembridge.get_torsions(molobj)
+    assert len(indices) == 1
+    assert len(indices[0]) == 4
 
 
 def test_get_undefined_stereocenters():
-    pass
+    smiles = "FC(Cl)(Br)I"  # undefined center
+    molobj = Chem.MolFromSmiles(smiles)
+    n_centers = chembridge.get_undefined_stereocenters(molobj)
+    assert n_centers == 1
 
 
 def test_molobj_add_conformer():
-    pass
+    smiles = "FC(Cl)(Br)I"
+    molobj = Chem.MolFromSmiles(smiles)
+    n_atoms = molobj.GetNumAtoms()
+    coord = np.zeros((n_atoms, 3))
+    chembridge.molobj_add_conformer(molobj, coord)
+    assert molobj.GetNumConformers() == 1
 
 
 def test_molobj_check_distances():
-    pass
+    smiles = "FC(Cl)(Br)I"
+    molobj = Chem.MolFromSmiles(smiles)
+    n_atoms = molobj.GetNumAtoms()
+    coord = np.zeros((n_atoms, 3))
+    chembridge.molobj_add_conformer(molobj, coord)
+    assert molobj.GetNumConformers() == 1
+
+    status_list = chembridge.molobj_check_distances(molobj)
+    assert status_list[0] == 0
+
+    molobj = chembridge.copy_molobj(molobj)
+    molobj = ppqm.tasks.generate_conformers(molobj, n_conformers=1)
+
+    status_list = chembridge.molobj_check_distances(molobj)
+    assert status_list[0] == 1
 
 
 def test_molobj_select_conformers():
-    pass
+    smiles = "C[NH+](CCC)C"  # n,n-dimethylpropan-1-amine
+    molobj = Chem.MolFromSmiles(smiles)
+    molobj = ppqm.tasks.generate_conformers(molobj, n_conformers=10)
+
+    keep_indices = [0, 1, 4, 5]
+
+    molobj = chembridge.molobj_select_conformers(molobj, keep_indices)
+
+    assert molobj.GetNumConformers() == 4
 
 
 def test_molobj_set_coordinates():
-    pass
+
+    smiles = "C[NH+](CCC)C"  # n,n-dimethylpropan-1-amine
+    molobj = Chem.MolFromSmiles(smiles)
+
+    molobj_prime = ppqm.tasks.generate_conformers(molobj, n_conformers=1)
+    n_atoms = molobj_prime.GetNumAtoms()
+    coord = np.zeros((n_atoms, 3))
+
+    chembridge.molobj_set_coordinates(molobj_prime, coord)
+    # TODO Assert something
 
 
 def test_molobjs_to_molobj():
-    pass
+
+    smiles = "C[NH+](CCC)C"  # n,n-dimethylpropan-1-amine
+    molobj = Chem.MolFromSmiles(smiles)
+
+    molobj_1 = ppqm.tasks.generate_conformers(molobj, n_conformers=1)
+    molobj_2 = ppqm.tasks.generate_conformers(molobj, n_conformers=1)
+    molobj_3 = ppqm.tasks.generate_conformers(molobj, n_conformers=1)
+    molobj_4 = ppqm.tasks.generate_conformers(molobj, n_conformers=1)
+
+    molobjs = [
+        molobj_1,
+        molobj_2,
+        molobj_3,
+        molobj_4,
+    ]
+
+    molobj_prime = chembridge.molobjs_to_molobj(molobjs)
+    assert molobj_prime.GetNumConformers() == 4
 
 
 def test_molobjs_to_properties():
@@ -239,27 +322,46 @@ def test_molobjs_to_properties():
 
 
 def test_molobj_to_mol2():
-    pass
+    smiles = "C[NH+](CCC)C"  # n,n-dimethylpropan-1-amine
+    molobj = Chem.MolFromSmiles(smiles)
+    molobj = ppqm.tasks.generate_conformers(molobj, n_conformers=5)
+
+    mol2str = chembridge.molobj_to_mol2(molobj)
+
+    assert isinstance(mol2str, str)
+    # TODO What else to assert?
 
 
 def test_molobj_to_molobjs():
-    pass
+    smiles = "C[NH+](CCC)C"  # n,n-dimethylpropan-1-amine
+    molobj = Chem.MolFromSmiles(smiles)
+
+    molobj_prime = ppqm.tasks.generate_conformers(molobj, n_conformers=5)
+
+    molobjs = chembridge.molobj_to_molobjs(molobj_prime)
+
+    assert len(molobjs) == 5
 
 
 def test_molobj_to_sdfstr():
-    pass
+    smiles = "C[NH+](CCC)C"  # n,n-dimethylpropan-1-amine
+    molobj = Chem.MolFromSmiles(smiles)
+    molobj = ppqm.tasks.generate_conformers(molobj, n_conformers=5)
 
+    sdfstr = chembridge.molobj_to_sdfstr(molobj)
+    assert isinstance(sdfstr, str)
 
-def test_molobj_to_smiles():
-    pass
-
-
-def test_molobj_to_svgstr():
-    pass
+    sdfstr = chembridge.molobj_to_sdfstr(molobj, use_v3000=True)
+    assert isinstance(sdfstr, str)
 
 
 def test_neutralize_molobj():
-    pass
+    smiles = "C[NH+](CCC)C"  # n,n-dimethylpropan-1-amine
+    molobj = Chem.MolFromSmiles(smiles)
+    assert chembridge.get_charge(molobj) == 1
+
+    molobj_prime = chembridge.neutralize_molobj(molobj)
+    assert chembridge.get_charge(molobj_prime) == 0
 
 
 def test_read():

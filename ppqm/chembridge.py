@@ -1,15 +1,18 @@
 import copy
 import gzip
 from io import StringIO
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
-from rdkit import Chem
+from rdkit import Chem, RDLogger
 from rdkit.Chem import AllChem, Draw, Mol, rdFreeSASA, rdmolops
 from rdkit.Chem.EnumerateStereoisomers import EnumerateStereoisomers, StereoEnumerationOptions
 from rdkit.Chem.MolStandardize import rdMolStandardize
 
 from ppqm import units
+
+lg = RDLogger.logger()
+lg.setLevel(RDLogger.ERROR)
 
 # Get Van der Waals radii (angstrom)
 PTABLE = Chem.GetPeriodicTable()
@@ -125,7 +128,7 @@ ATOM_LIST = [
 ]
 
 
-def axyzc_to_molobj(atoms, coord, charge):
+def axyzc_to_molobj(atoms: List[str], coord: np.array, charge: int) -> Mol:
     """
     Get a molobj with one conformer, without any graph
 
@@ -156,9 +159,7 @@ def axyzc_to_molobj(atoms, coord, charge):
     # Set charge on a random atom
     atoms = list(mol.GetAtoms())
     for atom in atoms:
-        if atom.GetAtomicNum() == 1:
-            continue
-        else:
+        if atom.GetAtomicNum() != 1:
             break
 
     atom.SetFormalCharge(charge)
@@ -166,41 +167,41 @@ def axyzc_to_molobj(atoms, coord, charge):
     return mol
 
 
-def bonds_to_molobj(atoms, coord, charges, bonds, bondorders):
-    """
-    INCOMPLETE
-    """
+# def bonds_to_molobj(atoms, coord, charges, bonds, bondorders):
+#     """
+#     INCOMPLETE
+#     """
+#
+#     # bonddict = {
+#     #     1: Chem.BondType.SINGLE,
+#     #     2: Chem.BondType.DOUBLE,
+#     #     3: Chem.BondType.TRIPLE,
+#     # }
+#     #
+#     # mw = Chem.RWMol()
+#     #
+#     # for atom in atoms:
+#     #     mw.AddAtom(Chem.Atom(atom))
+#     #
+#     # for bond, order in zip(bonds, bondorders):
+#     #     print(order, int(np.ceil(order)))
+#     #     order = int(np.ceil(order))
+#     #     if order < 1:
+#     #         continue
+#     #     order = bonddict[order]
+#     #     mw.AddBond(*bond, order)
+#     #
+#     # for atom, charge in zip(mw.GetAtoms(), charges):
+#     #     atom.SetFormalCharge(charge)
+#     #
+#     # Chem.SanitizeMol(mw)
+#     # mw = Chem.RemoveHs(mw)
+#     # NOT USED smiles = Chem.MolToSmiles(mw)
+#
+#     # return mw
 
-    # bonddict = {
-    #     1: Chem.BondType.SINGLE,
-    #     2: Chem.BondType.DOUBLE,
-    #     3: Chem.BondType.TRIPLE,
-    # }
-    #
-    # mw = Chem.RWMol()
-    #
-    # for atom in atoms:
-    #     mw.AddAtom(Chem.Atom(atom))
-    #
-    # for bond, order in zip(bonds, bondorders):
-    #     print(order, int(np.ceil(order)))
-    #     order = int(np.ceil(order))
-    #     if order < 1:
-    #         continue
-    #     order = bonddict[order]
-    #     mw.AddBond(*bond, order)
-    #
-    # for atom, charge in zip(mw.GetAtoms(), charges):
-    #     atom.SetFormalCharge(charge)
-    #
-    # Chem.SanitizeMol(mw)
-    # mw = Chem.RemoveHs(mw)
-    # NOT USED smiles = Chem.MolToSmiles(mw)
 
-    # return mw
-
-
-def clean_sdf_header(sdfstr):
+def clean_sdf_header(sdfstr: str) -> str:
 
     sdfstr = str(sdfstr)
     for _ in range(2):
@@ -211,12 +212,12 @@ def clean_sdf_header(sdfstr):
     return sdfstr
 
 
-def conformer_set_coordinates(conformer, coordinates):
+def conformer_set_coordinates(conformer: Chem.Conformer, coordinates: np.ndarray) -> None:
     for i, pos in enumerate(coordinates):
         conformer.SetAtomPosition(i, pos)
 
 
-def copy_molobj(molobj):
+def copy_molobj(molobj: Mol) -> Mol:
     """ Copy molobj graph, without conformers """
     # The boolean signifies a fast copy, e.g. no conformers
     molobj = Chem.Mol(molobj, True)
@@ -224,9 +225,9 @@ def copy_molobj(molobj):
 
 
 def enumerate_stereocenters(
-    molobj,
-    nbody=2,
-):
+    molobj: Mol,
+    nbody: int = 2,
+) -> List[Mol]:
     """ Find all un-assigned stereocenteres and assign them """
 
     properties = get_properties_from_molobj(molobj)
@@ -246,15 +247,12 @@ def enumerate_stereocenters(
 
     try:
         enumerator = EnumerateStereoisomers(molobj, options=stereo_options)
-        isomers = tuple(enumerator)
+        isomers = list(enumerator)
     except RuntimeError:
         return [molobj]
 
     # The isomer can contain steorecenter enumerating that is non-unique
-    smis = [molobj_to_smiles(mol) for mol in isomers]
-    smis = set(smis)
-
-    isomers = [smiles_to_molobj(mol) for mol in smis]
+    isomers = unique(isomers)
 
     # Set whatever properties the original molecule had
     for mol in isomers:
@@ -263,7 +261,7 @@ def enumerate_stereocenters(
     return isomers
 
 
-def find_max_feature(smiles):
+def find_max_feature(smiles: str) -> str:
     """
     Split SMILES into compounds and return the compound with highest
     fingerprint density
@@ -295,7 +293,7 @@ def find_max_feature(smiles):
     return smiles
 
 
-def find_max_str(smiles):
+def find_max_str(smiles: str) -> str:
     """
     General functionality to choose a multi-smiles string, containing the
     longest string
@@ -304,7 +302,7 @@ def find_max_str(smiles):
     return smiles
 
 
-def get_atom_charges(molobj):
+def get_atom_charges(molobj: Mol) -> List[int]:
     """ Get atom charges from molobj """
     atoms = molobj.GetAtoms()
     charges = [atom.GetFormalCharge() for atom in atoms]
@@ -312,14 +310,14 @@ def get_atom_charges(molobj):
     return charges
 
 
-def get_atom_int(atmstr):
+def get_atom_int(atmstr: str) -> int:
     """ Get atom number from atom label """
     atom = atmstr.strip().lower()
     atom = ATOM_LIST.index(atom) + 1
     return atom
 
 
-def get_atom_str(iatm):
+def get_atom_str(iatm: int) -> str:
     """ Get atom label from atom number """
 
     atom = ATOM_LIST[iatm - 1]
@@ -328,7 +326,7 @@ def get_atom_str(iatm):
     return atom
 
 
-def get_atoms(mol, type=int):
+def get_atoms(mol: Mol, type=int) -> List[Any]:
     """ Get atoms from molecule in either int or str format """
 
     atoms = mol.GetAtoms()
@@ -347,17 +345,22 @@ def get_atoms(mol, type=int):
     return atoms
 
 
-def get_axyzc(molobj: Mol, confid: int = -1, atomfmt=int):
+def get_axyzc(molobj: Mol, confid: int = -1, atomfmt=int) -> Tuple[List[Any], np.ndarray, int]:
     """ Get atoms, XYZ coordinates and formal charge of a molecule """
     conformer = molobj.GetConformer(id=confid)
     coordinates = conformer.GetPositions()
     coordinates = np.array(coordinates)
     atoms = get_atoms(molobj, type=atomfmt)
-    charge = rdmolops.GetFormalCharge(molobj)
+    charge = get_charge(molobj)
     return atoms, coordinates, charge
 
 
-def get_coordinates(molobj, confid=-1):
+def get_charge(molobj: Mol) -> int:
+    charge = rdmolops.GetFormalCharge(molobj)
+    return charge
+
+
+def get_coordinates(molobj: Mol, confid=-1) -> np.ndarray:
     """ """
     confid = int(confid)  # rdkit needs int type
     conformer = molobj.GetConformer(id=confid)
@@ -366,7 +369,9 @@ def get_coordinates(molobj, confid=-1):
     return coordinates
 
 
-def get_boltzmann_weights(energies, temp=units.kelvin_room, k=units.k_kcalmolkelvin):
+def get_boltzmann_weights(
+    energies: np.ndarray, temp: float = units.kelvin_room, k: float = units.k_kcalmolkelvin
+) -> np.ndarray:
     """
     Calcualte boltzmann weights
 
@@ -391,7 +396,7 @@ def get_boltzmann_weights(energies, temp=units.kelvin_room, k=units.k_kcalmolkel
     return energies
 
 
-def get_bonds(molobj):
+def get_bonds(molobj: Mol) -> List[Tuple[int, int]]:
     """ Get all bonds from molobj """
 
     bonds = molobj.GetBonds()
@@ -412,14 +417,14 @@ def get_bonds(molobj):
     return rtn
 
 
-def get_canonical_smiles(smiles: str):
+def get_canonical_smiles(smiles: str) -> str:
     """ Translate smiles into a canonical form """
     molobj = Chem.MolFromSmiles(smiles)
     smiles = Chem.MolToSmiles(molobj, canonical=True)
     return smiles
 
 
-def get_center_of_mass(atoms, coordinates):
+def get_center_of_mass(atoms: List[int], coordinates: np.ndarray) -> np.ndarray:
     """ Calculate center of mass """
 
     total_mass = np.sum(atoms)
@@ -442,11 +447,10 @@ def get_dipole_moments(molobj):
     """
     Compute dipole moment for all conformers, using Gasteiger charges and
     coordinates from conformers
-    """
 
-    n_conformers = molobj.GetNumConformers()
-    if n_conformers == 0:
-        AllChem.Compute2DCoords(molobj)
+    Expects molobj to contain conformers
+
+    """
 
     # Conformer independent
     AllChem.ComputeGasteigerCharges(molobj)
@@ -470,7 +474,7 @@ def get_dipole_moments(molobj):
     return moments
 
 
-def get_dipole_moment(atoms, coordinates, charges, is_centered=False, return_axis=False):
+def get_dipole_moment(atoms, coordinates, charges, is_centered=False):
     """
 
     from wikipedia:
@@ -495,9 +499,6 @@ def get_dipole_moment(atoms, coordinates, charges, is_centered=False, return_axi
     z = np.sum(Z)
 
     xyz = np.array([x, y, z])
-
-    if return_axis:
-        return xyz
 
     # Calculate total moment vector length
     total_moment = np.linalg.norm(xyz)
@@ -687,7 +688,7 @@ def get_torsions(mol):
     return np.array(rtnidxs, dtype=int)
 
 
-def get_undefined_stereocenters(molobj):
+def get_undefined_stereocenters(molobj: Mol) -> int:
     """ Count number of undefined steorecenter in molobj """
     chiral_centers = dict(Chem.FindMolChiralCenters(molobj, includeUnassigned=True))
     n_undefined_centers = sum(1 for (x, y) in chiral_centers.items() if y == "?")
@@ -1218,6 +1219,6 @@ def set_properties_on_molobj(molobj, properties):
 
 def unique(molobjs: List[Mol]) -> List[Mol]:
     """ Return only unique molecules, based on canonical SMILES """
-    smiles_list = [Chem.MolToSmiles(x, canonical=True) for x in molobjs]
-    values, indices = np.unique(smiles_list, return_index=True)
+    smiles_list = [molobj_to_smiles(x, canonical=True, remove_hs=True) for x in molobjs]
+    _, indices = np.unique(smiles_list, return_index=True)
     return [molobjs[idx] for idx in indices]

@@ -8,13 +8,14 @@ import logging
 import multiprocessing
 import os
 import pathlib
+import shutil
 import tempfile
 from collections import ChainMap
 
 import numpy as np
-import rmsd
 from tqdm import tqdm
 
+import rmsd
 from ppqm import chembridge, constants, env, linesio, misc, shell, units
 from ppqm.calculator import BaseCalculator
 
@@ -44,7 +45,7 @@ class XtbCalculator(BaseCalculator):
         self,
         cmd=XTB_CMD,
         filename=XTB_FILENAME,
-        show_progress=True,
+        show_progress=False,
         n_cores=None,
         **kwargs,
     ):
@@ -92,38 +93,49 @@ class XtbCalculator(BaseCalculator):
         options = ...
         return options
 
-    def calculate(self, molobj, options):
-        """ """
-
-        if self.n_cores and self.n_cores > 1:
-            results = self.calculate_parallel(molobj, options)
-
-        else:
-            results = self.calculate_serial(molobj, options)
-
-        return results
-
-    def calculate_serial(self, molobj, options):
-        """ """
+    def calculate(self, molobj, options, **kwargs):
 
         # Merge options
         options_prime = ChainMap(options, self.options)
         options_prime = dict(options_prime)
+
+        if self.n_cores and self.n_cores > 1:
+            results = self.calculate_parallel(molobj, options_prime, **kwargs)
+
+        else:
+            results = self.calculate_serial(molobj, options_prime, **kwargs)
+
+        return results
+
+    def calculate_serial(self, molobj, options, **kwargs):
 
         properties_list = []
         n_confs = molobj.GetNumConformers()
 
         atoms, _, charge = chembridge.get_axyzc(molobj, atomfmt=str)
 
+        if self.show_progress:
+            pbar = tqdm(
+                total=n_confs,
+                desc="xtb(1)",
+                **constants.TQDM_OPTIONS,
+            )
+
         for conf_idx in range(n_confs):
 
             coord = chembridge.get_coordinates(molobj, confid=conf_idx)
 
             properties = get_properties_from_axyzc(
-                atoms, coord, charge, options_prime, **self.xtb_options
+                atoms, coord, charge, options, **self.xtb_options, **kwargs
             )
 
             properties_list.append(properties)
+
+            if self.show_progress:
+                pbar.update(1)
+
+        if self.show_progress:
+            pbar.close()
 
         return properties_list
 
@@ -133,10 +145,6 @@ class XtbCalculator(BaseCalculator):
 
         if not n_cores:
             n_cores = self.n_cores
-
-        # Merge options
-        options_prime = ChainMap(options, self.options)
-        options_prime = dict(options_prime)
 
         atoms, _, charge = chembridge.get_axyzc(molobj, atomfmt=str)
         n_conformers = molobj.GetNumConformers()
@@ -149,7 +157,7 @@ class XtbCalculator(BaseCalculator):
         results = []
 
         func = functools.partial(
-            get_properties_from_acxyz, atoms, charge, options=options_prime, **self.xtb_options
+            get_properties_from_acxyz, atoms, charge, options=options, **self.xtb_options
         )
 
         results = misc.func_parallel(
@@ -185,7 +193,7 @@ def health_check(config=None, cmd=XTB_CMD):
 
     path = env.which(cmd)
 
-    assert path is not None
+    assert path is not None, f"{cmd} was not found in your environment"
 
     return True
 
@@ -281,8 +289,7 @@ def get_properties_from_axyzc(
     charge,
     options=None,
     scr=constants.SCR,
-    use_tempfile=True,
-    clean_tempfile=True,
+    clean_files=True,
     cmd=XTB_CMD,
     filename="_tmp_xtb_input.xyz",
     n_cores=1,
@@ -299,20 +306,19 @@ def get_properties_from_axyzc(
     if not filename.endswith(".xyz"):
         filename += ".xyz"
 
-    if use_tempfile:
-        temp = tempfile.TemporaryDirectory(dir=scr, prefix="xtb_")
-        scr = pathlib.Path(temp.name)
+    temp_scr = tempfile.mkdtemp(dir=scr, prefix="xtb_")
+    temp_scr = pathlib.Path(temp_scr)
 
     xtb_cmd = cmd
 
     # Write input file
     inputstr = rmsd.set_coordinates(atoms_str, coordinates, title="xtb input")
 
-    with open(scr / filename, "w") as f:
+    with open(temp_scr / filename, "w") as f:
         f.write(inputstr)
 
     # Set charge in file
-    with open(scr / ".CHRG", "w") as f:
+    with open(temp_scr / ".CHRG", "w") as f:
         f.write(str(charge))
 
     # Overwrite threads
@@ -326,7 +332,7 @@ def get_properties_from_axyzc(
 
     # Merge to string
     cmd = " ".join(cmd)
-    cmd = f"cd {scr}; " + cmd
+    cmd = f"cd {temp_scr}; " + cmd
 
     _logger.debug(cmd)
 
@@ -357,11 +363,11 @@ def get_properties_from_axyzc(
         return None
 
     # Parse properties from xtb output
-    properties = read_properties(lines, options=options, scr=scr)
+    properties = read_properties(lines, options=options, scr=temp_scr)
 
     # clean your room
-    if use_tempfile and clean_tempfile:
-        temp.cleanup()
+    if clean_files:
+        shutil.rmtree(temp_scr)
 
     return properties
 
@@ -721,6 +727,10 @@ def parse_sum_table(lines):
         if "..." in line:
             continue
 
+        # Needs a loop break when the Hessian is computed.
+        if "Hessian" in line:
+            break
+
         line = (
             line.replace("w/o", "without")
             .replace(":", "")
@@ -762,7 +772,7 @@ def read_properties(lines, options=None, scr=None):
         reader = read_properties_omega
         read_files = False
 
-    elif "opt" in options:
+    elif "opt" in options or "ohess" in options:
         reader = read_properties_opt
 
     else:
@@ -772,12 +782,16 @@ def read_properties(lines, options=None, scr=None):
 
     if scr is not None and read_files:
         # Parse file properties
-        charges = get_charges(scr=scr)
+        charges = get_mulliken_charges(scr=scr)
         bonds, bondorders = get_wbo(scr=scr)
 
-        properties["charges"] = charges
+        properties["mulliken_charges"] = charges
+        properties.update(get_cm5_charges(lines))  # Can return {} if not GFN1
         properties["bonds"] = bonds
         properties["bondorders"] = bondorders
+
+        if "vibspectrum" in os.listdir(scr):
+            properties["frequencies"] = get_frequencies(scr=scr)
 
     return properties
 
@@ -868,9 +882,12 @@ def read_properties_sp(lines):
         **properties,
     }
 
+    # Get covalent properties
+    properties_covalent = read_covalent_coordination(lines)
+
     # Get orbitals
     properties_orbitals = read_properties_orbitals(lines)
-    properties = {**properties, **properties_orbitals}
+    properties = {**properties, **properties_orbitals, **properties_covalent}
 
     return properties
 
@@ -999,12 +1016,16 @@ def read_properties_opt(lines, convert_coords=False, debug=False):
         n_cycles = line[-3]
         n_cycles = int(n_cycles)
 
+    # Get covCN and alpha
+    properties_covalent = read_covalent_coordination(lines)
+
     properties = {
         COLUMN_ATOMS: atoms,
         COLUMN_COORD: coords,
         COLUMN_DIPOLE: dipole_tot,
         COLUMN_CONVERGED: is_converged,
         COLUMN_STEPS: n_cycles,
+        **properties_covalent,
         **properties,
     }
 
@@ -1087,7 +1108,7 @@ def read_properties_fukui(lines):
     return properties
 
 
-def get_charges(scr=None):
+def get_mulliken_charges(scr=None):
 
     if scr is None:
         scr = pathlib.Path(".")
@@ -1101,6 +1122,23 @@ def get_charges(scr=None):
     charges = np.loadtxt(filename)
 
     return charges
+
+
+def get_cm5_charges(lines):
+    """ Get CM5 charges from gfn1-xTB calculation """
+
+    keywords = ["Mulliken/CM5 charges", "Wiberg/Mayer (AO) data"]
+    start, stop = linesio.get_rev_indices_patterns(lines, keywords)
+
+    if start is None:  # No CM5 charges -> not GFN1 calculation
+        return {}
+
+    cm5_charges = []
+    for line in lines[start + 1 : stop]:
+        if (line := line.strip()) :
+            cm5_charges.append(float(line.split()[2]))
+
+    return {"cm5_charges": cm5_charges}
 
 
 def get_wbo(scr=None):
@@ -1207,6 +1245,74 @@ def read_properties_orbitals(lines, n_offset=2):
         properties[f"lumo+{i+1}"] = float(value)
 
     return properties
+
+
+def read_covalent_coordination(lines):
+    """
+    Read computed covalent coordination number.
+
+    format:
+
+    #   Z          covCN         q      C6AA      α(0)
+    1   6 C        3.743    -0.105    22.589     6.780
+    2   6 C        3.731     0.015    20.411     6.449
+    3   7 N        2.732    -0.087    22.929     7.112
+    ...
+
+    Mol. C6AA /au·bohr
+
+    """
+    properties = {"covCN": [], "alpha": []}
+
+    if (start_line := linesio.get_rev_index(lines, "covCN")) is None:
+        properties["covCN"] = None
+        properties["alpha"] = None
+    else:
+        for line in lines[start_line + 1 :]:
+            if set(line).issubset(set(["\n"])):
+                break
+
+            line = line.strip().split()
+            covCN = float(line[3])
+            alpha = float(line[-1])
+
+            properties["covCN"].append(covCN)
+            properties["alpha"].append(alpha)
+
+    return properties
+
+
+def get_frequencies(scr=None):
+    """ """
+
+    if scr is None:
+        scr = pathlib.Path(".")
+
+    filename = scr / "vibspectrum"
+
+    if not filename.is_file():
+        return None
+
+    # Read WBO file
+    with open(filename, "r") as f:
+        lines = f.readlines()
+
+    frequencies = read_frequencies(lines)
+    return frequencies
+
+
+def read_frequencies(lines):
+    """" """
+    frequencies = []
+    for line in lines[3:]:
+
+        if "$end" in line:
+            break
+        if "-" in line:  # non vib modes
+            continue
+        frequencies.append(float(line.strip().split()[2]))
+
+    return frequencies
 
 
 def parse_options(options, return_list=True):
