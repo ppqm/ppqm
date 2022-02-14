@@ -195,10 +195,12 @@ def func_parallel(
     except KeyboardInterrupt:
         eprint("got ^C while running pool of workers...")
         p.terminate()
+        raise KeyboardInterrupt
 
     except Exception as e:
         eprint("got exception: %r, terminating the pool" % (e,))
         p.terminate()
+        raise e
 
     finally:
         p.terminate()
