@@ -1,4 +1,3 @@
-import subprocess
 from collections import ChainMap
 
 import pytest
@@ -31,13 +30,9 @@ def test_parallel():
     smiles = "C(C(=O)O)N"  # I like glycine
     molobj = Chem.MolFromSmiles(smiles)
 
-    # parallelized orca jobs require the full path to the binary
-    output = subprocess.check_output("which orca", shell=True)
-    orca_bin = output.strip().decode("utf-8")
-
     orca_options = {
         "scr": "./_tmp_directory_",  # Where should the calculations happen?
-        "cmd": f"{orca_bin}",  # Where is the binary executable/command?
+        "cmd": "orca",  # Where is the binary executable/command?
         "n_cores": 8,  # How many cores to use?
         "show_progress": True,  # Show progressbar during calculation
     }
