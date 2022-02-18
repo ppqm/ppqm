@@ -44,6 +44,7 @@ def generate_conformers(
         molobj = molecule
 
     embed_parameters = rdDistGeom.ETKDGv3()
+    embed_parameters.randomSeed = 0xF00D
 
     if n_conformers is None:
         rot_bond = rdMolDescriptors.CalcNumRotatableBonds(molobj)
