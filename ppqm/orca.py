@@ -225,6 +225,10 @@ def get_properties_from_axyzc(
     **kwargs,
 ):
 
+    # make sure orca is called with its full path in case not OrcaCalculator
+    # has been created. Don't run into runtime errors.
+    cmd = env.which(cmd)
+
     if isinstance(scr, str):
         scr = pathlib.Path(scr)
 
@@ -243,7 +247,6 @@ def get_properties_from_axyzc(
         f.write(inputstr)
 
     # Run subprocess cmd
-
     cmd = " ".join([cmd, filename])
     _logger.debug(cmd)
 
