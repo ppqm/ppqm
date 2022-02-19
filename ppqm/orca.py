@@ -17,11 +17,18 @@ from ppqm.calculator import BaseCalculator
 ORCA_CMD = "orca"
 ORCA_FILENAME = "_tmp_orca_input.inp"
 
+COLUMN_COORD = "coord"
+COLUMN_SCF_CONVERGED = "scf_converged"
 COLUMN_SCF_ENERGY = "scf_energy"
+COLUMN_GIBBS_FREE_ENERGY = "gibbs_free_energy"
+COLUMN_ENTHALPY = "enthalpy"
+COLUMN_ENTROPY = "entropy"
 COLUMN_MULIKEN_CHARGES = "mulliken_charges"
 COLUMN_LOEWDIN_CHARGES = "loewdin_charges"
 COLUMN_HIRSHFELD_CHARGES = "hirshfeld_charges"
 COLUMN_NBO_BONDORDER = "bond_orders"
+COLUMN_STATIONARY_POINTS = "stationary_points"
+COLUMN_VIBRATIONAL_FREQUENCIES = "vibrational_frequencies"
 COLUMN_SHIELDING_CONSTANTS = "shielding_constants"
 
 _logger = logging.getLogger("orca")
@@ -36,7 +43,7 @@ class OrcaCalculator(BaseCalculator):
         filename=ORCA_FILENAME,
         show_progress=False,
         n_cores=1,
-        memory=2,
+        memory=2,  # memory per core
         **kwargs,
     ):
 
@@ -53,7 +60,7 @@ class OrcaCalculator(BaseCalculator):
             "scr": self.scr,
             "filename": self.filename,
             "n_cores": self.n_cores,
-            "memory": self.memory,
+            "memory": self.memory,  # memory per core
         }
 
         # Default Orca options
@@ -206,9 +213,9 @@ class OrcaCalculator(BaseCalculator):
         return results
 
 
-def get_properties_from_acxyz(atoms, charge, spin, coordinates, footer=None, **kwargs):
+def get_properties_from_acxyz(atoms, charge, spin, coordinates, **kwargs):
     """ get properties from atoms, charge and coordinates """
-    return get_properties_from_axyzc(atoms, coordinates, charge, spin, footer=footer, **kwargs)
+    return get_properties_from_axyzc(atoms, coordinates, charge, spin, **kwargs)
 
 
 def get_properties_from_axyzc(
@@ -241,7 +248,7 @@ def get_properties_from_axyzc(
     # write input file
     input_header = get_header(options, **kwargs)
 
-    inputstr = get_inputfile(atoms_str, coordinates, charge, spin, input_header, footer=footer)
+    inputstr = get_inputfile(atoms_str, coordinates, charge, spin, input_header)
 
     with open(scr / filename, "w") as f:
         f.write(inputstr)
@@ -262,17 +269,17 @@ def get_properties_from_axyzc(
     # Parse properties from Orca output
     properties = read_properties(lines, len(atoms_str), options)
 
-    properties["scf_converged"] = True  # This is asserted some lines earlier
-    properties["coord"] = coordinates
+    properties[COLUMN_SCF_CONVERGED] = True  # This is asserted some lines earlier
+    properties[COLUMN_COORD] = coordinates
 
-    # Clean scr dir. TODO: Does this work??
+    # Clean scr dir
     if clean_tempfiles:
         tempdir.cleanup()
 
     return properties
 
 
-def get_inputfile(atom_strs, coordinates, charge, spin, header, footer=None, **kwargs):
+def get_inputfile(atom_strs, coordinates, charge, spin, header, **kwargs):
     """ """
 
     inputstr = header + 2 * "\n"
@@ -285,9 +292,6 @@ def get_inputfile(atom_strs, coordinates, charge, spin, header, footer=None, **k
         )
     inputstr += "*\n"
     inputstr += "\n"  # magic line
-
-    if footer is not None:
-        inputstr += footer + "\n"
 
     return inputstr
 
@@ -329,10 +333,19 @@ def read_properties(lines, atom_number, options):
     if "NMR" in options:
         readers.append(get_nmr_shielding_constants)
 
-    readers.append(get_mulliken_charges)
-    readers.append(get_loewdin_charges)
+    if "Freq" in options or "NumFreq" in options:
+        readers.append(get_vibrational_frequencies)
+        readers.append(get_gibbs_free_energy)
+        readers.append(get_enthalpy)
+        readers.append(get_entropy)
 
-    # Get properties
+    # these are always calculated by orca
+    # always reported unless the print level is reduced
+    if "MiniPrint" not in options:
+        readers.append(get_mulliken_charges)
+        readers.append(get_loewdin_charges)
+
+    # get properties
     properties = dict()
     for reader in readers:
         new_properties = reader(lines, atom_number)
@@ -340,6 +353,17 @@ def read_properties(lines, atom_number, options):
             properties.update(new_properties)
         else:
             _logger.error(f"Parser failed to read properties for reader {reader.__name__}")
+
+    if "Freq" in options or "NumFreq" in options:
+        imaginary_frequencies = len(
+            [i for i in properties[COLUMN_VIBRATIONAL_FREQUENCIES] if i < 0]
+        )
+        if imaginary_frequencies == 0:
+            properties[COLUMN_STATIONARY_POINTS] = "local_minimum"
+        elif imaginary_frequencies == 1:
+            properties[COLUMN_STATIONARY_POINTS] = "transition_state"
+        else:
+            properties[COLUMN_STATIONARY_POINTS] = "higher_order"
 
     return properties
 
@@ -399,3 +423,48 @@ def get_nmr_shielding_constants(lines, atom_number):
     shielding_constants = [float(line.split()[2]) for line in lines[start:stop]]
 
     return {COLUMN_SHIELDING_CONSTANTS: shielding_constants}
+
+
+def get_vibrational_frequencies(lines, atom_number):
+    """ Read vibrational frequencies """
+    pattern = "VIBRATIONAL FREQUENCIES"
+    degrees_of_freedom = 3 * atom_number
+    start, stop = linesio.get_indices_pattern(lines, pattern, degrees_of_freedom, 5)
+    if [x for x in (start, stop) if x is None]:  # check if start or stop are None
+        return None
+    vibrational_frequencies = [float(line.split()[1]) for line in lines[start:stop]]
+
+    return {COLUMN_VIBRATIONAL_FREQUENCIES: vibrational_frequencies}
+
+
+def get_gibbs_free_energy(lines, atom_number):
+    """ Read Gibbs free energy """
+    gibbs_free_energy = None  # Return None by default
+    for line in lines:
+        if "Final Gibbs free energy" in line:
+            gibbs_free_energy = float(line.split()[5]) * units.hartree_to_kcalmol
+            break
+
+    return {COLUMN_GIBBS_FREE_ENERGY: gibbs_free_energy}
+
+
+def get_enthalpy(lines, atom_number):
+    """ Read enthalpy """
+    enthalpy = None  # Return None by default
+    for line in lines:
+        if "Total enthalpy" in line:
+            enthalpy = float(line.split()[3]) * units.hartree_to_kcalmol
+            break
+
+    return {COLUMN_ENTHALPY: enthalpy}
+
+
+def get_entropy(lines, atom_number):
+    """ Read entropy """
+    entropy = None  # Return None by default
+    for line in lines:
+        if "Final entropy term" in line:
+            entropy = float(line.split()[4]) * units.hartree_to_kcalmol
+            break
+
+    return {COLUMN_ENTROPY: entropy}
