@@ -86,7 +86,7 @@ def get_indices_patterns(lines, patterns, stoppattern=None):
     return idxs
 
 
-def get_indices_pattern(lines, pattern, atom_number, offset):
+def get_indices_pattern(lines, pattern, num_lines, offset):
     """Processes the output file of the QM software used to
     find the first occurence of a specifie pattern. Useful
     if this block will be in the file only once and if there
@@ -97,8 +97,8 @@ def get_indices_pattern(lines, pattern, atom_number, offset):
             Log file of the QM software to be processed.
         pattern (str):
             The pattern of the block.
-        atom_number (int):
-            How many atoms are in the molecule.
+        num_lines (int):
+            How many line should be read.
         offset (int):
             How many lines are between the pattern and the first line of the block.
 
@@ -112,7 +112,7 @@ def get_indices_pattern(lines, pattern, atom_number, offset):
         if pattern in line:
             # only go with first occurence
             idxs[0] = i + offset
-            idxs[1] = i + atom_number + offset
+            idxs[1] = i + num_lines + offset
             break
 
     return idxs

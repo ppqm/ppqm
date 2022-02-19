@@ -188,7 +188,7 @@ def test_get_hirshfeld_charges():
     assert hirshfeld_charges["hirshfeld_charges"][-1] == 0.183978
 
 
-def test_nmr_shielding_constants():
+def test_get_nmr_shielding_constants():
 
     serine_num_atoms = 14
 
@@ -207,6 +207,84 @@ def test_nmr_shielding_constants():
 
     assert shielding_constants["shielding_constants"][0] == 124.718
     assert shielding_constants["shielding_constants"][-1] == 30.530
+
+
+def test_get_vibrational_frequencies():
+
+    methane_num_atoms = 5
+
+    logfilename = RESOURCES / "orca/methane_freq.out"
+    with open(logfilename) as f:
+        lines = f.readlines()
+
+    result = orca.get_vibrational_frequencies(lines, methane_num_atoms)
+
+    assert result is not None
+
+    assert "vibrational_frequencies" in result
+
+    assert len(result["vibrational_frequencies"]) == 3 * methane_num_atoms
+    assert isinstance(result["vibrational_frequencies"][0], float)
+
+    assert result["vibrational_frequencies"][0] == 0.00
+    assert result["vibrational_frequencies"][-1] == 3247.27
+
+
+def test_get_gibbs_free_energy():
+
+    methane_num_atoms = 5
+
+    logfilename = RESOURCES / "orca/methane_freq.out"
+    with open(logfilename) as f:
+        lines = f.readlines()
+
+    result = orca.get_gibbs_free_energy(lines, methane_num_atoms)
+
+    assert result is not None
+
+    assert "gibbs_free_energy" in result
+
+    assert isinstance(result["gibbs_free_energy"], float)
+
+    assert result["gibbs_free_energy"] == -40.42878184 * units.hartree_to_kcalmol
+
+
+def test_get_enthalpy():
+
+    methane_num_atoms = 5
+
+    logfilename = RESOURCES / "orca/methane_freq.out"
+    with open(logfilename) as f:
+        lines = f.readlines()
+
+    result = orca.get_enthalpy(lines, methane_num_atoms)
+
+    assert result is not None
+
+    assert "enthalpy" in result
+
+    assert isinstance(result["enthalpy"], float)
+
+    assert result["enthalpy"] == -40.40529550 * units.hartree_to_kcalmol
+
+
+def test_get_entropy():
+
+    methane_num_atoms = 5
+
+    logfilename = RESOURCES / "orca/methane_freq.out"
+    with open(logfilename) as f:
+        lines = f.readlines()
+
+    result = orca.get_entropy(lines, methane_num_atoms)
+
+    assert result is not None
+
+    assert "entropy" in result
+
+    assert isinstance(result["entropy"], float)
+
+    assert result["entropy"] == 0.02348634 * units.hartree_to_kcalmol
 
 
 def test_read_properties():
