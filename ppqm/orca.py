@@ -225,8 +225,8 @@ def get_properties_from_axyzc(
     **kwargs,
 ):
 
-    # make sure orca is called with its full path in case not OrcaCalculator
-    # has been created. Don't run into runtime errors.
+    # make sure orca is called with its full path in case no OrcaCalculator
+    # object has been created. Don't run into avoidable runtime errors.
     cmd = env.which(cmd)
 
     if isinstance(scr, str):
