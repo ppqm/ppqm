@@ -259,6 +259,9 @@ def get_properties_from_axyzc(
     # Parse properties from Orca output
     properties = read_properties(lines, len(atoms_str), options)
 
+    properties["scf_converged"] = True  # This is asserted some lines earlier
+    properties["coord"] = coordinates
+
     # Clean scr dir. TODO: Does this work??
     if clean_tempfiles:
         tempdir.cleanup()
