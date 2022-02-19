@@ -19,8 +19,8 @@ TEST_ENERGIES_B3LYP = [
 ]
 
 
-def _get_options(tmpdir):
-    orca_options = {"scr": tmpdir, "n_cores": 1, "memory": 2}
+def _get_options(tmp_path):
+    orca_options = {"scr": tmp_path, "n_cores": 1, "memory": 2, "keep_files": True}
     options_prime = ChainMap(orca_options, ORCA_OPTIONS)
     options_prime = dict(options_prime)
     return options_prime
@@ -66,10 +66,10 @@ def test_parallel():
 
 
 @pytest.mark.parametrize("smiles, energy", TEST_ENERGIES_PM3)
-def test_axyzc_optimize_pm3(smiles, energy, tmpdir):
+def test_axyzc_optimize_pm3(smiles, energy, tmp_path):
     """ TODO: optimize not just SP """
 
-    orca_options = _get_options(tmpdir)
+    orca_options = _get_options(tmp_path)
 
     molobj = chembridge.smiles_to_molobj(smiles)
     molobj = tasks.generate_conformers(molobj, n_conformers=1)
@@ -84,16 +84,18 @@ def test_axyzc_optimize_pm3(smiles, energy, tmpdir):
         atoms, coordinates, charge, spin=1, options=calculation_options, **orca_options
     )
 
+    assert properties is not None
+
     scf_energy = properties[orca.COLUMN_SCF_ENERGY]
 
     assert pytest.approx(energy, 10 ** -7) == scf_energy
 
 
 @pytest.mark.parametrize("smiles, energy", TEST_ENERGIES_B3LYP)
-def test_axyzc_optimize_b3lyp(smiles, energy, tmpdir):
+def test_axyzc_optimize_b3lyp(smiles, energy, tmp_path):
     """ TODO: optimize not just SP """
 
-    orca_options = _get_options(tmpdir)
+    orca_options = _get_options(tmp_path)
 
     molobj = chembridge.smiles_to_molobj(smiles)
     molobj = tasks.generate_conformers(molobj, n_conformers=1)
@@ -116,6 +118,8 @@ def test_axyzc_optimize_b3lyp(smiles, energy, tmpdir):
         atoms, coordinates, charge, spin=1, options=calculation_options, **orca_options
     )
 
+    assert properties is not None
+
     scf_energy = properties[orca.COLUMN_SCF_ENERGY]
 
     assert pytest.approx(energy, 10 ** -7) == scf_energy
@@ -130,6 +134,8 @@ def test_get_mulliken_charges():
         lines = f.readlines()
 
     mulliken_charges = orca.get_mulliken_charges(lines, serine_num_atoms)
+
+    assert mulliken_charges is not None
 
     assert "mulliken_charges" in mulliken_charges
 
@@ -150,6 +156,8 @@ def test_get_loewdin_charges():
 
     loewdin_charges = orca.get_loewdin_charges(lines, serine_num_atoms)
 
+    assert loewdin_charges is not None
+
     assert "loewdin_charges" in loewdin_charges
 
     assert len(loewdin_charges["loewdin_charges"]) == serine_num_atoms
@@ -169,6 +177,8 @@ def test_get_hirshfeld_charges():
 
     hirshfeld_charges = orca.get_hirshfeld_charges(lines, serine_num_atoms)
 
+    assert hirshfeld_charges is not None
+
     assert "hirshfeld_charges" in hirshfeld_charges
 
     assert len(hirshfeld_charges["hirshfeld_charges"]) == serine_num_atoms
@@ -187,6 +197,8 @@ def test_nmr_shielding_constants():
         lines = f.readlines()
 
     shielding_constants = orca.get_nmr_shielding_constants(lines, serine_num_atoms)
+
+    assert shielding_constants is not None
 
     assert "shielding_constants" in shielding_constants
 

@@ -5,14 +5,15 @@ ORCA wrapper functions
 import functools
 import logging
 import pathlib
-import tempfile
 from collections import ChainMap
+from typing import List
 
 import numpy as np
 from tqdm import tqdm
 
 from ppqm import chembridge, constants, env, linesio, misc, shell, units
 from ppqm.calculator import BaseCalculator
+from ppqm.utils.files import WorkDir
 
 ORCA_CMD = "orca"
 ORCA_FILENAME = "_tmp_orca_input.inp"
@@ -218,7 +219,7 @@ def get_properties_from_axyzc(
     spin,
     options=None,
     scr=constants.SCR,
-    clean_tempfiles=False,
+    keep_files=False,
     cmd=ORCA_CMD,
     filename=ORCA_FILENAME,
     footer=None,
@@ -235,8 +236,8 @@ def get_properties_from_axyzc(
     if not filename.endswith(".inp"):
         filename += ".inp"
 
-    tempdir = tempfile.TemporaryDirectory(dir=scr, prefix="orca_")
-    scr = pathlib.Path(tempdir.name)
+    workdir = WorkDir(dir=scr, prefix="orca_", keep=keep_files)
+    scr = workdir.get_path()
 
     # write input file
     input_header = get_header(options, **kwargs)
@@ -256,7 +257,10 @@ def get_properties_from_axyzc(
     termination_pattern = "****ORCA TERMINATED NORMALLY****"
     idx = linesio.get_rev_index(lines, termination_pattern)
     if idx is None:
-        _logger.critical("Abnormal termination of Orca")
+        errors = read_error(lines)
+        _logger.error("Abnormal termination of Orca")
+        for error in errors:
+            _logger.error(f"orca: {error}")
         return None
 
     # Parse properties from Orca output
@@ -264,10 +268,6 @@ def get_properties_from_axyzc(
 
     properties["scf_converged"] = True  # This is asserted some lines earlier
     properties["coord"] = coordinates
-
-    # Clean scr dir. TODO: Does this work??
-    if clean_tempfiles:
-        tempdir.cleanup()
 
     return properties
 
@@ -309,6 +309,24 @@ def get_header(options, **kwargs):
             header += f"! {key}({value}) \n"
 
     return header
+
+
+def read_error(lines: List[str]):
+    """ Read the error message from orca log. So far I've only seen it between two headrules of exclamation marks"""
+
+    error_lines = "!!!!!!!"
+    patterns = [error_lines, error_lines]
+    hr2, hr1 = linesio.get_rev_indices_patterns(lines, patterns, maxiter=50)
+    errors = []
+
+    if hr1 is None or hr2 is None:
+        return errors
+
+    for line in lines[hr1 + 1 : hr2]:
+        line = " ".join(line.split())
+        errors.append(line.strip().rstrip())
+
+    return errors
 
 
 def read_properties(lines, atom_number, options):
