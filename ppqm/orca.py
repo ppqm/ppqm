@@ -151,7 +151,7 @@ class OrcaCalculator(BaseCalculator):
 
         return properties_list
 
-    def calculate_parallel(self, molobj, options, n_cores=1):
+    def calculate_parallel(self, molobj, options, n_cores=None):
 
         _logger.debug("start orca multiprocessing pool")
 
