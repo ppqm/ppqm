@@ -1135,7 +1135,8 @@ def get_cm5_charges(lines):
 
     cm5_charges = []
     for line in lines[start + 1 : stop]:
-        if (line := line.strip()) :
+        line = line.strip()
+        if line:
             cm5_charges.append(float(line.split()[2]))
 
     return {"cm5_charges": cm5_charges}
@@ -1264,7 +1265,8 @@ def read_covalent_coordination(lines):
     """
     properties = {"covCN": [], "alpha": []}
 
-    if (start_line := linesio.get_rev_index(lines, "covCN")) is None:
+    start_line = linesio.get_rev_index(lines, "covCN")
+    if (start_line) is None:
         properties["covCN"] = None
         properties["alpha"] = None
     else:
