@@ -57,8 +57,6 @@ def show_molobj(molobj, align_conformers=True, show_properties=False):
         coord = chembridge.get_coordinates(molobj, confid=idx)
         view.set_coordinates({0: coord})
 
-        print(f"Conformer {idx} / {n_conformers - 1}")
-
     if n_conformers > 1:
         interact(
             _view_conformer,
@@ -66,7 +64,9 @@ def show_molobj(molobj, align_conformers=True, show_properties=False):
             layout=Layout(width="100%", height="80px"),
         )
 
-    _view_conformer(0)
+    else:
+        _view_conformer(0)
+
     IPython.core.display.display(view)
     if show_properties:
         properties = molobj.GetPropsAsDict()
