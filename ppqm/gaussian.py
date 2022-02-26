@@ -315,7 +315,8 @@ def get_nbo_bond_orders(lines):
     bond_idx_blocks = []
     block_idx = 0
     for line in lines[start + 1 : stop]:
-        if line := line.strip().split():  # filter empty strings
+        line = line.strip().split()
+        if line:  # filter empty strings
             if "Atom" in line:
                 continue
 
