@@ -88,9 +88,6 @@ class OrcaCalculator(BaseCalculator):
         except Exception:
             assert False, "unsupported Orca version"
 
-        assert int(major) == 4, "unsupported Orca version"
-        assert int(minor) == 2, "unsupported Orca version"
-
         # If health check has gone through, update absolute path
         self.cmd = env.which(self.cmd)
         self.orca_options["cmd"] = self.cmd
