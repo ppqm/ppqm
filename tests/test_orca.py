@@ -395,7 +395,7 @@ def test_parallel():
     mulliken_charge = results[1]["mulliken_charges"][0]
 
     assert pytest.approx(scf_energy, 10 ** -7) == -178251.589166
-    assert mulliken_charge == 0.111094
+    assert pytest.approx(mulliken_charge, 10 ** -5) == 0.111094
 
 
 @pytest.mark.parametrize("smiles, energy", TEST_ENERGIES_PM3)
