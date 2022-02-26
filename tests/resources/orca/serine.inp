@@ -1,4 +1,4 @@
-# ORCA 4.2.0 input file
+# ORCA input file
 ! B3LYP def2-SVP def2/JK
 ! D3BJ CPCM(water)
 ! RIJCOSX def2/J
