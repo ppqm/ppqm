@@ -18,12 +18,345 @@ TEST_ENERGIES_B3LYP = [
     ("[NH4+]", -56.950888890358 * units.hartree_to_kcalmol),
 ]
 
+serine_num_atoms = 14
+
+# orca 4.2.1
+
+logfilename_orca_4 = RESOURCES / "orca/serine-orca-4.2.1.out"
+with open(logfilename_orca_4) as f:
+    lines_orca_4 = f.readlines()
+
+# orca 5.0.2
+
+logfilename_orca_5 = RESOURCES / "orca/serine-orca-5.0.2.out"
+with open(logfilename_orca_5) as f:
+    lines_orca_5 = f.readlines()
+
 
 def _get_options(tmp_path):
     orca_options = {"scr": tmp_path, "n_cores": 1, "memory": 2, "keep_files": True}
     options_prime = ChainMap(orca_options, ORCA_OPTIONS)
     options_prime = dict(options_prime)
     return options_prime
+
+
+def test_get_mulliken_charges():
+
+    # orca 4.2.1
+
+    mulliken_charges = orca.get_mulliken_charges(lines_orca_4, serine_num_atoms)
+
+    assert mulliken_charges is not None
+
+    assert "mulliken_charges" in mulliken_charges
+
+    assert len(mulliken_charges["mulliken_charges"]) == serine_num_atoms
+    assert isinstance(mulliken_charges["mulliken_charges"][0], float)
+
+    assert mulliken_charges["mulliken_charges"][0] == 0.220691
+    assert mulliken_charges["mulliken_charges"][-1] == 0.197727
+
+    # orca 5.0.2
+
+    mulliken_charges = orca.get_mulliken_charges(lines_orca_5, serine_num_atoms)
+
+    assert mulliken_charges is not None
+
+    assert "mulliken_charges" in mulliken_charges
+
+    assert len(mulliken_charges["mulliken_charges"]) == serine_num_atoms
+    assert isinstance(mulliken_charges["mulliken_charges"][0], float)
+
+    assert mulliken_charges["mulliken_charges"][0] == 0.207046
+    assert mulliken_charges["mulliken_charges"][-1] == 0.210534
+
+
+def test_get_loewdin_charges():
+
+    # orca 4.2.1
+
+    loewdin_charges = orca.get_loewdin_charges(lines_orca_4, serine_num_atoms)
+
+    assert loewdin_charges is not None
+
+    assert "loewdin_charges" in loewdin_charges
+
+    assert len(loewdin_charges["loewdin_charges"]) == serine_num_atoms
+    assert isinstance(loewdin_charges["loewdin_charges"][0], float)
+
+    assert loewdin_charges["loewdin_charges"][0] == 0.073725
+    assert loewdin_charges["loewdin_charges"][-1] == 0.095532
+
+    # orca 5.0.2
+
+    loewdin_charges = orca.get_loewdin_charges(lines_orca_5, serine_num_atoms)
+
+    assert loewdin_charges is not None
+
+    assert "loewdin_charges" in loewdin_charges
+
+    assert len(loewdin_charges["loewdin_charges"]) == serine_num_atoms
+    assert isinstance(loewdin_charges["loewdin_charges"][0], float)
+
+    assert loewdin_charges["loewdin_charges"][0] == 0.086674
+    assert loewdin_charges["loewdin_charges"][-1] == 0.109164
+
+
+def test_get_hirshfeld_charges():
+
+    # orca 4.2.1
+
+    hirshfeld_charges = orca.get_hirshfeld_charges(lines_orca_4, serine_num_atoms)
+
+    assert hirshfeld_charges is not None
+
+    assert "hirshfeld_charges" in hirshfeld_charges
+
+    assert len(hirshfeld_charges["hirshfeld_charges"]) == serine_num_atoms
+    assert isinstance(hirshfeld_charges["hirshfeld_charges"][0], float)
+
+    assert hirshfeld_charges["hirshfeld_charges"][0] == 0.044416
+    assert hirshfeld_charges["hirshfeld_charges"][-1] == 0.183978
+
+    # orca 5.0.2
+
+    hirshfeld_charges = orca.get_hirshfeld_charges(lines_orca_5, serine_num_atoms)
+
+    assert hirshfeld_charges is not None
+
+    assert "hirshfeld_charges" in hirshfeld_charges
+
+    assert len(hirshfeld_charges["hirshfeld_charges"]) == serine_num_atoms
+    assert isinstance(hirshfeld_charges["hirshfeld_charges"][0], float)
+
+    assert hirshfeld_charges["hirshfeld_charges"][0] == 0.056766
+    assert hirshfeld_charges["hirshfeld_charges"][-1] == 0.190034
+
+
+def test_get_nmr_shielding_constants():
+
+    # orca 4.2.1
+
+    shielding_constants = orca.get_nmr_shielding_constants(lines_orca_4, serine_num_atoms)
+
+    assert shielding_constants is not None
+
+    assert "shielding_constants" in shielding_constants
+
+    assert len(shielding_constants["shielding_constants"]) == serine_num_atoms
+    assert isinstance(shielding_constants["shielding_constants"][0], float)
+
+    assert shielding_constants["shielding_constants"][0] == 124.718
+    assert shielding_constants["shielding_constants"][-1] == 30.530
+
+    # orca 5.0.2
+
+    shielding_constants = orca.get_nmr_shielding_constants(lines_orca_5, serine_num_atoms)
+
+    assert shielding_constants is not None
+
+    assert "shielding_constants" in shielding_constants
+
+    assert len(shielding_constants["shielding_constants"]) == serine_num_atoms
+    assert isinstance(shielding_constants["shielding_constants"][0], float)
+
+    assert shielding_constants["shielding_constants"][0] == 121.411
+    assert shielding_constants["shielding_constants"][-1] == 29.405
+
+
+def test_get_vibrational_frequencies():
+
+    # orca 4.2.1
+
+    methane_num_atoms = 5
+
+    logfilename = RESOURCES / "orca/methane_freq.out"
+    with open(logfilename) as f:
+        lines = f.readlines()
+
+    result_orca_4 = orca.get_vibrational_frequencies(lines, methane_num_atoms)
+
+    assert result_orca_4 is not None
+
+    assert "vibrational_frequencies" in result_orca_4
+
+    assert len(result_orca_4["vibrational_frequencies"]) == 3 * methane_num_atoms
+    assert isinstance(result_orca_4["vibrational_frequencies"][0], float)
+
+    assert result_orca_4["vibrational_frequencies"][0] == 0.00
+    assert result_orca_4["vibrational_frequencies"][-1] == 3247.27
+
+    # orca 5.0.2
+
+    result_orca_5 = orca.get_vibrational_frequencies(lines_orca_5, serine_num_atoms)
+
+    assert result_orca_5 is not None
+
+    assert "vibrational_frequencies" in result_orca_5
+
+    assert len(result_orca_5["vibrational_frequencies"]) == 3 * serine_num_atoms
+    assert isinstance(result_orca_5["vibrational_frequencies"][0], float)
+
+    assert result_orca_5["vibrational_frequencies"][0] == 0.00
+    assert result_orca_5["vibrational_frequencies"][-1] == 3648.07
+
+
+def test_get_gibbs_free_energy():
+
+    # orca 4.2.1
+
+    methane_num_atoms = 5
+
+    logfilename = RESOURCES / "orca/methane_freq.out"
+    with open(logfilename) as f:
+        lines = f.readlines()
+
+    result_orca_4 = orca.get_gibbs_free_energy(lines, methane_num_atoms)
+
+    assert result_orca_4 is not None
+
+    assert "gibbs_free_energy" in result_orca_4
+
+    assert isinstance(result_orca_4["gibbs_free_energy"], float)
+
+    assert result_orca_4["gibbs_free_energy"] == -40.42878184 * units.hartree_to_kcalmol
+
+    # orca 5.0.2
+
+    result_orca_5 = orca.get_gibbs_free_energy(lines_orca_5, serine_num_atoms)
+
+    assert result_orca_5 is not None
+
+    assert "gibbs_free_energy" in result_orca_5
+
+    assert isinstance(result_orca_5["gibbs_free_energy"], float)
+
+    assert result_orca_5["gibbs_free_energy"] == -398.37468900 * units.hartree_to_kcalmol
+
+
+def test_get_enthalpy():
+
+    # orca 4.2.1
+
+    methane_num_atoms = 5
+
+    logfilename = RESOURCES / "orca/methane_freq.out"
+    with open(logfilename) as f:
+        lines = f.readlines()
+
+    result_orca_4 = orca.get_enthalpy(lines, methane_num_atoms)
+
+    assert result_orca_4 is not None
+
+    assert "enthalpy" in result_orca_4
+
+    assert isinstance(result_orca_4["enthalpy"], float)
+
+    assert result_orca_4["enthalpy"] == -40.40529550 * units.hartree_to_kcalmol
+
+    # orca 5.0.2
+
+    result_orca_5 = orca.get_enthalpy(lines_orca_5, serine_num_atoms)
+
+    assert result_orca_5 is not None
+
+    assert "enthalpy" in result_orca_5
+
+    assert isinstance(result_orca_5["enthalpy"], float)
+
+    assert result_orca_5["enthalpy"] == -398.33479178 * units.hartree_to_kcalmol
+
+
+def test_get_entropy():
+
+    # orca 4.2.1
+
+    methane_num_atoms = 5
+
+    logfilename = RESOURCES / "orca/methane_freq.out"
+    with open(logfilename) as f:
+        lines = f.readlines()
+
+    result_orca_4 = orca.get_entropy(lines, methane_num_atoms)
+
+    assert result_orca_4 is not None
+
+    assert "entropy" in result_orca_4
+
+    assert isinstance(result_orca_4["entropy"], float)
+
+    assert result_orca_4["entropy"] == 0.02348634 * units.hartree_to_kcalmol
+
+    # orca 5.0.2
+
+    result_orca_5 = orca.get_entropy(lines_orca_5, serine_num_atoms)
+
+    assert result_orca_5 is not None
+
+    assert "entropy" in result_orca_5
+
+    assert isinstance(result_orca_5["entropy"], float)
+
+    assert result_orca_5["entropy"] == 0.03989722 * units.hartree_to_kcalmol
+
+
+def test_read_properties():
+
+    options = {
+        "B3LYP": None,
+        "def2-SVP": None,
+        "D3BJ": None,
+        "Hirshfeld": None,
+        "CPCM": "water",
+        "RIJCOSX": None,
+        "def2/J": None,
+        "Grid4": None,
+        "GridX4": None,
+        "NMR": None,
+        "def2/JK": None,
+    }
+
+    properties_dict = orca.read_properties(lines_orca_4, serine_num_atoms, options)
+
+    assert len(properties_dict) == 5
+
+    # check if the read properties match expected values
+    assert properties_dict["shielding_constants"][0] == 124.718
+    assert properties_dict["hirshfeld_charges"][0] == 0.044416
+    assert properties_dict["mulliken_charges"][0] == 0.220691
+
+
+def test_read_properties_compromised_file():
+
+    options = {
+        "B3LYP": None,
+        "def2-SVP": None,
+        "D3BJ": None,
+        "Hirshfeld": None,
+        "CPCM": "water",
+        "RIJCOSX": None,
+        "def2/J": None,
+        "Grid4": None,
+        "GridX4": None,
+        "NMR": None,
+        "def2/JK": None,
+    }
+
+    # Block containing "LOEWDIN ATOMIC CHARGES" has been deleted but is expected by the parser
+    logfilename = RESOURCES / "orca/serine-compromised.out"
+    with open(logfilename) as f:
+        lines = f.readlines()
+
+    properties_dict = orca.read_properties(lines, serine_num_atoms, options)
+
+    # check if there are fewer properties in the dict than expected
+    # (should be 5, but LOEWEDIN expected to fail)
+    assert len(properties_dict) == 4
+
+    # check if there are still other properties in the dict and the program has not terminated
+    assert properties_dict["shielding_constants"][0] == 124.718
+    assert properties_dict["hirshfeld_charges"][0] == 0.044416
+    assert properties_dict["mulliken_charges"][0] == 0.220691
 
 
 def test_parallel():
@@ -123,230 +456,3 @@ def test_axyzc_optimize_b3lyp(smiles, energy, tmp_path):
     scf_energy = properties[orca.COLUMN_SCF_ENERGY]
 
     assert pytest.approx(energy, 10 ** -7) == scf_energy
-
-
-def test_get_mulliken_charges():
-
-    serine_num_atoms = 14
-
-    logfilename = RESOURCES / "orca/serine.out"
-    with open(logfilename) as f:
-        lines = f.readlines()
-
-    mulliken_charges = orca.get_mulliken_charges(lines, serine_num_atoms)
-
-    assert mulliken_charges is not None
-
-    assert "mulliken_charges" in mulliken_charges
-
-    assert len(mulliken_charges["mulliken_charges"]) == serine_num_atoms
-    assert isinstance(mulliken_charges["mulliken_charges"][0], float)
-
-    assert mulliken_charges["mulliken_charges"][0] == 0.220691
-    assert mulliken_charges["mulliken_charges"][-1] == 0.197727
-
-
-def test_get_loewdin_charges():
-
-    serine_num_atoms = 14
-
-    logfilename = RESOURCES / "orca/serine.out"
-    with open(logfilename) as f:
-        lines = f.readlines()
-
-    loewdin_charges = orca.get_loewdin_charges(lines, serine_num_atoms)
-
-    assert loewdin_charges is not None
-
-    assert "loewdin_charges" in loewdin_charges
-
-    assert len(loewdin_charges["loewdin_charges"]) == serine_num_atoms
-    assert isinstance(loewdin_charges["loewdin_charges"][0], float)
-
-    assert loewdin_charges["loewdin_charges"][0] == 0.073725
-    assert loewdin_charges["loewdin_charges"][-1] == 0.095532
-
-
-def test_get_hirshfeld_charges():
-
-    serine_num_atoms = 14
-
-    logfilename = RESOURCES / "orca/serine.out"
-    with open(logfilename) as f:
-        lines = f.readlines()
-
-    hirshfeld_charges = orca.get_hirshfeld_charges(lines, serine_num_atoms)
-
-    assert hirshfeld_charges is not None
-
-    assert "hirshfeld_charges" in hirshfeld_charges
-
-    assert len(hirshfeld_charges["hirshfeld_charges"]) == serine_num_atoms
-    assert isinstance(hirshfeld_charges["hirshfeld_charges"][0], float)
-
-    assert hirshfeld_charges["hirshfeld_charges"][0] == 0.044416
-    assert hirshfeld_charges["hirshfeld_charges"][-1] == 0.183978
-
-
-def test_get_nmr_shielding_constants():
-
-    serine_num_atoms = 14
-
-    logfilename = RESOURCES / "orca/serine.out"
-    with open(logfilename) as f:
-        lines = f.readlines()
-
-    shielding_constants = orca.get_nmr_shielding_constants(lines, serine_num_atoms)
-
-    assert shielding_constants is not None
-
-    assert "shielding_constants" in shielding_constants
-
-    assert len(shielding_constants["shielding_constants"]) == serine_num_atoms
-    assert isinstance(shielding_constants["shielding_constants"][0], float)
-
-    assert shielding_constants["shielding_constants"][0] == 124.718
-    assert shielding_constants["shielding_constants"][-1] == 30.530
-
-
-def test_get_vibrational_frequencies():
-
-    methane_num_atoms = 5
-
-    logfilename = RESOURCES / "orca/methane_freq.out"
-    with open(logfilename) as f:
-        lines = f.readlines()
-
-    result = orca.get_vibrational_frequencies(lines, methane_num_atoms)
-
-    assert result is not None
-
-    assert "vibrational_frequencies" in result
-
-    assert len(result["vibrational_frequencies"]) == 3 * methane_num_atoms
-    assert isinstance(result["vibrational_frequencies"][0], float)
-
-    assert result["vibrational_frequencies"][0] == 0.00
-    assert result["vibrational_frequencies"][-1] == 3247.27
-
-
-def test_get_gibbs_free_energy():
-
-    methane_num_atoms = 5
-
-    logfilename = RESOURCES / "orca/methane_freq.out"
-    with open(logfilename) as f:
-        lines = f.readlines()
-
-    result = orca.get_gibbs_free_energy(lines, methane_num_atoms)
-
-    assert result is not None
-
-    assert "gibbs_free_energy" in result
-
-    assert isinstance(result["gibbs_free_energy"], float)
-
-    assert result["gibbs_free_energy"] == -40.42878184 * units.hartree_to_kcalmol
-
-
-def test_get_enthalpy():
-
-    methane_num_atoms = 5
-
-    logfilename = RESOURCES / "orca/methane_freq.out"
-    with open(logfilename) as f:
-        lines = f.readlines()
-
-    result = orca.get_enthalpy(lines, methane_num_atoms)
-
-    assert result is not None
-
-    assert "enthalpy" in result
-
-    assert isinstance(result["enthalpy"], float)
-
-    assert result["enthalpy"] == -40.40529550 * units.hartree_to_kcalmol
-
-
-def test_get_entropy():
-
-    methane_num_atoms = 5
-
-    logfilename = RESOURCES / "orca/methane_freq.out"
-    with open(logfilename) as f:
-        lines = f.readlines()
-
-    result = orca.get_entropy(lines, methane_num_atoms)
-
-    assert result is not None
-
-    assert "entropy" in result
-
-    assert isinstance(result["entropy"], float)
-
-    assert result["entropy"] == 0.02348634 * units.hartree_to_kcalmol
-
-
-def test_read_properties():
-
-    serine_num_atoms = 14
-    options = {
-        "B3LYP": None,
-        "def2-SVP": None,
-        "D3BJ": None,
-        "Hirshfeld": None,
-        "CPCM": "water",
-        "RIJCOSX": None,
-        "def2/J": None,
-        "Grid4": None,
-        "GridX4": None,
-        "NMR": None,
-        "def2/JK": None,
-    }
-
-    logfilename = RESOURCES / "orca/serine.out"
-    with open(logfilename) as f:
-        lines = f.readlines()
-
-    properties_dict = orca.read_properties(lines, serine_num_atoms, options)
-
-    assert len(properties_dict) == 5
-
-    # check if the read properties match expected values
-    assert properties_dict["shielding_constants"][0] == 124.718
-    assert properties_dict["hirshfeld_charges"][0] == 0.044416
-    assert properties_dict["mulliken_charges"][0] == 0.220691
-
-
-def test_read_properties_compromised_file():
-
-    serine_num_atoms = 14
-    options = {
-        "B3LYP": None,
-        "def2-SVP": None,
-        "D3BJ": None,
-        "Hirshfeld": None,
-        "CPCM": "water",
-        "RIJCOSX": None,
-        "def2/J": None,
-        "Grid4": None,
-        "GridX4": None,
-        "NMR": None,
-        "def2/JK": None,
-    }
-
-    # Block containing "LOEWDIN ATOMIC CHARGES" has been deleted but is expected by the parser
-    logfilename = RESOURCES / "orca/serine-compromised.out"
-    with open(logfilename) as f:
-        lines = f.readlines()
-
-    properties_dict = orca.read_properties(lines, serine_num_atoms, options)
-
-    # check if there are fewer properties in the dict than expected
-    # (should be 5, but LOEWEDIN expected to fail)
-    assert len(properties_dict) == 4
-
-    # check if there are still other properties in the dict and the program has not terminated
-    assert properties_dict["shielding_constants"][0] == 124.718
-    assert properties_dict["hirshfeld_charges"][0] == 0.044416
-    assert properties_dict["mulliken_charges"][0] == 0.220691

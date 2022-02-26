@@ -99,9 +99,9 @@
 Your calculation utilizes the atom-pairwise dispersion correction
 with the Becke-Johnson damping scheme (D3BJ)
 Cite in your paper:
-S.Grimme, S.Ehrlich, L.Goerigk, J Comput Chem, (2011), 32, 1456–1465 
-S.Grimme, J.Antony, S.Ehrlich and H.Krieg, J.Chem.Phys., 132, (2010), 154104 
-   
+S.Grimme, S.Ehrlich, L.Goerigk, J Comput Chem, (2011), 32, 1456–1465
+S.Grimme, J.Antony, S.Ehrlich and H.Krieg, J.Chem.Phys., 132, (2010), 154104
+
 
 
 Information: The global flag for chemical shieldings has been found
@@ -155,7 +155,7 @@ NAME = serine.inp
 | 22> H        -1.39285595783297   -0.48764792232264   -0.84755672531999
 | 23> H         1.16156842900734    1.29827517985711    1.43792926450975
 | 24> *
-| 25> 
+| 25>
 | 26>                          ****END OF INPUT****
 ================================================================================
 
@@ -354,7 +354,7 @@ Integral package used                  ... LIBINT
  Integral threshhold             Thresh  ...  2.500e-11
  Primitive cut-off               TCut    ...  2.500e-12
  Pre-screening matrix                    ... done
- Shell pair data                         ... 
+ Shell pair data                         ...
  Ordering of the shell pairs             ... done (   0.001 sec) 1930 of 2016 pairs
  Determination of significant pairs      ... done (   0.000 sec)
  Creation of shell pair data             ... done (   0.000 sec)
@@ -635,8 +635,8 @@ SCF ITERATIONS
 ITER       Energy         Delta-E        Max-DP      RMS-DP      [F,P]     Damp
                ***  Starting incremental Fock matrix formation  ***
                       *** Initiating the SOSCF procedure ***
-                      *** Re-Reading the Fockian *** 
-                      *** Removing any level shift *** 
+                      *** Re-Reading the Fockian ***
+                      *** Removing any level shift ***
 ITER      Energy       Delta-E        Grad      Rot      Max-DP    RMS-DP
   0   -398.47715463 -398.4771546325  0.000001  0.000001  0.000005  0.000000
                *** Restarting incremental Fock matrix formation ***
@@ -711,10 +711,10 @@ DFT components:
 N(Alpha)           :       27.999996609759 electrons
 N(Beta)            :       27.999996609759 electrons
 N(Total)           :       55.999993219517 electrons
-E(X)               :      -39.273210443785 Eh       
-E(C)               :       -2.289269044282 Eh       
-E(XC)              :      -41.562479488067 Eh       
-DFET-embed. en.    :        0.000000000000 Eh       
+E(X)               :      -39.273210443785 Eh
+E(C)               :       -2.289269044282 Eh
+E(XC)              :      -41.562479488067 Eh
+DFET-embed. en.    :        0.000000000000 Eh
 CPCM Solvation Model Properties:
 Surface-charge          :           -0.01401894
 Charge-correction       :            0.00001457 Eh               0.00040 eV
@@ -740,140 +740,140 @@ SCF CONVERGENCE
 ORBITAL ENERGIES
 ----------------
 
-  NO   OCC          E(Eh)            E(eV) 
-   0   2.0000     -19.167405      -521.5716 
-   1   2.0000     -19.125902      -520.4422 
-   2   2.0000     -19.120527      -520.2960 
-   3   2.0000     -14.321499      -389.7078 
-   4   2.0000     -10.311481      -280.5897 
-   5   2.0000     -10.226111      -278.2666 
-   6   2.0000     -10.221227      -278.1337 
-   7   2.0000      -1.091526       -29.7019 
-   8   2.0000      -1.011669       -27.5289 
-   9   2.0000      -1.005349       -27.3569 
-  10   2.0000      -0.888429       -24.1754 
-  11   2.0000      -0.728118       -19.8131 
-  12   2.0000      -0.635067       -17.2810 
-  13   2.0000      -0.597581       -16.2610 
-  14   2.0000      -0.546708       -14.8767 
-  15   2.0000      -0.501791       -13.6544 
-  16   2.0000      -0.480202       -13.0670 
-  17   2.0000      -0.467058       -12.7093 
-  18   2.0000      -0.451084       -12.2746 
-  19   2.0000      -0.442141       -12.0313 
-  20   2.0000      -0.426964       -11.6183 
-  21   2.0000      -0.381055       -10.3690 
-  22   2.0000      -0.372475       -10.1356 
-  23   2.0000      -0.339268        -9.2319 
-  24   2.0000      -0.320247        -8.7144 
-  25   2.0000      -0.289983        -7.8908 
-  26   2.0000      -0.271266        -7.3815 
-  27   2.0000      -0.256878        -6.9900 
-  28   0.0000       0.011795         0.3210 
-  29   0.0000       0.061057         1.6614 
-  30   0.0000       0.088094         2.3972 
-  31   0.0000       0.102018         2.7761 
-  32   0.0000       0.115543         3.1441 
-  33   0.0000       0.134339         3.6556 
-  34   0.0000       0.154547         4.2054 
-  35   0.0000       0.165104         4.4927 
-  36   0.0000       0.203012         5.5242 
-  37   0.0000       0.218179         5.9369 
-  38   0.0000       0.248174         6.7532 
-  39   0.0000       0.261714         7.1216 
-  40   0.0000       0.323539         8.8039 
-  41   0.0000       0.390920        10.6375 
-  42   0.0000       0.446942        12.1619 
-  43   0.0000       0.457084        12.4379 
-  44   0.0000       0.489841        13.3292 
-  45   0.0000       0.500240        13.6122 
-  46   0.0000       0.522156        14.2086 
-  47   0.0000       0.543036        14.7767 
-  48   0.0000       0.569482        15.4964 
-  49   0.0000       0.585882        15.9427 
-  50   0.0000       0.595754        16.2113 
-  51   0.0000       0.626629        17.0514 
-  52   0.0000       0.642952        17.4956 
-  53   0.0000       0.655336        17.8326 
-  54   0.0000       0.665799        18.1173 
-  55   0.0000       0.679037        18.4775 
-  56   0.0000       0.686127        18.6705 
-  57   0.0000       0.700980        19.0746 
-  58   0.0000       0.716741        19.5035 
-  59   0.0000       0.790494        21.5104 
-  60   0.0000       0.819002        22.2862 
-  61   0.0000       0.839548        22.8453 
-  62   0.0000       0.888234        24.1701 
-  63   0.0000       0.929447        25.2915 
-  64   0.0000       0.973570        26.4922 
-  65   0.0000       0.986959        26.8565 
-  66   0.0000       1.015145        27.6235 
-  67   0.0000       1.048328        28.5265 
-  68   0.0000       1.054974        28.7073 
-  69   0.0000       1.108108        30.1531 
-  70   0.0000       1.150387        31.3036 
-  71   0.0000       1.170584        31.8532 
-  72   0.0000       1.207487        32.8574 
-  73   0.0000       1.229165        33.4473 
-  74   0.0000       1.278561        34.7914 
-  75   0.0000       1.330416        36.2025 
-  76   0.0000       1.360563        37.0228 
-  77   0.0000       1.423194        38.7271 
-  78   0.0000       1.438218        39.1359 
-  79   0.0000       1.451051        39.4851 
-  80   0.0000       1.487028        40.4641 
-  81   0.0000       1.527111        41.5548 
-  82   0.0000       1.587721        43.2041 
-  83   0.0000       1.619670        44.0735 
-  84   0.0000       1.701849        46.3097 
-  85   0.0000       1.720172        46.8082 
-  86   0.0000       1.720550        46.8186 
-  87   0.0000       1.736615        47.2557 
-  88   0.0000       1.765787        48.0495 
-  89   0.0000       1.786024        48.6002 
-  90   0.0000       1.799572        48.9688 
-  91   0.0000       1.835189        49.9380 
-  92   0.0000       1.851700        50.3873 
-  93   0.0000       1.874245        51.0008 
-  94   0.0000       1.906970        51.8913 
-  95   0.0000       1.933505        52.6133 
-  96   0.0000       1.951288        53.0972 
-  97   0.0000       2.001331        54.4590 
-  98   0.0000       2.059138        56.0320 
-  99   0.0000       2.089229        56.8508 
- 100   0.0000       2.156666        58.6859 
- 101   0.0000       2.184724        59.4494 
- 102   0.0000       2.221964        60.4627 
- 103   0.0000       2.252567        61.2955 
- 104   0.0000       2.308205        62.8095 
- 105   0.0000       2.325586        63.2824 
- 106   0.0000       2.356320        64.1187 
- 107   0.0000       2.413189        65.6662 
- 108   0.0000       2.498437        67.9859 
- 109   0.0000       2.536113        69.0112 
- 110   0.0000       2.645010        71.9744 
- 111   0.0000       2.703377        73.5626 
- 112   0.0000       2.725386        74.1615 
- 113   0.0000       2.752681        74.9042 
- 114   0.0000       2.824638        76.8623 
- 115   0.0000       2.828932        76.9792 
- 116   0.0000       2.852830        77.6295 
- 117   0.0000       2.904527        79.0362 
- 118   0.0000       2.954096        80.3850 
- 119   0.0000       2.991108        81.3922 
- 120   0.0000       3.022424        82.2443 
- 121   0.0000       3.074664        83.6659 
- 122   0.0000       3.087081        84.0038 
- 123   0.0000       3.149433        85.7004 
- 124   0.0000       3.215466        87.4973 
- 125   0.0000       3.229333        87.8746 
- 126   0.0000       3.351832        91.2080 
- 127   0.0000       3.370096        91.7050 
- 128   0.0000       3.377127        91.8963 
- 129   0.0000       3.471964        94.4770 
- 130   0.0000       3.657663        99.5301 
- 131   0.0000       3.778168       102.8092 
- 132   0.0000       3.808649       103.6386 
+  NO   OCC          E(Eh)            E(eV)
+   0   2.0000     -19.167405      -521.5716
+   1   2.0000     -19.125902      -520.4422
+   2   2.0000     -19.120527      -520.2960
+   3   2.0000     -14.321499      -389.7078
+   4   2.0000     -10.311481      -280.5897
+   5   2.0000     -10.226111      -278.2666
+   6   2.0000     -10.221227      -278.1337
+   7   2.0000      -1.091526       -29.7019
+   8   2.0000      -1.011669       -27.5289
+   9   2.0000      -1.005349       -27.3569
+  10   2.0000      -0.888429       -24.1754
+  11   2.0000      -0.728118       -19.8131
+  12   2.0000      -0.635067       -17.2810
+  13   2.0000      -0.597581       -16.2610
+  14   2.0000      -0.546708       -14.8767
+  15   2.0000      -0.501791       -13.6544
+  16   2.0000      -0.480202       -13.0670
+  17   2.0000      -0.467058       -12.7093
+  18   2.0000      -0.451084       -12.2746
+  19   2.0000      -0.442141       -12.0313
+  20   2.0000      -0.426964       -11.6183
+  21   2.0000      -0.381055       -10.3690
+  22   2.0000      -0.372475       -10.1356
+  23   2.0000      -0.339268        -9.2319
+  24   2.0000      -0.320247        -8.7144
+  25   2.0000      -0.289983        -7.8908
+  26   2.0000      -0.271266        -7.3815
+  27   2.0000      -0.256878        -6.9900
+  28   0.0000       0.011795         0.3210
+  29   0.0000       0.061057         1.6614
+  30   0.0000       0.088094         2.3972
+  31   0.0000       0.102018         2.7761
+  32   0.0000       0.115543         3.1441
+  33   0.0000       0.134339         3.6556
+  34   0.0000       0.154547         4.2054
+  35   0.0000       0.165104         4.4927
+  36   0.0000       0.203012         5.5242
+  37   0.0000       0.218179         5.9369
+  38   0.0000       0.248174         6.7532
+  39   0.0000       0.261714         7.1216
+  40   0.0000       0.323539         8.8039
+  41   0.0000       0.390920        10.6375
+  42   0.0000       0.446942        12.1619
+  43   0.0000       0.457084        12.4379
+  44   0.0000       0.489841        13.3292
+  45   0.0000       0.500240        13.6122
+  46   0.0000       0.522156        14.2086
+  47   0.0000       0.543036        14.7767
+  48   0.0000       0.569482        15.4964
+  49   0.0000       0.585882        15.9427
+  50   0.0000       0.595754        16.2113
+  51   0.0000       0.626629        17.0514
+  52   0.0000       0.642952        17.4956
+  53   0.0000       0.655336        17.8326
+  54   0.0000       0.665799        18.1173
+  55   0.0000       0.679037        18.4775
+  56   0.0000       0.686127        18.6705
+  57   0.0000       0.700980        19.0746
+  58   0.0000       0.716741        19.5035
+  59   0.0000       0.790494        21.5104
+  60   0.0000       0.819002        22.2862
+  61   0.0000       0.839548        22.8453
+  62   0.0000       0.888234        24.1701
+  63   0.0000       0.929447        25.2915
+  64   0.0000       0.973570        26.4922
+  65   0.0000       0.986959        26.8565
+  66   0.0000       1.015145        27.6235
+  67   0.0000       1.048328        28.5265
+  68   0.0000       1.054974        28.7073
+  69   0.0000       1.108108        30.1531
+  70   0.0000       1.150387        31.3036
+  71   0.0000       1.170584        31.8532
+  72   0.0000       1.207487        32.8574
+  73   0.0000       1.229165        33.4473
+  74   0.0000       1.278561        34.7914
+  75   0.0000       1.330416        36.2025
+  76   0.0000       1.360563        37.0228
+  77   0.0000       1.423194        38.7271
+  78   0.0000       1.438218        39.1359
+  79   0.0000       1.451051        39.4851
+  80   0.0000       1.487028        40.4641
+  81   0.0000       1.527111        41.5548
+  82   0.0000       1.587721        43.2041
+  83   0.0000       1.619670        44.0735
+  84   0.0000       1.701849        46.3097
+  85   0.0000       1.720172        46.8082
+  86   0.0000       1.720550        46.8186
+  87   0.0000       1.736615        47.2557
+  88   0.0000       1.765787        48.0495
+  89   0.0000       1.786024        48.6002
+  90   0.0000       1.799572        48.9688
+  91   0.0000       1.835189        49.9380
+  92   0.0000       1.851700        50.3873
+  93   0.0000       1.874245        51.0008
+  94   0.0000       1.906970        51.8913
+  95   0.0000       1.933505        52.6133
+  96   0.0000       1.951288        53.0972
+  97   0.0000       2.001331        54.4590
+  98   0.0000       2.059138        56.0320
+  99   0.0000       2.089229        56.8508
+ 100   0.0000       2.156666        58.6859
+ 101   0.0000       2.184724        59.4494
+ 102   0.0000       2.221964        60.4627
+ 103   0.0000       2.252567        61.2955
+ 104   0.0000       2.308205        62.8095
+ 105   0.0000       2.325586        63.2824
+ 106   0.0000       2.356320        64.1187
+ 107   0.0000       2.413189        65.6662
+ 108   0.0000       2.498437        67.9859
+ 109   0.0000       2.536113        69.0112
+ 110   0.0000       2.645010        71.9744
+ 111   0.0000       2.703377        73.5626
+ 112   0.0000       2.725386        74.1615
+ 113   0.0000       2.752681        74.9042
+ 114   0.0000       2.824638        76.8623
+ 115   0.0000       2.828932        76.9792
+ 116   0.0000       2.852830        77.6295
+ 117   0.0000       2.904527        79.0362
+ 118   0.0000       2.954096        80.3850
+ 119   0.0000       2.991108        81.3922
+ 120   0.0000       3.022424        82.2443
+ 121   0.0000       3.074664        83.6659
+ 122   0.0000       3.087081        84.0038
+ 123   0.0000       3.149433        85.7004
+ 124   0.0000       3.215466        87.4973
+ 125   0.0000       3.229333        87.8746
+ 126   0.0000       3.351832        91.2080
+ 127   0.0000       3.370096        91.7050
+ 128   0.0000       3.377127        91.8963
+ 129   0.0000       3.471964        94.4770
+ 130   0.0000       3.657663        99.5301
+ 131   0.0000       3.778168       102.8092
+ 132   0.0000       3.808649       103.6386
 
                     ********************************
                     * MULLIKEN POPULATION ANALYSIS *
@@ -1140,11 +1140,11 @@ LOEWDIN REDUCED ORBITAL CHARGES
  13 H      0.8023     1.0000     0.1977     0.9969     0.9969    -0.0000
 
   Mayer bond orders larger than 0.100000
-B(  0-C ,  1-C ) :   1.0506 B(  0-C ,  7-O ) :   1.0850 B(  0-C ,  8-H ) :   0.9375 
-B(  0-C ,  9-H ) :   0.9340 B(  1-C ,  2-H ) :   0.8908 B(  1-C ,  3-C ) :   0.9006 
-B(  1-C ,  6-N ) :   1.0476 B(  3-C ,  4-O ) :   2.0913 B(  3-C ,  5-O ) :   1.3043 
-B(  5-O , 10-H ) :   0.8792 B(  6-N , 10-H ) :   0.1589 B(  6-N , 11-H ) :   0.9534 
-B(  6-N , 12-H ) :   0.9619 B(  7-O , 13-H ) :   0.9630 
+B(  0-C ,  1-C ) :   1.0506 B(  0-C ,  7-O ) :   1.0850 B(  0-C ,  8-H ) :   0.9375
+B(  0-C ,  9-H ) :   0.9340 B(  1-C ,  2-H ) :   0.8908 B(  1-C ,  3-C ) :   0.9006
+B(  1-C ,  6-N ) :   1.0476 B(  3-C ,  4-O ) :   2.0913 B(  3-C ,  5-O ) :   1.3043
+B(  5-O , 10-H ) :   0.8792 B(  6-N , 10-H ) :   0.1589 B(  6-N , 11-H ) :   0.9534
+B(  6-N , 12-H ) :   0.9619 B(  7-O , 13-H ) :   0.9630
 
 
 ------------------
@@ -1154,7 +1154,7 @@ HIRSHFELD ANALYSIS
 Total integrated alpha density =     28.000022006
 Total integrated beta density  =     28.000022006
 
-  ATOM     CHARGE      SPIN    
+  ATOM     CHARGE      SPIN
    0 C    0.044416    0.000000
    1 C    0.040066    0.000000
    2 H    0.050401    0.000000
@@ -1176,7 +1176,7 @@ Total integrated beta density  =     28.000022006
 TIMINGS
 -------
 
-Total SCF time: 0 days 0 hours 0 min 15 sec 
+Total SCF time: 0 days 0 hours 0 min 15 sec
 
 Total time                  ....      15.191 sec
 Sum of individual times     ....      15.021 sec  ( 98.9%)
@@ -1201,29 +1201,29 @@ Grid generation             ....       2.211 sec  ( 14.6%)
 
 
 -------------------------------------------------------------------------------
-                          DFT DISPERSION CORRECTION                            
-                                                                               
-                              DFTD3 V3.1  Rev 1                                
-                          USING Becke-Johnson damping                          
+                          DFT DISPERSION CORRECTION
+
+                              DFTD3 V3.1  Rev 1
+                          USING Becke-Johnson damping
 -------------------------------------------------------------------------------
 The B3LYP functional is recognized
-Active option DFTDOPT                   ...         4   
+Active option DFTDOPT                   ...         4
 
-molecular C6(AA) [au] = 1571.214002 
+molecular C6(AA) [au] = 1571.214002
 
 
             DFT-D V3
  parameters
- s6 scaling factor         :     1.0000 
- a1 scaling factor         :     0.3981 
- s8 scaling factor         :     1.9889 
- a2 scaling factor         :     4.4211 
- ad hoc parameters k1-k3   :    16.0000     1.3333    -4.0000 
+ s6 scaling factor         :     1.0000
+ a1 scaling factor         :     0.3981
+ s8 scaling factor         :     1.9889
+ a2 scaling factor         :     4.4211
+ ad hoc parameters k1-k3   :    16.0000     1.3333    -4.0000
 
- Edisp/kcal,au: -11.601500384078  -0.018488165719 
- E6   /kcal   :  -5.689768368 
- E8   /kcal   :  -5.911732016 
- % E8         :  50.956616126 
+ Edisp/kcal,au: -11.601500384078  -0.018488165719
+ E6   /kcal   :  -5.689768368
+ E8   /kcal   :  -5.911732016
+ % E8         :  50.956616126
 
 -------------------------   ----------------
 Dispersion correction           -0.018488166
@@ -1273,17 +1273,17 @@ Magnitude (Debye)      :      5.43092
 
 
 --------------------
-Rotational spectrum 
+Rotational spectrum
 --------------------
- 
-Rotational constants in cm-1:     0.155231     0.062085     0.046367 
-Rotational constants in MHz :  4653.716835  1861.260337  1390.036361 
 
- Dipole components along the rotational axes: 
-x,y,z [a.u.] :     1.831259     1.038692     0.364510 
-x,y,z [Debye]:     4.654692     2.640146     0.926510 
+Rotational constants in cm-1:     0.155231     0.062085     0.046367
+Rotational constants in MHz :  4653.716835  1861.260337  1390.036361
 
- 
+ Dipole components along the rotational axes:
+x,y,z [a.u.] :     1.831259     1.038692     0.364510
+x,y,z [Debye]:     4.654692     2.640146     0.926510
+
+
 ------------------------------------------------------------------------------
                                 ORCA EPR/NMR CALCULATION
 ------------------------------------------------------------------------------
@@ -1293,105 +1293,105 @@ Electron density file        ... serine.scfp
 Spin density file            ... serine.scfr
 Treatment of gauge           ... GIAO (approximations 1/2el = 0,3)
 Details of the CP(SCF) procedure:
-       Solver   = POPLE   
-       MaxIter  =    64   
+       Solver   = POPLE
+       MaxIter  =    64
        Tolerance=    1.000e-06
-       COSX Grid=     1   
+       COSX Grid=     1
        Op-0     =   0- 27 =>  28-132
 Multiplicity                 ... 1
 g-tensor                     ... 0
 NMR chemical shifts          ... 1
 Number of nuclei for epr/nmr ... 14
-   Nucleus:   0C 
+   Nucleus:   0C
        Hyperfine : Isotope=   13 I=   0.500 P= 134.188
        Quadrupole: Isotope=   13 I=   0.500 Q=   0.000
        Spin-Orbit: Zeff=   3.600
        Ncuelar Spin-Spin: Gn=   0.000
        rho(0)=N f(grad)=N a(iso)=N a(dip)=N a(orb)=N sigma(nmr)=Y spin-spin(nmr)=all-N,DSO-N,PSO-N,FC-N,SD-N
-   Nucleus:   1C 
+   Nucleus:   1C
        Hyperfine : Isotope=   13 I=   0.500 P= 134.188
        Quadrupole: Isotope=   13 I=   0.500 Q=   0.000
        Spin-Orbit: Zeff=   3.600
        Ncuelar Spin-Spin: Gn=   0.000
        rho(0)=N f(grad)=N a(iso)=N a(dip)=N a(orb)=N sigma(nmr)=Y spin-spin(nmr)=all-N,DSO-N,PSO-N,FC-N,SD-N
-   Nucleus:   2H 
+   Nucleus:   2H
        Hyperfine : Isotope=    1 I=   0.500 P= 533.552
        Quadrupole: Isotope=    2 I=   1.000 Q=   0.003
        Spin-Orbit: Zeff=   1.000
        Ncuelar Spin-Spin: Gn=   0.000
        rho(0)=N f(grad)=N a(iso)=N a(dip)=N a(orb)=N sigma(nmr)=Y spin-spin(nmr)=all-N,DSO-N,PSO-N,FC-N,SD-N
-   Nucleus:   3C 
+   Nucleus:   3C
        Hyperfine : Isotope=   13 I=   0.500 P= 134.188
        Quadrupole: Isotope=   13 I=   0.500 Q=   0.000
        Spin-Orbit: Zeff=   3.600
        Ncuelar Spin-Spin: Gn=   0.000
        rho(0)=N f(grad)=N a(iso)=N a(dip)=N a(orb)=N sigma(nmr)=Y spin-spin(nmr)=all-N,DSO-N,PSO-N,FC-N,SD-N
-   Nucleus:   4O 
+   Nucleus:   4O
        Hyperfine : Isotope=   17 I=   2.500 P= -72.357
        Quadrupole: Isotope=   17 I=   2.500 Q=  -0.026
        Spin-Orbit: Zeff=   5.600
        Ncuelar Spin-Spin: Gn=   0.000
        rho(0)=N f(grad)=N a(iso)=N a(dip)=N a(orb)=N sigma(nmr)=Y spin-spin(nmr)=all-N,DSO-N,PSO-N,FC-N,SD-N
-   Nucleus:   5O 
+   Nucleus:   5O
        Hyperfine : Isotope=   17 I=   2.500 P= -72.357
        Quadrupole: Isotope=   17 I=   2.500 Q=  -0.026
        Spin-Orbit: Zeff=   5.600
        Ncuelar Spin-Spin: Gn=   0.000
        rho(0)=N f(grad)=N a(iso)=N a(dip)=N a(orb)=N sigma(nmr)=Y spin-spin(nmr)=all-N,DSO-N,PSO-N,FC-N,SD-N
-   Nucleus:   6N 
+   Nucleus:   6N
        Hyperfine : Isotope=   14 I=   1.000 P=  38.571
        Quadrupole: Isotope=   14 I=   1.000 Q=   0.020
        Spin-Orbit: Zeff=   4.550
        Ncuelar Spin-Spin: Gn=   0.000
        rho(0)=N f(grad)=N a(iso)=N a(dip)=N a(orb)=N sigma(nmr)=Y spin-spin(nmr)=all-N,DSO-N,PSO-N,FC-N,SD-N
-   Nucleus:   7O 
+   Nucleus:   7O
        Hyperfine : Isotope=   17 I=   2.500 P= -72.357
        Quadrupole: Isotope=   17 I=   2.500 Q=  -0.026
        Spin-Orbit: Zeff=   5.600
        Ncuelar Spin-Spin: Gn=   0.000
        rho(0)=N f(grad)=N a(iso)=N a(dip)=N a(orb)=N sigma(nmr)=Y spin-spin(nmr)=all-N,DSO-N,PSO-N,FC-N,SD-N
-   Nucleus:   8H 
+   Nucleus:   8H
        Hyperfine : Isotope=    1 I=   0.500 P= 533.552
        Quadrupole: Isotope=    2 I=   1.000 Q=   0.003
        Spin-Orbit: Zeff=   1.000
        Ncuelar Spin-Spin: Gn=   0.000
        rho(0)=N f(grad)=N a(iso)=N a(dip)=N a(orb)=N sigma(nmr)=Y spin-spin(nmr)=all-N,DSO-N,PSO-N,FC-N,SD-N
-   Nucleus:   9H 
+   Nucleus:   9H
        Hyperfine : Isotope=    1 I=   0.500 P= 533.552
        Quadrupole: Isotope=    2 I=   1.000 Q=   0.003
        Spin-Orbit: Zeff=   1.000
        Ncuelar Spin-Spin: Gn=   0.000
        rho(0)=N f(grad)=N a(iso)=N a(dip)=N a(orb)=N sigma(nmr)=Y spin-spin(nmr)=all-N,DSO-N,PSO-N,FC-N,SD-N
-   Nucleus:  10H 
+   Nucleus:  10H
        Hyperfine : Isotope=    1 I=   0.500 P= 533.552
        Quadrupole: Isotope=    2 I=   1.000 Q=   0.003
        Spin-Orbit: Zeff=   1.000
        Ncuelar Spin-Spin: Gn=   0.000
        rho(0)=N f(grad)=N a(iso)=N a(dip)=N a(orb)=N sigma(nmr)=Y spin-spin(nmr)=all-N,DSO-N,PSO-N,FC-N,SD-N
-   Nucleus:  11H 
+   Nucleus:  11H
        Hyperfine : Isotope=    1 I=   0.500 P= 533.552
        Quadrupole: Isotope=    2 I=   1.000 Q=   0.003
        Spin-Orbit: Zeff=   1.000
        Ncuelar Spin-Spin: Gn=   0.000
        rho(0)=N f(grad)=N a(iso)=N a(dip)=N a(orb)=N sigma(nmr)=Y spin-spin(nmr)=all-N,DSO-N,PSO-N,FC-N,SD-N
-   Nucleus:  12H 
+   Nucleus:  12H
        Hyperfine : Isotope=    1 I=   0.500 P= 533.552
        Quadrupole: Isotope=    2 I=   1.000 Q=   0.003
        Spin-Orbit: Zeff=   1.000
        Ncuelar Spin-Spin: Gn=   0.000
        rho(0)=N f(grad)=N a(iso)=N a(dip)=N a(orb)=N sigma(nmr)=Y spin-spin(nmr)=all-N,DSO-N,PSO-N,FC-N,SD-N
-   Nucleus:  13H 
+   Nucleus:  13H
        Hyperfine : Isotope=    1 I=   0.500 P= 533.552
        Quadrupole: Isotope=    2 I=   1.000 Q=   0.003
        Spin-Orbit: Zeff=   1.000
        Ncuelar Spin-Spin: Gn=   0.000
        rho(0)=N f(grad)=N a(iso)=N a(dip)=N a(orb)=N sigma(nmr)=Y spin-spin(nmr)=all-N,DSO-N,PSO-N,FC-N,SD-N
-Forming RHS of the CP-SCF equations         ... 
-Calculating right hand sides for GIAO treatment        ... 
+Forming RHS of the CP-SCF equations         ...
+Calculating right hand sides for GIAO treatment        ...
   Entering RightHandSide GIAO. ScalHFX=    0.2000 NeedHFX=1
      -> 1-electron GIAO integrals will be done analytically
      -> RIJCOSX used in SCF but RIJK chosen for GIAO calculation.
-     Making grid for GIAO integrations   ... 
+     Making grid for GIAO integrations   ...
 General Integration Accuracy     IntAcc      ...  4.670
 Radial Grid Type                 RadialGrid  ... Gauss-Chebyshev
 Angular Grid (max. acc.)         AngularGrid ... Lebedev-302
@@ -1424,8 +1424,8 @@ done
   Calculating G(B)[P]                     ... (RI-JK: P(aux)-ok JK-RI-ok) (add-J+K:ok) => dG/dB done
   DFT XC-terms                            ... done
   Forming the GIAO-CPCM matrix            ... done (epsilon= 80.40 f(epsilon)= 0.987562)
-  Extracting occupied and virtual blocks  ... 
-  Operator  0  NO=  28 NV= 105 
+  Extracting occupied and virtual blocks  ...
+  Operator  0  NO=  28 NV= 105
   Transforming and RHS contribution       ... done
   Adding eps_i * S(B)_ai terms            ... done
   Projecting overlap derivatives          ... done
@@ -1433,7 +1433,7 @@ done
   Transforming to MO basis                ... done
   Summing G[dS/dB_ij] into RHS contribs.  ... done
 
-  GIAO profiling information: 
+  GIAO profiling information:
     Total GIAO time               ...      11.4 sec
        GIAO 1-electron integrals  ...       0.0 sec (  0.2%)
        GIAO G(dS/dB) terms        ...       2.2 sec ( 19.0%)
@@ -1466,7 +1466,7 @@ DFT calculation                         ... on
 The RIJCOSX approximation is active
 Variables per vector in CP-SCF ... 2940
 Number of vectors sought       ... 3
-     CP-SCF ITERATION   0: 
+     CP-SCF ITERATION   0:
      CP-SCF ITERATION   1:      0.000715308819
      CP-SCF ITERATION   2:      0.000005577883
      CP-SCF ITERATION   3:      0.000000972272
@@ -1480,30 +1480,30 @@ Magnetic field perturbation calculated in 20.249 sec
 CHEMICAL SHIFTS
 ---------------
 
-Note: using conversion factor for au to ppm alpha^2/2 =   26.625677252 
+Note: using conversion factor for au to ppm alpha^2/2 =   26.625677252
 GIAO: Doing para- and diamagnetic shielding integrals analytically     ...done
  --------------
  Nucleus   0C :
  --------------
 
-Diamagnetic contribution to the shielding tensor (ppm) : 
+Diamagnetic contribution to the shielding tensor (ppm) :
            242.106         -1.118        -2.034
             -3.284        248.528         3.576
              0.662          1.425       247.820
 
-Paramagnetic contribution to the shielding tensor (ppm): 
+Paramagnetic contribution to the shielding tensor (ppm):
           -130.371        -11.835        -1.093
              1.958       -110.821        16.083
              2.218         17.934      -123.109
 
-Total shielding tensor (ppm): 
+Total shielding tensor (ppm):
            111.735        -12.952        -3.126
             -1.326        137.707        19.659
              2.880         19.359       124.711
 
 
  Diagonalized sT*s matrix:
- 
+
  sDSO           243.029          244.383          251.042  iso=     246.152
  sPSO          -136.284         -129.571          -98.447  iso=    -121.434
         ---------------  ---------------  ---------------
@@ -1513,24 +1513,24 @@ Total shielding tensor (ppm):
  Nucleus   1C :
  --------------
 
-Diamagnetic contribution to the shielding tensor (ppm) : 
+Diamagnetic contribution to the shielding tensor (ppm) :
            261.684          1.714        -3.798
             -0.444        251.043         6.185
              0.830          4.279       256.891
 
-Paramagnetic contribution to the shielding tensor (ppm): 
+Paramagnetic contribution to the shielding tensor (ppm):
           -124.560         -5.985         8.272
            -10.608       -129.746         9.912
             -3.073          7.776      -116.268
 
-Total shielding tensor (ppm): 
+Total shielding tensor (ppm):
            137.124         -4.271         4.474
            -11.052        121.297        16.097
             -2.243         12.055       140.623
 
 
  Diagonalized sT*s matrix:
- 
+
  sDSO           249.685          259.360          260.573  iso=     256.539
  sPSO          -137.908         -120.782         -111.884  iso=    -123.525
         ---------------  ---------------  ---------------
@@ -1540,24 +1540,24 @@ Total shielding tensor (ppm):
  Nucleus   2H :
  --------------
 
-Diamagnetic contribution to the shielding tensor (ppm) : 
+Diamagnetic contribution to the shielding tensor (ppm) :
             24.388          5.980       -10.248
              7.529         35.264       -14.778
             -4.199         -6.685        32.245
 
-Paramagnetic contribution to the shielding tensor (ppm): 
+Paramagnetic contribution to the shielding tensor (ppm):
              5.291         -3.665         8.805
             -5.210         -7.384        13.639
              2.850          4.352        -4.604
 
-Total shielding tensor (ppm): 
+Total shielding tensor (ppm):
             29.679          2.315        -1.443
              2.320         27.880        -1.140
             -1.349         -2.334        27.641
 
 
  Diagonalized sT*s matrix:
- 
+
  sDSO            23.427           24.657           43.812  iso=      30.632
  sPSO             2.427            2.423          -11.549  iso=      -2.233
         ---------------  ---------------  ---------------
@@ -1567,24 +1567,24 @@ Total shielding tensor (ppm):
  Nucleus   3C :
  --------------
 
-Diamagnetic contribution to the shielding tensor (ppm) : 
+Diamagnetic contribution to the shielding tensor (ppm) :
            262.468         -5.084         2.468
             -0.524        263.516         3.747
              6.285          9.873       252.225
 
-Paramagnetic contribution to the shielding tensor (ppm): 
+Paramagnetic contribution to the shielding tensor (ppm):
           -232.727        -10.186       -46.413
             -0.019       -238.428       -60.787
            -38.057        -75.859      -237.201
 
-Total shielding tensor (ppm): 
+Total shielding tensor (ppm):
             29.741        -15.270       -43.945
             -0.543         25.088       -57.039
            -31.772        -65.986        15.024
 
 
  Diagonalized sT*s matrix:
- 
+
  sDSO           264.363          265.017          248.829  iso=     259.403
  sPSO          -243.282         -305.597         -159.478  iso=    -236.119
         ---------------  ---------------  ---------------
@@ -1594,24 +1594,24 @@ Total shielding tensor (ppm):
  Nucleus   4O :
  --------------
 
-Diamagnetic contribution to the shielding tensor (ppm) : 
+Diamagnetic contribution to the shielding tensor (ppm) :
            425.134         -0.331        -9.127
             -6.852        393.681         3.847
             12.147          3.469       381.868
 
-Paramagnetic contribution to the shielding tensor (ppm): 
+Paramagnetic contribution to the shielding tensor (ppm):
           -607.775         97.885      -171.287
            134.214       -325.875      -212.636
           -205.358       -205.451      -296.183
 
-Total shielding tensor (ppm): 
+Total shielding tensor (ppm):
           -182.641         97.554      -180.413
            127.362         67.806      -208.789
           -193.212       -201.982        85.685
 
 
  Diagonalized sT*s matrix:
- 
+
  sDSO           396.626          413.398          390.659  iso=     400.228
  sPSO          -512.021         -679.477          -38.334  iso=    -409.944
         ---------------  ---------------  ---------------
@@ -1621,24 +1621,24 @@ Total shielding tensor (ppm):
  Nucleus   5O :
  --------------
 
-Diamagnetic contribution to the shielding tensor (ppm) : 
+Diamagnetic contribution to the shielding tensor (ppm) :
            402.337        -10.913        20.381
             -5.300        379.653        15.899
             11.394          6.659       387.581
 
-Paramagnetic contribution to the shielding tensor (ppm): 
+Paramagnetic contribution to the shielding tensor (ppm):
           -371.304        167.461        21.482
            105.130       -227.410       -97.276
            -17.238        -37.226      -134.866
 
-Total shielding tensor (ppm): 
+Total shielding tensor (ppm):
             31.033        156.548        41.863
             99.830        152.243       -81.377
             -5.844        -30.567       252.715
 
 
  Diagonalized sT*s matrix:
- 
+
  sDSO           405.370          394.949          369.252  iso=     389.857
  sPSO          -445.123         -203.759          -84.699  iso=    -244.527
         ---------------  ---------------  ---------------
@@ -1648,24 +1648,24 @@ Total shielding tensor (ppm):
  Nucleus   6N :
  --------------
 
-Diamagnetic contribution to the shielding tensor (ppm) : 
+Diamagnetic contribution to the shielding tensor (ppm) :
            322.622         -2.405        -3.552
              3.037        315.451         0.099
             -7.414         -4.364       302.938
 
-Paramagnetic contribution to the shielding tensor (ppm): 
+Paramagnetic contribution to the shielding tensor (ppm):
            -74.885         11.538        -1.199
             14.197        -90.705       -13.856
             -6.706         -4.090       -87.029
 
-Total shielding tensor (ppm): 
+Total shielding tensor (ppm):
            247.737          9.133        -4.751
             17.234        224.746       -13.757
            -14.119         -8.454       215.909
 
 
  Diagonalized sT*s matrix:
- 
+
  sDSO           304.771          313.122          323.117  iso=     313.670
  sPSO           -96.401          -91.061          -65.156  iso=     -84.206
         ---------------  ---------------  ---------------
@@ -1675,24 +1675,24 @@ Total shielding tensor (ppm):
  Nucleus   7O :
  --------------
 
-Diamagnetic contribution to the shielding tensor (ppm) : 
+Diamagnetic contribution to the shielding tensor (ppm) :
            371.851         -9.924         4.752
              0.184        397.339        14.895
              9.752         14.490       393.420
 
-Paramagnetic contribution to the shielding tensor (ppm): 
+Paramagnetic contribution to the shielding tensor (ppm):
            -71.040         25.990        39.913
              0.826        -88.585       -10.059
             16.264         -4.703       -31.779
 
-Total shielding tensor (ppm): 
+Total shielding tensor (ppm):
            300.811         16.066        44.665
              1.010        308.754         4.836
             26.016          9.787       361.641
 
 
  Diagonalized sT*s matrix:
- 
+
  sDSO           374.398          389.507          398.704  iso=     387.536
  sPSO           -90.697          -81.307          -19.399  iso=     -63.801
         ---------------  ---------------  ---------------
@@ -1702,24 +1702,24 @@ Total shielding tensor (ppm):
  Nucleus   8H :
  --------------
 
-Diamagnetic contribution to the shielding tensor (ppm) : 
+Diamagnetic contribution to the shielding tensor (ppm) :
             41.273          0.193        -3.066
             -0.963         27.120         0.266
             -0.306         -1.163        27.354
 
-Paramagnetic contribution to the shielding tensor (ppm): 
+Paramagnetic contribution to the shielding tensor (ppm):
            -10.979         -2.341         3.836
             -1.819         -1.237         3.395
              0.438          4.325        -1.229
 
-Total shielding tensor (ppm): 
+Total shielding tensor (ppm):
             30.295         -2.149         0.770
             -2.782         25.883         3.661
              0.132          3.162        26.125
 
 
  Diagonalized sT*s matrix:
- 
+
  sDSO            28.921           28.905           37.921  iso=      31.916
  sPSO            -6.875           -0.289           -6.280  iso=      -4.481
         ---------------  ---------------  ---------------
@@ -1729,24 +1729,24 @@ Total shielding tensor (ppm):
  Nucleus   9H :
  --------------
 
-Diamagnetic contribution to the shielding tensor (ppm) : 
+Diamagnetic contribution to the shielding tensor (ppm) :
             27.899          4.101        -3.935
              2.351         42.055        -4.635
             -1.360         -7.056        33.587
 
-Paramagnetic contribution to the shielding tensor (ppm): 
+Paramagnetic contribution to the shielding tensor (ppm):
             -3.464         -5.029         3.825
             -2.206        -10.322         3.020
              1.756          7.947        -4.985
 
-Total shielding tensor (ppm): 
+Total shielding tensor (ppm):
             24.435         -0.927        -0.111
              0.145         31.733        -1.615
              0.396          0.892        28.602
 
 
  Diagonalized sT*s matrix:
- 
+
  sDSO            28.380           32.054           43.107  iso=      34.514
  sPSO            -3.969           -3.489          -11.313  iso=      -6.257
         ---------------  ---------------  ---------------
@@ -1756,24 +1756,24 @@ Total shielding tensor (ppm):
  Nucleus  10H :
  --------------
 
-Diamagnetic contribution to the shielding tensor (ppm) : 
+Diamagnetic contribution to the shielding tensor (ppm) :
             34.471         -5.112        -2.703
             -3.669         33.694        -2.815
             -1.681         -0.482        30.036
 
-Paramagnetic contribution to the shielding tensor (ppm): 
+Paramagnetic contribution to the shielding tensor (ppm):
            -12.648          1.241         3.214
             -1.413        -14.673        11.152
              1.284          8.004       -10.705
 
-Total shielding tensor (ppm): 
+Total shielding tensor (ppm):
             21.823         -3.870         0.511
             -5.081         19.021         8.337
             -0.397          7.521        19.331
 
 
  Diagonalized sT*s matrix:
- 
+
  sDSO            32.809           30.200           35.192  iso=      32.734
  sPSO           -22.514           -8.960           -6.553  iso=     -12.675
         ---------------  ---------------  ---------------
@@ -1783,24 +1783,24 @@ Total shielding tensor (ppm):
  Nucleus  11H :
  --------------
 
-Diamagnetic contribution to the shielding tensor (ppm) : 
+Diamagnetic contribution to the shielding tensor (ppm) :
             32.359         -6.306         0.669
             -6.148         41.054        -4.023
             -2.400          2.147        24.740
 
-Paramagnetic contribution to the shielding tensor (ppm): 
+Paramagnetic contribution to the shielding tensor (ppm):
             -2.915          0.577        -0.782
              0.610         -6.072         6.613
              2.445          0.926        -1.161
 
-Total shielding tensor (ppm): 
+Total shielding tensor (ppm):
             29.444         -5.728        -0.113
             -5.538         34.982         2.589
              0.045          3.073        23.578
 
 
  Diagonalized sT*s matrix:
- 
+
  sDSO            26.867           27.615           43.671  iso=      32.718
  sPSO            -4.297           -1.057           -4.794  iso=      -3.383
         ---------------  ---------------  ---------------
@@ -1810,24 +1810,24 @@ Total shielding tensor (ppm):
  Nucleus  12H :
  --------------
 
-Diamagnetic contribution to the shielding tensor (ppm) : 
+Diamagnetic contribution to the shielding tensor (ppm) :
             35.931          7.021        -3.552
              7.887         38.410        -3.132
             -7.864         -8.245        31.408
 
-Paramagnetic contribution to the shielding tensor (ppm): 
+Paramagnetic contribution to the shielding tensor (ppm):
             -3.704         -2.499        -0.868
             -4.313         -8.059        -1.687
              3.247          4.033        -1.059
 
-Total shielding tensor (ppm): 
+Total shielding tensor (ppm):
             32.227          4.522        -4.420
              3.575         30.351        -4.819
             -4.616         -4.213        30.349
 
 
  Diagonalized sT*s matrix:
- 
+
  sDSO            28.936           29.062           47.750  iso=      35.249
  sPSO            -3.148           -1.672           -8.002  iso=      -4.274
         ---------------  ---------------  ---------------
@@ -1837,24 +1837,24 @@ Total shielding tensor (ppm):
  Nucleus  13H :
  --------------
 
-Diamagnetic contribution to the shielding tensor (ppm) : 
+Diamagnetic contribution to the shielding tensor (ppm) :
             26.878          0.529         6.400
              1.940         28.319         5.152
             10.355          6.355        40.500
 
-Paramagnetic contribution to the shielding tensor (ppm): 
+Paramagnetic contribution to the shielding tensor (ppm):
             -0.828         -1.139         1.799
             -2.173         -2.660        -0.208
             -1.450         -2.727        -0.620
 
-Total shielding tensor (ppm): 
+Total shielding tensor (ppm):
             26.050         -0.610         8.199
             -0.234         25.659         4.944
              8.904          3.628        39.880
 
 
  Diagonalized sT*s matrix:
- 
+
  sDSO            22.674           27.017           46.006  iso=      31.899
  sPSO            -1.869           -0.916           -1.324  iso=      -1.369
         ---------------  ---------------  ---------------
@@ -1869,20 +1869,20 @@ CHEMICAL SHIELDING SUMMARY (ppm)
 
   Nucleus  Element    Isotropic     Anisotropy
   -------  -------  ------------   ------------
-      0       C          124.718         41.816 
-      1       C          133.015         23.511 
-      2       H           28.400          5.796 
-      3       C           23.284         99.101 
-      4       O           -9.717        543.063 
-      5       O          145.330        208.834 
-      6       N          229.464         42.745 
-      7       O          323.735         83.355 
-      8       H           27.434          6.311 
-      9       H           28.257          5.307 
-     10       H           20.058         12.871 
-     11       H           29.335         14.314 
-     12       H           30.976         13.160 
-     13       H           30.530         21.230 
+      0       C          124.718         41.816
+      1       C          133.015         23.511
+      2       H           28.400          5.796
+      3       C           23.284         99.101
+      4       O           -9.717        543.063
+      5       O          145.330        208.834
+      6       N          229.464         42.745
+      7       O          323.735         83.355
+      8       H           27.434          6.311
+      9       H           28.257          5.307
+     10       H           20.058         12.871
+     11       H           29.335         14.314
+     12       H           30.976         13.160
+     13       H           30.530         21.230
 
 
 
