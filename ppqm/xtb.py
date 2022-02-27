@@ -13,9 +13,9 @@ import tempfile
 from collections import ChainMap
 
 import numpy as np
+import rmsd
 from tqdm import tqdm
 
-import rmsd
 from ppqm import chembridge, constants, env, linesio, misc, shell, units
 from ppqm.calculator import BaseCalculator
 
