@@ -59,3 +59,7 @@ if "xtb" in CONFIG._sections:
 G16_OPTIONS = dict()
 G16_OPTIONS["scr"] = SCR
 G16_OPTIONS["cmd"] = CONFIG["gaussian16"]["cmd"]
+
+ORCA_OPTIONS = dict()
+ORCA_OPTIONS["scr"] = SCR
+ORCA_OPTIONS["cmd"] = CONFIG["orca"]["cmd"]

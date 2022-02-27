@@ -1,4 +1,4 @@
-# phsysical constants and unit convertion
+# physical constants and unit convertion
 
 accepted_units = [
     "ev",
