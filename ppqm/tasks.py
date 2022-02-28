@@ -27,10 +27,7 @@ def generate_conformers_legacy(molobj, max_conf=20, min_conf=10, random_seed=1, 
 
 
 def generate_conformers(
-    molecule,
-    n_conformers=None,
-    max_conformers=500,
-    return_copy=True,
+    molecule, n_conformers=None, max_conformers=500, return_copy=True, seed=0xF00D
 ):
     """ Generate 3D conformers using RDKit ETKDGv3 """
 
@@ -44,6 +41,7 @@ def generate_conformers(
         molobj = molecule
 
     embed_parameters = rdDistGeom.ETKDGv3()
+    embed_parameters.randomSeed = seed
 
     if n_conformers is None:
         rot_bond = rdMolDescriptors.CalcNumRotatableBonds(molobj)
