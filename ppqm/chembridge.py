@@ -1,7 +1,8 @@
 import copy
 import gzip
 from io import StringIO
-from typing import Any, Dict, List, Tuple
+from pathlib import Path
+from typing import Any, Dict, Generator, List, Optional, Tuple
 
 import numpy as np
 from rdkit import Chem, RDLogger
@@ -443,7 +444,7 @@ def get_center_of_mass(atoms: List[int], coordinates: np.ndarray) -> np.ndarray:
     return R
 
 
-def get_dipole_moments(molobj):
+def get_dipole_moments(molobj: Mol) -> np.ndarray:
     """
     Compute dipole moment for all conformers, using Gasteiger charges and
     coordinates from conformers
@@ -474,7 +475,9 @@ def get_dipole_moments(molobj):
     return moments
 
 
-def get_dipole_moment(atoms, coordinates, charges, is_centered=False):
+def get_dipole_moment(
+    atoms: np.ndarray, coordinates: np.ndarray, charges: np.ndarray, is_centered: bool = False
+) -> float:
     """
 
     from wikipedia:
@@ -506,7 +509,7 @@ def get_dipole_moment(atoms, coordinates, charges, is_centered=False):
     return total_moment
 
 
-def get_inertia(atoms, coordinates):
+def get_inertia(atoms: List[int], coordinates: np.ndarray):
     """ Calculate inertia moments """
 
     com = get_center_of_mass(atoms, coordinates)
@@ -555,8 +558,8 @@ def get_inertia(atoms, coordinates):
     return w
 
 
-def get_inertia_diag(atoms, coordinates):
-    """ Calcualte the inertia diagonal vector """
+def get_inertia_diag(atoms: List[int], coordinates: np.ndarray) -> np.ndarray:
+    """ Calculate the inertia diagonal vector """
 
     com = get_center_of_mass(atoms, coordinates)
 
@@ -586,7 +589,7 @@ def get_inertia_diag(atoms, coordinates):
     return inertia
 
 
-def get_inertia_ratio(inertia):
+def get_inertia_ratio(inertia: np.ndarray) -> float:
     """ Sort intertia digonal and calculate the shape ratio """
 
     inertia.sort()
@@ -598,7 +601,7 @@ def get_inertia_ratio(inertia):
     return ratio
 
 
-def get_inertia_ratios(molobj):
+def get_inertia_ratios(molobj: Mol) -> np.ndarray:
     """ Get inertia ratios for all conformers """
 
     atoms = molobj.GetAtoms()
@@ -620,13 +623,13 @@ def get_inertia_ratios(molobj):
     return ratios
 
 
-def get_properties_from_molobj(molobj):
+def get_properties_from_molobj(molobj: Mol) -> Dict:
     """ Get properties from molobj """
     properties = molobj.GetPropsAsDict()
     return properties
 
 
-def get_sasa(molobj, extra_radius=0.0):
+def get_sasa(molobj: Mol, extra_radius: float = 0.0) -> np.ndarray:
     """Get solvent accessible surface area per atom
 
     :param molobj: Molecule with 3D conformers
@@ -650,10 +653,13 @@ def get_sasa(molobj, extra_radius=0.0):
     return sasas
 
 
-def get_torsions(mol):
+def get_torsions(mol: Mol) -> np.ndarray:
     """
     Get indices of all torsion pairs All heavy atoms.
     One end can be Hydrogen.
+
+    return
+        indicies - array of four atom indicies for each torsional angle found
     """
 
     any_atom = "[*]"
@@ -695,7 +701,7 @@ def get_undefined_stereocenters(molobj: Mol) -> int:
     return n_undefined_centers
 
 
-def molobj_add_conformer(molobj, coordinates):
+def molobj_add_conformer(molobj: Mol, coordinates: np.ndarray) -> None:
     """ Append coordinates as a new conformer to molobj """
     conf = Chem.Conformer(len(coordinates))
     for i, coordinate in enumerate(coordinates):
@@ -703,7 +709,9 @@ def molobj_add_conformer(molobj, coordinates):
     molobj.AddConformer(conf, assignId=True)
 
 
-def molobj_check_distances(molobj, min_cutoff=0.001, max_cutoff=3.0):
+def molobj_check_distances(
+    molobj: Mol, min_cutoff: float = 0.001, max_cutoff: float = 3.0
+) -> np.ndarray:
     """
     For some atom_types in UFF, rdkit will fail optimization and stick multiple
     atoms ontop of eachother
@@ -746,7 +754,7 @@ def molobj_check_distances(molobj, min_cutoff=0.001, max_cutoff=3.0):
     return status
 
 
-def molobj_select_conformers(molobj, idxs):
+def molobj_select_conformers(molobj: Mol, idxs: List[int]) -> Mol:
     """
     Filter function. Return molobj only with conformers with index in idxs.
 
@@ -768,12 +776,12 @@ def molobj_select_conformers(molobj, idxs):
     return molobj_prime
 
 
-def molobj_set_coordinates(molobj, coordinates, confid=-1):
+def molobj_set_coordinates(molobj: Mol, coordinates: np.ndarray, confid: int = -1) -> None:
     conformer = molobj.GetConformer(id=confid)
     conformer_set_coordinates(conformer, coordinates)
 
 
-def molobjs_to_molobj(molobjs):
+def molobjs_to_molobj(molobjs: List[Mol]) -> Mol:
     """
     take list of molobjs and merge into molobj with conformers
 
@@ -833,7 +841,7 @@ def molobjs_to_properties(molobjs: List[Mol]) -> Dict[str, List[Any]]:
     return rtn_values
 
 
-def molobj_to_mol2(molobj, charges=None):
+def molobj_to_mol2(molobj: Mol, charges: Optional[List[float]] = None) -> str:
     """
     https://www.mdanalysis.org/docs/_modules/MDAnalysis/coordinates/MOL2.html
     """
@@ -910,7 +918,7 @@ def molobj_to_mol2(molobj, charges=None):
     return rtnstr
 
 
-def molobj_to_molobjs(molobj):
+def molobj_to_molobjs(molobj: Mol) -> List[Mol]:
     """ Expand a molobj conformer into a list of molobjs """
 
     molobj_prime = copy_molobj(molobj)
@@ -926,7 +934,8 @@ def molobj_to_molobjs(molobj):
     return molobjs
 
 
-def molobj_to_sdfstr(mol, return_list=False, use_v3000=False, include_properties=False):
+# TODO Simplify interface
+def molobj_to_sdfstr(mol, return_list=False, use_v3000=False, include_properties=False) -> str:
     """ Get SDF string from Mol """
 
     n_confs = mol.GetNumConformers()
@@ -967,13 +976,13 @@ def molobj_to_sdfstr(mol, return_list=False, use_v3000=False, include_properties
 
 
 def molobj_to_smiles(
-    molobj,
-    remove_hs=True,
-    sanitize=True,
-    canonical=True,
-    kekulize=False,
-    remove_stereo=False,
-):
+    molobj: Mol,
+    remove_hs: bool = True,
+    sanitize: bool = True,
+    canonical: bool = True,
+    kekulize: bool = False,
+    remove_stereo: bool = False,
+) -> str:
 
     if molobj is None:
         return None
@@ -995,7 +1004,13 @@ def molobj_to_smiles(
     return smiles
 
 
-def molobj_to_svgstr(molobj, use_2d=True, highlights=None, pretty=False, removeHs=False):
+def molobj_to_svgstr(
+    molobj: Mol,
+    use_2d: bool = True,
+    highlights: bool = None,
+    pretty: bool = False,
+    removeHs: bool = False,
+):
     """
     Returns SVG in string format
     """
@@ -1051,7 +1066,7 @@ def molobj_to_svgstr(molobj, use_2d=True, highlights=None, pretty=False, removeH
     return svg
 
 
-def neutralize_molobj(molobj):
+def neutralize_molobj(molobj: Mol) -> Mol:
     """
     Get a neutral protonation state of molobj and remove explicit hydrogens
     """
@@ -1065,7 +1080,7 @@ def neutralize_molobj(molobj):
     return molobj
 
 
-def read(filename, remove_hs=False, sanitize=True):
+def read(filename: Path, remove_hs: bool = False, sanitize: bool = True) -> Generator:
     """
     General function to read files with different extensions and return molobjs
 
@@ -1111,6 +1126,7 @@ def read(filename, remove_hs=False, sanitize=True):
     return suppl
 
 
+# TODO Simplify interface
 def read_smi(f, includes_name=False):
     """
     Read smiles and yield generated molobjs with 2D coords
@@ -1145,7 +1161,7 @@ def read_smi(f, includes_name=False):
     return
 
 
-def sdfstrs_to_molobjs(sdfs: str, remove_hs=False):
+def sdfstrs_to_molobjs(sdfs: str, remove_hs: bool = False) -> List[Mol]:
     """
 
     From a string of multiple SDF structures
@@ -1159,7 +1175,7 @@ def sdfstrs_to_molobjs(sdfs: str, remove_hs=False):
     return molobjs
 
 
-def sdfstr_to_molobj(sdfstr, remove_hs=False, embed_properties=True):
+def sdfstr_to_molobj(sdfstr: str, remove_hs: bool = False, embed_properties: bool = True) -> Mol:
     """Convert SDF string to Mol
 
     TODO Fix suppl to
@@ -1187,14 +1203,16 @@ def sdfstr_to_molobj(sdfstr, remove_hs=False, embed_properties=True):
     return molobj
 
 
-def sdfstr_to_smiles(sdfstr, remove_hs=False):
+def sdfstr_to_smiles(sdfstr: str, remove_hs: bool = False) -> str:
     """ SDF to SMILES converter """
     mol = Chem.MolFromMolBlock(sdfstr, removeHs=remove_hs)
     smiles = Chem.MolToSmiles(mol)
     return smiles
 
 
-def smiles_to_molobj(smiles, compute_2d=False, add_hydrogens=True):
+def smiles_to_molobj(
+    smiles: str, compute_2d: bool = False, add_hydrogens: bool = True
+) -> Optional[Mol]:
 
     molobj = Chem.MolFromSmiles(smiles)
 
@@ -1210,7 +1228,7 @@ def smiles_to_molobj(smiles, compute_2d=False, add_hydrogens=True):
     return molobj
 
 
-def set_properties_on_molobj(molobj, properties):
+def set_properties_on_molobj(molobj: Mol, properties: Dict):
     """ incomplete """
     for key, value in properties.items():
         molobj.SetProp(key, str(value))
