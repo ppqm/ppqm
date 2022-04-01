@@ -1080,6 +1080,7 @@ def neutralize_molobj(molobj: Mol) -> Mol:
     return molobj
 
 
+# TODO Simplicy interface and add Mol to Generator output
 def read(filename: Path, remove_hs: bool = False, sanitize: bool = True) -> Generator:
     """
     General function to read files with different extensions and return molobjs
@@ -1088,6 +1089,8 @@ def read(filename: Path, remove_hs: bool = False, sanitize: bool = True) -> Gene
     .sdf.gz
     .smi
     .smi.gz
+    .csv
+    .csv.gz
 
     :return molobjs:
     """
@@ -1228,7 +1231,7 @@ def smiles_to_molobj(
     return molobj
 
 
-def set_properties_on_molobj(molobj: Mol, properties: Dict):
+def set_properties_on_molobj(molobj: Mol, properties: Dict) -> None:
     """ incomplete """
     for key, value in properties.items():
         molobj.SetProp(key, str(value))

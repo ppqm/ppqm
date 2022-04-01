@@ -16,7 +16,7 @@ class BaseCalculator(abc.ABC):
     quantum calculations (e.g. MopacCalculator or GamessCalculator) instead.
     """
 
-    def __init__(self, scr=constants.SCR):
+    def __init__(self, scr=constants.SCR) -> None:
 
         self.scr = pathlib.Path(scr)
 

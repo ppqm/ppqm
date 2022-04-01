@@ -2,12 +2,14 @@ import logging
 import os
 import shutil
 import subprocess
+from pathlib import Path
 from subprocess import TimeoutExpired
+from typing import Generator, Optional, Tuple
 
-_logger = logging.getLogger("ppqm.sh")
+_logger = logging.getLogger(__name__)
 
 
-def command_exists(cmd):
+def command_exists(cmd: str) -> bool:
     """ Does this command even exists? """
 
     path = shutil.which(cmd)
@@ -18,7 +20,8 @@ def command_exists(cmd):
     return True
 
 
-def switch_workdir(path):
+# TODO Rework to use Path
+def switch_workdir(path: Optional[str]) -> bool:
     """ Check if it makes sense to change directory """
 
     if path is None:
@@ -38,7 +41,7 @@ def switch_workdir(path):
     return True
 
 
-def stream(cmd, cwd=None, shell=True):
+def stream(cmd: str, cwd=None, shell=True) -> Generator[str, None, None]:
     """Execute command in directory, and stream stdout. Last yield is
     stderr
 
@@ -68,11 +71,10 @@ def stream(cmd, cwd=None, shell=True):
     stderr = popen.stderr.read()
     popen.stdout.close()
     yield stderr
-
     return
 
 
-def execute(cmd, cwd=None, shell=True, timeout=None):
+def execute(cmd: str, cwd=None, shell=True, timeout=None) -> Tuple[str, str]:
     """Execute command in directory, and return stdout and stderr
 
     :param cmd: The shell command
@@ -103,7 +105,7 @@ def execute(cmd, cwd=None, shell=True, timeout=None):
     return stdout, stderr
 
 
-def source(bashfile):
+def source(bashfile: Path) -> dict:
     """
     Return resulting environment variables from sourceing a bashfile
 
@@ -141,6 +143,6 @@ def source(bashfile):
         if key == "SHLVL":
             continue
 
-        variables[key] = var
+        variables[key] = var.strip()
 
     return variables

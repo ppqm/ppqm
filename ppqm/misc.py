@@ -7,6 +7,7 @@ import pickle
 import sys
 import threading
 from io import StringIO
+from typing import Any, Callable, Dict
 
 import numpy as np
 from tqdm import tqdm
@@ -18,7 +19,7 @@ except ImportError:
 
 from ppqm import constants
 
-_logger = logging.getLogger("ppqm")
+_logger = logging.getLogger(__name__)
 
 
 def eprint(*args, **kwargs):
@@ -26,35 +27,35 @@ def eprint(*args, **kwargs):
     return
 
 
-def save_obj(name, obj):
+def save_obj(name: str, obj: Any):
     with open(name + ".pkl", "wb") as f:
         pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
 
 
-def load_obj(name):
+def load_obj(name: str) -> Any:
     with open(name + ".pkl", "rb") as f:
         return pickle.load(f)
 
 
-def save_array(arr):
+def save_array(arr: np.ndarray) -> str:
     s = StringIO()
     np.savetxt(s, arr)
     return s.getvalue()
 
 
-def load_array(txt):
+def load_array(txt: str) -> np.ndarray:
     s = StringIO(txt)
     arr = np.loadtxt(s)
     return arr
 
 
-def str_json(dictionary, indent=4, translate_types=False):
+def str_json(dictionary: Dict, indent: int = 4, translate_types: bool = False):
     if translate_types:
         dictionary = json_friendly(dictionary)
     return json.dumps(dictionary, indent=indent)
 
 
-def save_json(name, obj, indent=4, translate_types=False):
+def save_json(name: str, obj: dict, indent: int = 4, translate_types: bool = False):
     """Save dictionary as a JSON file.
 
     translate_types: Change instances types of dictionary values to make it
@@ -75,7 +76,7 @@ def save_json(name, obj, indent=4, translate_types=False):
         json.dump(obj, f, indent=indent)
 
 
-def json_friendly(dictionary):
+def json_friendly(dictionary: dict) -> dict:
     """ Change the types of a dictionary to make it JSON friendly """
 
     dictionary = copy.deepcopy(dictionary)
@@ -93,7 +94,7 @@ def json_friendly(dictionary):
     return dictionary
 
 
-def load_json(name):
+def load_json(name: str) -> dict:
 
     if isinstance(name, str):
         name = pathlib.Path(name)
@@ -108,7 +109,7 @@ def load_json(name):
     return content
 
 
-def is_float(value, return_value=False):
+def is_float(value: Any, return_value: bool = False):
     """ Return value as float, if possible """
     try:
         value = float(value)
@@ -137,7 +138,7 @@ def merge_dict(a, b, path=None):
     return a
 
 
-def meta_func(func, args, **kwargs):
+def meta_func(func: Callable, args: tuple, **kwargs) -> Any:
     """ meta func to translate positional args to tuple """
     return func(*args, **kwargs)
 
@@ -211,7 +212,8 @@ def func_parallel(
     return results
 
 
-def exit_after(sec):
+# TODO What todo with typing for a decorator?
+def exit_after(sec: int) -> Any:
     """
     use as decorator to exit process if function takes longer than s seconds
 
@@ -242,9 +244,10 @@ def exit_after(sec):
     return outer
 
 
-def quit_function(fn_name):
+def quit_function(name, reason="took too long") -> None:
+    """ Raise KeyboardInterrupt """
 
-    _logger.error(f"function '{fn_name}' took too long")
+    _logger.error(f"function '{name}' quit, because {reason}")
 
     sys.stderr.flush()  # Python 3 stderr is likely buffered.
     thread.interrupt_main()  # raises KeyboardInterrupt

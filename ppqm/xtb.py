@@ -31,7 +31,7 @@ COLUMN_DIPOLE = "dipole"
 COLUMN_CONVERGED = "is_converged"
 COLUMN_STEPS = "opt_steps"
 
-_logger = logging.getLogger("xtb")
+_logger = logging.getLogger(__name__)
 
 
 class XtbCalculator(BaseCalculator):

@@ -3,10 +3,10 @@ mamba=mamba
 pkg=ppqm
 
 
-env:
+env_minimal:
 	${mamba} env create -f ./environment.yml -p ./env
 
-env_interactive:
+env:
 	${mamba} env create -f ./environment_interactive.yml -p ./env
 
 setup-dev:

@@ -1,9 +1,10 @@
 import sys
+from pathlib import Path
 
 from ppqm import env
 
 # Default scratch directory
-SCR = "./"
+SCR = Path("./")
 
 # Coordinates name
 COLUMN_COORDINATES = "coords"

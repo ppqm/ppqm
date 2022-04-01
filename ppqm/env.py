@@ -1,13 +1,14 @@
 import os
 import shutil
+from typing import Bool, Optional
 
 
-def which(cmd):
+def which(cmd: str) -> Optional[str]:
     """ find location of command in system """
     return shutil.which(cmd)
 
 
-def command_exists(cmd):
+def command_exists(cmd: str) -> Bool:
     """ does the command exists in current system? """
 
     path = which(cmd)
@@ -18,18 +19,18 @@ def command_exists(cmd):
     return True
 
 
-def get_threads():
-    """"""
+def get_threads() -> Optional[int]:
 
     n = os.environ.get("OMP_NUM_THREADS", None)
 
-    if n is not None:
-        n = int(n)
+    if n is None:
+        return None
 
+    n = int(n)
     return n
 
 
-def set_threads(n_cores):
+def set_threads(n_cores: int) -> None:
     """
 
     Wrapper for setting environmental variables related to threads and procs.
@@ -45,21 +46,17 @@ def set_threads(n_cores):
 
     """
 
-    n_cores = str(n_cores)
+    n_cores_ = str(n_cores)
 
-    os.environ["OMP_NUM_THREADS"] = n_cores
-    os.environ["OPENBLAS_NUM_THREADS"] = n_cores
+    os.environ["OMP_NUM_THREADS"] = n_cores_
+    os.environ["OPENBLAS_NUM_THREADS"] = n_cores_
     os.environ["MKL_NUM_THREADS"] = n_cores
-    os.environ["VECLIB_MAXIMUM_THREADS"] = n_cores
-    os.environ["NUMEXPR_NUM_THREADS"] = n_cores
-
-    return
+    os.environ["VECLIB_MAXIMUM_THREADS"] = n_cores_
+    os.environ["NUMEXPR_NUM_THREADS"] = n_cores_
 
 
-def is_notebook():
-    """
-    Check if module is called from a notebook enviroment
-    """
+def is_notebook() -> Bool:
+    """ Check if module is called from a notebook enviroment """
     try:
         shell = get_ipython().__class__.__name__
         if shell == "ZMQInteractiveShell":

@@ -3,4 +3,5 @@ from ppqm.gamess import GamessCalculator
 from ppqm.gaussian import GaussianCalculator
 from ppqm.mopac import MopacCalculator
 from ppqm.orca import OrcaCalculator
+from ppqm.utils import WorkDir
 from ppqm.xtb import XtbCalculator

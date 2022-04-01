@@ -1,13 +1,34 @@
+""" Collection of common cheminfo tasks """
+
+from typing import Optional
+
 import rdkit.Chem as Chem
 import rdkit.Chem.AllChem as AllChem
 import rdkit.Chem.rdMolDescriptors as rdMolDescriptors
-from rdkit.Chem import rdDistGeom
+from rdkit.Chem import Mol, rdDistGeom
 
 from ppqm import chembridge
 
 
-def generate_conformers_legacy(molobj, max_conf=20, min_conf=10, random_seed=1, return_copy=True):
+def generate_conformers_legacy(
+    molobj: Mol,
+    max_conf: int = 20,
+    min_conf: int = 10,
+    random_seed: int = 1,
+    return_copy: int = True,
+) -> Mol:
+    """
 
+    Args:
+        molobj (Mol):
+        max_conf (int):
+        min_conf (int):
+        random_seed (int):
+        return_copy (int):
+
+    Returns:
+        Mol
+    """
     if return_copy:
         molobj = chembridge.copy_molobj(molobj)
 
@@ -26,22 +47,21 @@ def generate_conformers_legacy(molobj, max_conf=20, min_conf=10, random_seed=1, 
     return molobj
 
 
+# TODO with is Python type for that seed
 def generate_conformers(
-    molecule, n_conformers=None, max_conformers=500, return_copy=True, seed=0xF00D
-):
+    molobj: Mol,
+    n_conformers: Optional[int] = None,
+    max_conformers: int = 500,
+    return_copy: bool = True,
+    random_seed=0xF00D,
+) -> Mol:
     """ Generate 3D conformers using RDKit ETKDGv3 """
 
-    if isinstance(molecule, str):
-        # assume smiles
-        molecule = chembridge.smiles_to_molobj(molecule)
-
     if return_copy:
-        molobj = chembridge.copy_molobj(molecule)
-    else:
-        molobj = molecule
+        molobj = chembridge.copy_molobj(molobj)
 
     embed_parameters = rdDistGeom.ETKDGv3()
-    embed_parameters.randomSeed = seed
+    embed_parameters.randomSeed = random_seed
 
     if n_conformers is None:
         rot_bond = rdMolDescriptors.CalcNumRotatableBonds(molobj)
@@ -54,7 +74,7 @@ def generate_conformers(
     return molobj
 
 
-def optimize_molobj_uff(molobj, max_steps=1000):
+def optimize_molobj_uff(molobj: Mol, max_steps: int = 1000) -> Optional[Mol]:
     """ Optimize molobj with UFF """
 
     status_embed = AllChem.EmbedMolecule(molobj)

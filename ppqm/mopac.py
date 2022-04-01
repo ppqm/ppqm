@@ -28,7 +28,7 @@ MOPAC_FILENAME = "_tmp_mopac." + MOPAC_INPUT_EXTENSION
 
 MOPAC_DEFAULT_OPTIONS = {"precise": None, "mullik": None}
 
-_logger = logging.getLogger("mopac")
+_logger = logging.getLogger(__name__)
 
 
 class MopacCalculator(BaseCalculator):

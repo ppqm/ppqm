@@ -1,7 +1,10 @@
 import os
+from pathlib import Path
+from typing import Generator, List, Optional, Tuple
 
 
-def readlines_reverse(filename):
+def readlines_reverse(filename: Path) -> Generator[str, None, None]:
+    """ Read file, line by line, backwards """
     with open(filename) as qfile:
         qfile.seek(0, os.SEEK_END)
         position = qfile.tell()
@@ -18,7 +21,10 @@ def readlines_reverse(filename):
         yield line[::-1]
 
 
-def enumerate_reversed(lines, max_lines=None, length=None):
+def enumerate_reversed(
+    lines: List[str], max_lines: Optional[int] = None, length: Optional[int] = None
+) -> Generator[Tuple[int, str], None, None]:
+    """ Enumerate over list values, backwards """
 
     if length is None:
         length = len(lines)
@@ -32,7 +38,12 @@ def enumerate_reversed(lines, max_lines=None, length=None):
         yield index, lines[index]
 
 
-def get_index(lines, pattern, stoppattern=None, maxiter=None):
+def get_index(
+    lines: List[str],
+    pattern: str,
+    stoppattern: Optional[str] = None,
+    maxiter: Optional[int] = None,
+) -> Optional[int]:
 
     for i, line in enumerate(lines):
 
@@ -48,7 +59,7 @@ def get_index(lines, pattern, stoppattern=None, maxiter=None):
     return None
 
 
-def get_indices(lines, pattern, stoppattern=None):
+def get_indices(lines: List[str], pattern: str, stoppattern: str = None) -> List[int]:
 
     idxs = []
 
@@ -63,7 +74,9 @@ def get_indices(lines, pattern, stoppattern=None):
     return idxs
 
 
-def get_indices_patterns(lines, patterns, stoppattern=None):
+def get_indices_patterns(
+    lines: List[str], patterns: List[str], stoppattern: str = None
+) -> List[Optional[int]]:
 
     n_patterns = len(patterns)
     i_patterns = list(range(n_patterns))
@@ -86,7 +99,9 @@ def get_indices_patterns(lines, patterns, stoppattern=None):
     return idxs
 
 
-def get_indices_pattern(lines, pattern, num_lines, offset):
+def get_indices_pattern(
+    lines: List[str], pattern: str, num_lines: int, offset: int
+) -> List[Optional[int]]:
     """Processes the output file of the QM software used to
     find the first occurence of a specifie pattern. Useful
     if this block will be in the file only once and if there
@@ -118,7 +133,7 @@ def get_indices_pattern(lines, pattern, num_lines, offset):
     return idxs
 
 
-def get_rev_index(lines, pattern, stoppattern=None):
+def get_rev_index(lines: List[str], pattern: str, stoppattern: str = None) -> Optional[int]:
 
     for i, line in enumerate_reversed(lines):
 
@@ -131,7 +146,9 @@ def get_rev_index(lines, pattern, stoppattern=None):
     return None
 
 
-def get_rev_indices_patterns(lines, patterns, stoppattern=None, maxiter=None):
+def get_rev_indices_patterns(
+    lines: List[str], patterns: List[str], stoppattern: str = None, maxiter: int = None
+) -> List[Optional[int]]:
 
     n_patterns = len(patterns)
     i_patterns = list(range(n_patterns))

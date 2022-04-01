@@ -29,7 +29,7 @@ COLUMN_TOTAL_CHARGE = "total_charge"
 COLUMN_DIPOLE_VEC = "dipole"
 COLUMN_DIPOLE_TOTAL = "dipole_total"
 
-_logger = logging.getLogger("gamess")
+_logger = logging.getLogger(__name__)
 
 
 class GamessCalculator(BaseCalculator):

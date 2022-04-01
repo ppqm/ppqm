@@ -32,7 +32,7 @@ COLUMN_STATIONARY_POINTS = "stationary_points"
 COLUMN_VIBRATIONAL_FREQUENCIES = "vibrational_frequencies"
 COLUMN_SHIELDING_CONSTANTS = "shielding_constants"
 
-_logger = logging.getLogger("orca")
+_logger = logging.getLogger(__name__)
 
 
 class OrcaCalculator(BaseCalculator):

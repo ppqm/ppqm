@@ -11,7 +11,7 @@ from ppqm.calculator import BaseCalculator
 G16_CMD = "g16"
 G16_FILENAME = "_tmp_g16_input.com"
 
-_logger = logging.getLogger("g16")
+_logger = logging.getLogger(__name__)
 
 COLUMN_SCF_ENERGY = "scf_energy"
 COLUMN_CONVERGED = "is_converged"
