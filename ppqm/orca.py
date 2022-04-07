@@ -11,9 +11,8 @@ from typing import List
 import numpy as np
 from tqdm import tqdm
 
-from ppqm import chembridge, constants, env, linesio, misc, shell, units
+from ppqm import WorkDir, chembridge, constants, env, linesio, misc, shell, units
 from ppqm.calculator import BaseCalculator
-from ppqm.utils.files import WorkDir
 
 ORCA_CMD = "orca"
 ORCA_FILENAME = "_tmp_orca_input.inp"
