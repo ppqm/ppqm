@@ -7,6 +7,7 @@ import numpy as np
 from rdkit import Chem, RDLogger
 from rdkit.Chem import AllChem, Draw, Mol, rdFreeSASA, rdmolops
 from rdkit.Chem.EnumerateStereoisomers import EnumerateStereoisomers, StereoEnumerationOptions
+from rdkit.Chem.rdMolDescriptors import CalcNumUnspecifiedAtomStereoCenters
 from rdkit.Chem.MolStandardize import rdMolStandardize
 
 from ppqm import units
@@ -226,18 +227,27 @@ def copy_molobj(molobj: Mol) -> Mol:
 
 def enumerate_stereocenters(
     molobj: Mol,
-    nbody: int = 2,
+    max_num_unassigned: int = 3,
 ) -> List[Mol]:
-    """ Find all un-assigned stereocenteres and assign them """
+    """ Find all un-assigned stereocenteres and assign them 
+    
+    In case an error occurs, it is logged and the function returns None.
+    
+    """
 
     properties = get_properties_from_molobj(molobj)
 
-    max_unassigned_stereo_centers = 3
+    num_unassigned = CalcNumUnspecifiedAtomStereoCenters(molobj)
+    if num_unassigned > max_num_unassigned:
+        smi = Chem.MolToSmiles(molobj)
+        lg.error("Molecule %s has too many unassigned stereocenters", smi)
+        return None
 
     stereo_options = StereoEnumerationOptions(
         tryEmbedding=True,
         onlyUnassigned=True,
-        maxIsomers=max_unassigned_stereo_centers,
+        maxIsomers=2**max_num_unassigned,
+        unique=True,
         rand=1,
     )
 
@@ -249,10 +259,9 @@ def enumerate_stereocenters(
         enumerator = EnumerateStereoisomers(molobj, options=stereo_options)
         isomers = list(enumerator)
     except RuntimeError:
-        return [molobj]
-
-    # The isomer can contain steorecenter enumerating that is non-unique
-    isomers = unique(isomers)
+        smi = Chem.MolToSmiles(molobj)
+        lg.error("Stereo Enumeration for Molecule %s failed.", smi)
+        return None
 
     # Set whatever properties the original molecule had
     for mol in isomers:
