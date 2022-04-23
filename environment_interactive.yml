@@ -9,6 +9,7 @@ dependencies:
   - jupyterlab
   - jupytext
   - matplotlib
+  - mypy
   - networkx
   - nglview
   - numpy
