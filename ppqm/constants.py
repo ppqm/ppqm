@@ -1,7 +1,8 @@
 import sys
 from pathlib import Path
+from typing import Any, Dict
 
-from ppqm import env
+from ppqm.utils import shell
 
 # Default scratch directory
 SCR = Path("./")
@@ -15,10 +16,10 @@ COLUMN_ENTHALPY = ""
 
 
 # tqdm default view
-TQDM_OPTIONS = {
+TQDM_OPTIONS: Dict[str, Any] = {
     "ncols": 80,
 }
 
 # if run from jupyter, print to stdout and not stderr
-if env.is_notebook():
+if shell.is_notebook():
     TQDM_OPTIONS["file"] = sys.stdout

@@ -2,19 +2,19 @@
 
 from typing import Optional
 
-import rdkit.Chem as Chem
-import rdkit.Chem.AllChem as AllChem
-import rdkit.Chem.rdMolDescriptors as rdMolDescriptors
-from rdkit.Chem import Mol, rdDistGeom
+import rdkit.Chem as Chem  # type: ignore[import]
+import rdkit.Chem.AllChem as AllChem  # type: ignore[import]
+import rdkit.Chem.rdMolDescriptors as rdMolDescriptors  # type: ignore[import]
+from rdkit.Chem import rdDistGeom
 
 from ppqm import chembridge
+from ppqm.chembridge import Mol
 
 
 def generate_conformers_legacy(
     molobj: Mol,
     max_conf: int = 20,
     min_conf: int = 10,
-    random_seed: int = 1,
     return_copy: int = True,
 ) -> Mol:
     """
@@ -47,15 +47,14 @@ def generate_conformers_legacy(
     return molobj
 
 
-# TODO with is Python type for that seed
 def generate_conformers(
     molobj: Mol,
     n_conformers: Optional[int] = None,
     max_conformers: int = 500,
     return_copy: bool = True,
-    random_seed=0xF00D,
+    random_seed: int = 61453,
 ) -> Mol:
-    """ Generate 3D conformers using RDKit ETKDGv3 """
+    """Generate 3D conformers using RDKit ETKDGv3"""
 
     if return_copy:
         molobj = chembridge.copy_molobj(molobj)
@@ -67,6 +66,8 @@ def generate_conformers(
         rot_bond = rdMolDescriptors.CalcNumRotatableBonds(molobj)
         n_conformers = 1 + 3 * rot_bond
 
+    assert n_conformers is not None
+
     n_conformers = min(n_conformers, max_conformers)
     molobj = Chem.AddHs(molobj)
     rdDistGeom.EmbedMultipleConfs(molobj, n_conformers, embed_parameters)
@@ -75,7 +76,7 @@ def generate_conformers(
 
 
 def optimize_molobj_uff(molobj: Mol, max_steps: int = 1000) -> Optional[Mol]:
-    """ Optimize molobj with UFF """
+    """Optimize molobj with UFF"""
 
     status_embed = AllChem.EmbedMolecule(molobj)
 

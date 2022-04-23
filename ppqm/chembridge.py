@@ -1,16 +1,22 @@
 import copy
 import gzip
+import logging
 from io import StringIO
 from pathlib import Path
-from typing import Any, Dict, Generator, List, Optional, Tuple
+from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
 import numpy as np
-from rdkit import Chem, RDLogger
-from rdkit.Chem import AllChem, Draw, Mol, rdFreeSASA, rdmolops
-from rdkit.Chem.EnumerateStereoisomers import EnumerateStereoisomers, StereoEnumerationOptions
-from rdkit.Chem.MolStandardize import rdMolStandardize
+from rdkit import Chem, RDLogger  # type: ignore[import]
+from rdkit.Chem import AllChem, Draw, rdFreeSASA, rdmolops  # type: ignore[import]
+from rdkit.Chem.EnumerateStereoisomers import (  # type: ignore[import]
+    EnumerateStereoisomers,
+    StereoEnumerationOptions,
+)
+from rdkit.Chem.MolStandardize import rdMolStandardize  # type: ignore[import]
 
 from ppqm import units
+
+_logger = logging.getLogger(__name__)
 
 lg = RDLogger.logger()
 lg.setLevel(RDLogger.ERROR)
@@ -129,7 +135,16 @@ ATOM_LIST = [
 ]
 
 
-def axyzc_to_molobj(atoms: List[str], coord: np.array, charge: int) -> Mol:
+class Mol:
+    """Meta class for typing rdkit functions"""
+
+    ...
+
+    def GetNumConformers(self) -> int:
+        ...
+
+
+def axyzc_to_molobj(atoms: List[str], coord: np.ndarray, charge: int) -> Mol:
     """
     Get a molobj with one conformer, without any graph
 
@@ -150,20 +165,23 @@ def axyzc_to_molobj(atoms: List[str], coord: np.array, charge: int) -> Mol:
         write_mol.AddAtom(a)
 
     # Translate to mol
-    mol = write_mol.GetMol()
+    mol: Mol = write_mol.GetMol()
 
     # Set coordinates / Conformer
     conformer = Chem.Conformer(n_atoms)
     conformer_set_coordinates(conformer, coord)
-    mol.AddConformer(conformer, assignId=True)
+    mol.AddConformer(conformer, assignId=True)  # type: ignore
 
-    # Set charge on a random atom
-    atoms = list(mol.GetAtoms())
-    for atom in atoms:
-        if atom.GetAtomicNum() != 1:
+    # Set charge on a random atom, just not hydrogen
+    rdatoms = list(mol.GetAtoms())  # type: ignore
+    rdatom = None
+    for rdatom in rdatoms:
+        if rdatom.GetAtomicNum() != 1:
             break
 
-    atom.SetFormalCharge(charge)
+    assert rdatom is not None
+
+    rdatom.SetFormalCharge(charge)
 
     return mol
 
@@ -213,13 +231,13 @@ def clean_sdf_header(sdfstr: str) -> str:
     return sdfstr
 
 
-def conformer_set_coordinates(conformer: Chem.Conformer, coordinates: np.ndarray) -> None:
+def conformer_set_coordinates(conformer: Chem.Conformer, coordinates: np.ndarray) -> None:  # type: ignore[no-any-unimported]
     for i, pos in enumerate(coordinates):
         conformer.SetAtomPosition(i, pos)
 
 
 def copy_molobj(molobj: Mol) -> Mol:
-    """ Copy molobj graph, without conformers """
+    """Copy molobj graph, without conformers"""
     # The boolean signifies a fast copy, e.g. no conformers
     molobj = Chem.Mol(molobj, True)
     return molobj
@@ -229,7 +247,7 @@ def enumerate_stereocenters(
     molobj: Mol,
     nbody: int = 2,
 ) -> List[Mol]:
-    """ Find all un-assigned stereocenteres and assign them """
+    """Find all un-assigned stereocenteres and assign them"""
 
     properties = get_properties_from_molobj(molobj)
 
@@ -303,52 +321,52 @@ def find_max_str(smiles: str) -> str:
     return smiles
 
 
-def get_atom_charges(molobj: Mol) -> List[int]:
-    """ Get atom charges from molobj """
-    atoms = molobj.GetAtoms()
+def get_atom_charges(molobj: Mol) -> np.ndarray:
+    """Get atom charges from molobj"""
+    atoms = molobj.GetAtoms()  # type: ignore[attr-defined]
     charges = [atom.GetFormalCharge() for atom in atoms]
-    charges = np.array(charges)
-    return charges
+    return np.array(charges)
 
 
 def get_atom_int(atmstr: str) -> int:
-    """ Get atom number from atom label """
+    """Get atom number from atom label"""
     atom = atmstr.strip().lower()
-    atom = ATOM_LIST.index(atom) + 1
-    return atom
+    return ATOM_LIST.index(atom) + 1
 
 
 def get_atom_str(iatm: int) -> str:
-    """ Get atom label from atom number """
-
+    """Get atom label from atom number"""
     atom = ATOM_LIST[iatm - 1]
-    atom = atom.capitalize()
-
-    return atom
+    return atom.capitalize()
 
 
-def get_atoms(mol: Mol, type=int) -> List[Any]:
-    """ Get atoms from molecule in either int or str format """
+def get_atoms(mol: Mol, type: Callable = int) -> np.ndarray:
+    """Get atoms from molecule in either int or str format"""
 
-    atoms = mol.GetAtoms()
+    rdatoms = mol.GetAtoms()  # type: ignore[attr-defined]
+    rdatoms = list(rdatoms)
+
+    atoms: Union[list, np.ndarray]
 
     if type == int:
-        atoms = [a.GetAtomicNum() for a in atoms]
+        atoms = [a.GetAtomicNum() for a in rdatoms]
 
     elif type == str:
-        atoms = [a.GetSymbol() for a in atoms]
+        atoms = [a.GetSymbol() for a in rdatoms]
 
     else:
-        return atoms
+        assert False, "Unknown type"
 
     atoms = np.array(atoms)
 
     return atoms
 
 
-def get_axyzc(molobj: Mol, confid: int = -1, atomfmt=int) -> Tuple[List[Any], np.ndarray, int]:
-    """ Get atoms, XYZ coordinates and formal charge of a molecule """
-    conformer = molobj.GetConformer(id=confid)
+def get_axyzc(
+    molobj: Mol, confid: int = -1, atomfmt: Callable = int
+) -> Tuple[np.ndarray, np.ndarray, int]:
+    """Get atoms, XYZ coordinates and formal charge of a molecule"""
+    conformer = molobj.GetConformer(id=confid)  # type: ignore[attr-defined]
     coordinates = conformer.GetPositions()
     coordinates = np.array(coordinates)
     atoms = get_atoms(molobj, type=atomfmt)
@@ -357,16 +375,15 @@ def get_axyzc(molobj: Mol, confid: int = -1, atomfmt=int) -> Tuple[List[Any], np
 
 
 def get_charge(molobj: Mol) -> int:
-    charge = rdmolops.GetFormalCharge(molobj)
+    charge: int = rdmolops.GetFormalCharge(molobj)
     return charge
 
 
-def get_coordinates(molobj: Mol, confid=-1) -> np.ndarray:
+def get_coordinates(molobj: Mol, confid: int = -1) -> np.ndarray:
     """ """
     confid = int(confid)  # rdkit needs int type
-    conformer = molobj.GetConformer(id=confid)
-    coordinates = conformer.GetPositions()
-    coordinates = np.asarray(coordinates)
+    conformer = molobj.GetConformer(id=confid)  # type: ignore[attr-defined]
+    coordinates = np.array(conformer.GetPositions())
     return coordinates
 
 
@@ -398,9 +415,9 @@ def get_boltzmann_weights(
 
 
 def get_bonds(molobj: Mol) -> List[Tuple[int, int]]:
-    """ Get all bonds from molobj """
+    """Get all bonds from molobj"""
 
-    bonds = molobj.GetBonds()
+    bonds = molobj.GetBonds()  # type: ignore[attr-defined]
 
     rtn = []
 
@@ -419,14 +436,14 @@ def get_bonds(molobj: Mol) -> List[Tuple[int, int]]:
 
 
 def get_canonical_smiles(smiles: str) -> str:
-    """ Translate smiles into a canonical form """
+    """Translate smiles into a canonical form"""
     molobj = Chem.MolFromSmiles(smiles)
     smiles = Chem.MolToSmiles(molobj, canonical=True)
     return smiles
 
 
-def get_center_of_mass(atoms: List[int], coordinates: np.ndarray) -> np.ndarray:
-    """ Calculate center of mass """
+def get_center_of_mass(atoms: Union[List[int], np.ndarray], coordinates: np.ndarray) -> np.ndarray:
+    """Calculate center of mass"""
 
     total_mass = np.sum(atoms)
 
@@ -456,23 +473,20 @@ def get_dipole_moments(molobj: Mol) -> np.ndarray:
     # Conformer independent
     AllChem.ComputeGasteigerCharges(molobj)
 
-    atoms = molobj.GetAtoms()
-    atoms_int = [atom.GetAtomicNum() for atom in atoms]
-    atoms_charge = [atom.GetDoubleProp("_GasteigerCharge") for atom in atoms]
-    atoms_charge = np.array(atoms_charge)
+    atoms = molobj.GetAtoms()  # type: ignore[attr-defined]
+    atoms_int = np.array([atom.GetAtomicNum() for atom in atoms])
+    atoms_charge = np.array([atom.GetDoubleProp("_GasteigerCharge") for atom in atoms])
 
     # Calculate moments for each conformer
     moments = []
-    for conformer in molobj.GetConformers():
+    for conformer in molobj.GetConformers():  # type: ignore[attr-defined]
         coordinates = conformer.GetPositions()
         coordinates = np.array(coordinates)
 
         total_moment = get_dipole_moment(atoms_int, coordinates, atoms_charge)
         moments.append(total_moment)
 
-    moments = np.array(moments)
-
-    return moments
+    return np.array(moments)
 
 
 def get_dipole_moment(
@@ -486,8 +500,7 @@ def get_dipole_moment(
 
     """
 
-    total_charge = np.sum(charges)
-    total_charge = int(total_charge)
+    # total_charge = int(np.sum(charges))
 
     if not is_centered:
         center = get_center_of_mass(atoms, coordinates)
@@ -504,13 +517,13 @@ def get_dipole_moment(
     xyz = np.array([x, y, z])
 
     # Calculate total moment vector length
-    total_moment = np.linalg.norm(xyz)
+    total_moment: float = np.linalg.norm(xyz)  # type: ignore
 
     return total_moment
 
 
-def get_inertia(atoms: List[int], coordinates: np.ndarray):
-    """ Calculate inertia moments """
+def get_inertia(atoms: Union[List[int], np.ndarray], coordinates: np.ndarray) -> np.ndarray:
+    """Calculate inertia moments"""
 
     com = get_center_of_mass(atoms, coordinates)
 
@@ -520,9 +533,9 @@ def get_inertia(atoms: List[int], coordinates: np.ndarray):
     Y = coordinates[:, 1]
     Z = coordinates[:, 2]
 
-    rxx = Y ** 2 + Z ** 2
-    ryy = X ** 2 + Z ** 2
-    rzz = X ** 2 + Y ** 2
+    rxx = Y**2 + Z**2
+    ryy = X**2 + Z**2
+    rzz = X**2 + Y**2
 
     Ixx = atoms * rxx
     Iyy = atoms * ryy
@@ -558,8 +571,8 @@ def get_inertia(atoms: List[int], coordinates: np.ndarray):
     return w
 
 
-def get_inertia_diag(atoms: List[int], coordinates: np.ndarray) -> np.ndarray:
-    """ Calculate the inertia diagonal vector """
+def get_inertia_diag(atoms: Union[List[int], np.ndarray], coordinates: np.ndarray) -> np.ndarray:
+    """Calculate the inertia diagonal vector"""
 
     com = get_center_of_mass(atoms, coordinates)
 
@@ -569,9 +582,9 @@ def get_inertia_diag(atoms: List[int], coordinates: np.ndarray) -> np.ndarray:
     Y = coordinates[:, 1]
     Z = coordinates[:, 2]
 
-    rx2 = Y ** 2 + Z ** 2
-    ry2 = X ** 2 + Z ** 2
-    rz2 = X ** 2 + Y ** 2
+    rx2 = Y**2 + Z**2
+    ry2 = X**2 + Z**2
+    rz2 = X**2 + Y**2
 
     Ix = atoms * rx2
     Iy = atoms * ry2
@@ -589,8 +602,8 @@ def get_inertia_diag(atoms: List[int], coordinates: np.ndarray) -> np.ndarray:
     return inertia
 
 
-def get_inertia_ratio(inertia: np.ndarray) -> float:
-    """ Sort intertia digonal and calculate the shape ratio """
+def get_inertia_ratio(inertia: np.ndarray) -> np.ndarray:
+    """Sort intertia digonal and calculate the shape ratio"""
 
     inertia.sort()
 
@@ -602,15 +615,14 @@ def get_inertia_ratio(inertia: np.ndarray) -> float:
 
 
 def get_inertia_ratios(molobj: Mol) -> np.ndarray:
-    """ Get inertia ratios for all conformers """
+    """Get inertia ratios for all conformers"""
 
-    atoms = molobj.GetAtoms()
-    atoms_int = [atom.GetAtomicNum() for atom in atoms]
-    atoms_int = np.array(atoms_int)
+    atoms = molobj.GetAtoms()  # type: ignore[attr-defined]
+    atoms_int = np.array([atom.GetAtomicNum() for atom in atoms])
 
     # Calculate moments for each conformer
     ratios = []
-    for conformer in molobj.GetConformers():
+    for conformer in molobj.GetConformers():  # type: ignore[attr-defined]
         coordinates = conformer.GetPositions()
         coordinates = np.array(coordinates)
 
@@ -618,14 +630,12 @@ def get_inertia_ratios(molobj: Mol) -> np.ndarray:
         ratio = get_inertia_ratio(inertia)
         ratios.append(ratio)
 
-    ratios = np.array(ratios)
-
-    return ratios
+    return np.array(ratios)
 
 
-def get_properties_from_molobj(molobj: Mol) -> Dict:
-    """ Get properties from molobj """
-    properties = molobj.GetPropsAsDict()
+def get_properties_from_molobj(molobj: Mol) -> dict:
+    """Get properties from molobj"""
+    properties: dict = molobj.GetPropsAsDict()  # type: ignore[attr-defined]
     return properties
 
 
@@ -639,7 +649,7 @@ def get_sasa(molobj: Mol, extra_radius: float = 0.0) -> np.ndarray:
 
     """
 
-    radii = [PTABLE.GetRvdw(atom.GetAtomicNum()) for atom in molobj.GetAtoms()]
+    radii = [PTABLE.GetRvdw(atom.GetAtomicNum()) for atom in molobj.GetAtoms()]  # type: ignore[attr-defined]
 
     n = molobj.GetNumConformers()
 
@@ -663,12 +673,11 @@ def get_torsions(mol: Mol) -> np.ndarray:
     """
 
     any_atom = "[*]"
-    smarts = [any_atom, any_atom, any_atom, any_atom]
-    smarts = "~".join(smarts)
+    smarts = "~".join([any_atom, any_atom, any_atom, any_atom])
 
     atoms = get_atoms(mol, type=str)
 
-    idxs = mol.GetSubstructMatches(Chem.MolFromSmarts(smarts))
+    idxs = mol.GetSubstructMatches(Chem.MolFromSmarts(smarts))  # type: ignore
     idxs = [list(x) for x in idxs]
     idxs = np.array(idxs)
 
@@ -695,22 +704,22 @@ def get_torsions(mol: Mol) -> np.ndarray:
 
 
 def get_undefined_stereocenters(molobj: Mol) -> int:
-    """ Count number of undefined steorecenter in molobj """
+    """Count number of undefined steorecenter in molobj"""
     chiral_centers = dict(Chem.FindMolChiralCenters(molobj, includeUnassigned=True))
     n_undefined_centers = sum(1 for (x, y) in chiral_centers.items() if y == "?")
     return n_undefined_centers
 
 
 def molobj_add_conformer(molobj: Mol, coordinates: np.ndarray) -> None:
-    """ Append coordinates as a new conformer to molobj """
+    """Append coordinates as a new conformer to molobj"""
     conf = Chem.Conformer(len(coordinates))
     for i, coordinate in enumerate(coordinates):
         conf.SetAtomPosition(i, coordinate)
-    molobj.AddConformer(conf, assignId=True)
+    molobj.AddConformer(conf, assignId=True)  # type: ignore[attr-defined]
 
 
 def molobj_check_distances(
-    molobj: Mol, min_cutoff: float = 0.001, max_cutoff: float = 3.0
+    molobj: Mol, min_cutoff: Optional[float] = 0.001, max_cutoff: Optional[float] = 3.0
 ) -> np.ndarray:
     """
     For some atom_types in UFF, rdkit will fail optimization and stick multiple
@@ -749,9 +758,7 @@ def molobj_check_distances(
 
         status.append(this)
 
-    status = np.array(status)
-
-    return status
+    return np.array(status)
 
 
 def molobj_select_conformers(molobj: Mol, idxs: List[int]) -> Mol:
@@ -770,14 +777,14 @@ def molobj_select_conformers(molobj: Mol, idxs: List[int]) -> Mol:
         # rdkit requires int
         idx = int(idx)
 
-        conf = molobj.GetConformer(id=idx)
-        molobj_prime.AddConformer(conf, assignId=True)
+        conf = molobj.GetConformer(id=idx)  # type: ignore[attr-defined]
+        molobj_prime.AddConformer(conf, assignId=True)  # type: ignore[attr-defined]
 
     return molobj_prime
 
 
 def molobj_set_coordinates(molobj: Mol, coordinates: np.ndarray, confid: int = -1) -> None:
-    conformer = molobj.GetConformer(id=confid)
+    conformer = molobj.GetConformer(id=confid)  # type: ignore[attr-defined]
     conformer_set_coordinates(conformer, coordinates)
 
 
@@ -791,19 +798,17 @@ def molobjs_to_molobj(molobjs: List[Mol]) -> Mol:
     molobj = copy_molobj(molobjs[0])
     n_molecules = len(molobjs)
 
-    atoms = get_atoms(molobjs[0], type=int)
-    atoms = list(atoms)
+    atoms = list(get_atoms(molobjs[0], type=int))
 
     for idx in range(n_molecules):
 
         # Test we don't mix and match molecules
         assert molobjs[idx].GetNumConformers() == 1
-        atoms_prime = get_atoms(molobjs[idx])
-        atoms_prime = list(atoms_prime)
+        atoms_prime = list(get_atoms(molobjs[idx]))
         assert atoms == atoms_prime, "Cannot merge two different molecules"
 
-        conf = molobjs[idx].GetConformer(id=-1)
-        molobj.AddConformer(conf, assignId=True)
+        conf = molobjs[idx].GetConformer(id=-1)  # type: ignore[attr-defined]
+        molobj.AddConformer(conf, assignId=True)  # type: ignore[attr-defined]
 
     return molobj
 
@@ -819,14 +824,14 @@ def molobjs_to_properties(molobjs: List[Mol]) -> Dict[str, List[Any]]:
     keys = []
 
     for molobj in molobjs:
-        properties = molobj.GetPropsAsDict()
+        properties = molobj.GetPropsAsDict()  # type: ignore[attr-defined]
         all_properties.append(properties)
 
         keys += list(properties.keys())
 
     keys = np.unique(keys)
 
-    rtn_values = {key: [] for key in keys}
+    rtn_values: dict = {key: [] for key in keys}
 
     for properties in all_properties:
         for key in keys:
@@ -841,7 +846,7 @@ def molobjs_to_properties(molobjs: List[Mol]) -> Dict[str, List[Any]]:
     return rtn_values
 
 
-def molobj_to_mol2(molobj: Mol, charges: Optional[List[float]] = None) -> str:
+def molobj_to_mol2(molobj: Mol, charges: Optional[np.ndarray] = None) -> str:
     """
     https://www.mdanalysis.org/docs/_modules/MDAnalysis/coordinates/MOL2.html
     """
@@ -849,7 +854,7 @@ def molobj_to_mol2(molobj: Mol, charges: Optional[List[float]] = None) -> str:
     # Bonds
     bond_lines = ["@<TRIPOS>BOND"]
     bond_fmt = "{0:>5} {1:>5} {2:>5} {3:>2}"
-    bonds = list(molobj.GetBonds())
+    bonds = list(molobj.GetBonds())  # type: ignore[attr-defined]
     n_bonds = len(bonds)
     for i, bond in enumerate(bonds):
         a = bond.GetBeginAtomIdx()
@@ -866,20 +871,20 @@ def molobj_to_mol2(molobj: Mol, charges: Optional[List[float]] = None) -> str:
         bond_lines.append(bond)
 
     bond_lines.append("\n")
-    bond_lines = "\n".join(bond_lines)
+    bond_lines_ = "\n".join(bond_lines)
 
     # Atoms
     atom_lines = ["@<TRIPOS>ATOM"]
     atom_fmt = "{0:>4} {1:>4} {2:>13.4f} {3:>9.4f} {4:>9.4f} {5:>4} {6} {7} {8:>7.4f}"
-    atoms = list(molobj.GetAtoms())
-    atoms_int = [atom.GetAtomicNum() for atom in atoms]
+    atoms = list(molobj.GetAtoms())  # type: ignore[attr-defined]
+    # atoms_int = [atom.GetAtomicNum() for atom in atoms]
+    # atoms_int = np.array(atoms_int)
     atoms_str = [atom.GetSymbol() for atom in atoms]
-    atoms_int = np.array(atoms_int)
     n_atoms = len(atoms)
-    conformer = molobj.GetConformer()
+    conformer = molobj.GetConformer()  # type: ignore[attr-defined]
     coordinates = conformer.GetPositions()
     coordinates = np.array(coordinates)
-    np.unique(atoms_int)
+    # np.unique(atoms_int)
 
     if charges is None:
         charges = np.zeros(n_atoms)
@@ -904,39 +909,38 @@ def molobj_to_mol2(molobj: Mol, charges: Optional[List[float]] = None) -> str:
         continue
 
     atom_lines.append("")
-    atom_lines = "\n".join(atom_lines)
+    atom_lines_ = "\n".join(atom_lines)
 
     # Complete
     checksumstr = f"{n_atoms} {n_bonds} 0 0 0"
     head_lines = ["@<TRIPOS>MOLECULE", "TITLE"]
     head_lines += [checksumstr, "SMALL", "MULLIKEN_CHARGES", "NAME"]
     head_lines.append("")
-    head_lines = "\n".join(head_lines)
+    head_lines_ = "\n".join(head_lines)
 
-    rtnstr = head_lines + atom_lines + bond_lines
+    rtnstr = head_lines_ + atom_lines_ + bond_lines_
 
     return rtnstr
 
 
 def molobj_to_molobjs(molobj: Mol) -> List[Mol]:
-    """ Expand a molobj conformer into a list of molobjs """
+    """Expand a molobj conformer into a list of molobjs"""
 
     molobj_prime = copy_molobj(molobj)
 
     molobjs = []
 
-    for idx, conf in enumerate(molobj.GetConformers()):
+    for _, conf in enumerate(molobj.GetConformers()):  # type: ignore[attr-defined]
 
         molobj_psi = copy.deepcopy(molobj_prime)
-        molobj_psi.AddConformer(conf, assignId=True)
+        molobj_psi.AddConformer(conf, assignId=True)  # type: ignore[attr-defined]
         molobjs.append(molobj_psi)
 
     return molobjs
 
 
-# TODO Simplify interface
-def molobj_to_sdfstr(mol, return_list=False, use_v3000=False, include_properties=False) -> str:
-    """ Get SDF string from Mol """
+def molobj_to_sdfstr(mol: Mol, use_v3000: bool = False, include_properties: bool = False) -> str:
+    """Get SDF string from Mol"""
 
     n_confs = mol.GetNumConformers()
 
@@ -967,12 +971,7 @@ def molobj_to_sdfstr(mol, return_list=False, use_v3000=False, include_properties
             txt = Chem.MolToMolBlock(mol, confId=i, forceV3000=use_v3000)
             txts += [txt]
 
-    if return_list:
-        return txts
-
-    txts = "$$$$\n".join(txts)
-
-    return txts
+    return "$$$$\n".join(txts)
 
 
 def molobj_to_smiles(
@@ -983,9 +982,6 @@ def molobj_to_smiles(
     kekulize: bool = False,
     remove_stereo: bool = False,
 ) -> str:
-
-    if molobj is None:
-        return None
 
     if remove_stereo:
         rdmolops.RemoveStereochemistry(molobj)
@@ -999,7 +995,7 @@ def molobj_to_smiles(
     if remove_hs:
         molobj = Chem.RemoveHs(molobj)
 
-    smiles = Chem.MolToSmiles(molobj, canonical=canonical, kekuleSmiles=kekulize)
+    smiles: str = Chem.MolToSmiles(molobj, canonical=canonical, kekuleSmiles=kekulize)
 
     return smiles
 
@@ -1007,10 +1003,10 @@ def molobj_to_smiles(
 def molobj_to_svgstr(
     molobj: Mol,
     use_2d: bool = True,
-    highlights: bool = None,
+    highlights: Optional[List[int]] = None,
     pretty: bool = False,
     removeHs: bool = False,
-):
+) -> str:
     """
     Returns SVG in string format
     """
@@ -1022,7 +1018,7 @@ def molobj_to_svgstr(
         molobj = copy_molobj(molobj)
         AllChem.Compute2DCoords(molobj)
 
-    svg = Draw.MolsToGridImage(
+    svg: str = Draw.MolsToGridImage(
         [molobj],
         molsPerRow=1,
         subImgSize=(400, 400),
@@ -1034,7 +1030,7 @@ def molobj_to_svgstr(
 
     if pretty:
 
-        svg = svg.split("\n")
+        svg_ = svg.split("\n")
 
         for i, line in enumerate(svg):
 
@@ -1049,7 +1045,7 @@ def molobj_to_svgstr(
                 border_text = border_text.replace("stroke:none;", "")
                 border_text = border_text.replace(replacetext, borderline + replacetext)
 
-                svg[i] = border_text + "\n" + line
+                svg_[i] = border_text + "\n" + line
 
                 continue
 
@@ -1057,9 +1053,9 @@ def molobj_to_svgstr(
 
                 # thicker lines
                 line = line.replace("stroke-width:2px", "stroke-width:3px")
-                svg[i] = line
+                svg_[i] = line
 
-        svg = "\n".join(svg)
+        svg = "\n".join(svg_)
 
     svg = svg.replace("<?xml version='1.0' encoding='iso-8859-1'?>", "")
 
@@ -1080,8 +1076,7 @@ def neutralize_molobj(molobj: Mol) -> Mol:
     return molobj
 
 
-# TODO Simplicy interface and add Mol to Generator output
-def read(filename: Path, remove_hs: bool = False, sanitize: bool = True) -> Generator:
+def read(filename: Path, remove_hs: bool = False, sanitize: bool = True) -> Iterator[Mol]:
     """
     General function to read files with different extensions and return molobjs
 
@@ -1095,42 +1090,35 @@ def read(filename: Path, remove_hs: bool = False, sanitize: bool = True) -> Gene
     :return molobjs:
     """
 
-    filename = str(filename)
+    suffix = filename.suffix
 
-    if filename.endswith(".gz"):
-        ext = filename.split(".")[-2:]
-        ext = ".".join(ext)
-    else:
-        ext = filename.split(".")[-1]
-
-    if ext == "sdf" or ext == "mol":
+    if suffix == "sdf" or suffix == "mol":
 
         suppl = Chem.SDMolSupplier(filename, removeHs=remove_hs, sanitize=sanitize)
 
-    elif ext == "sdf.gz":
+    elif suffix == "sdf.gz":
 
         fobj = gzip.open(filename)
         suppl = Chem.ForwardSDMolSupplier(fobj, removeHs=remove_hs, sanitize=sanitize)
 
-    elif ext == "smi":
+    elif suffix == "smi":
 
         f = open(filename, "r")
         suppl = read_smi(f)
 
-    elif ext == "smi.gz":
+    elif suffix == "smi.gz":
 
         fobj = gzip.open(filename)
-        suppl = read_smi(f)
+        suppl = read_smi(fobj)  # type: ignore
 
     else:
         print("could not read file:", filename)
         quit()
 
-    return suppl
+    return suppl  # type: ignore
 
 
-# TODO Simplify interface
-def read_smi(f, includes_name=False):
+def read_smi(f: Iterable[str]) -> Iterator[Mol]:
     """
     Read smiles and yield generated molobjs with 2D coords
 
@@ -1138,28 +1126,25 @@ def read_smi(f, includes_name=False):
     :yields molobjs: Iteration of molobjs
     """
 
-    if isinstance(f, str):
-        f = f.split("\n")
-
     for line in f:
         line = line.strip()
 
-        if includes_name:
-            line = line.split()
-            assert len(line) == 2
-            name = line[1]
-            line = line[0]
+        # if includes_name:
+        #     line = line.split()
+        #     assert len(line) == 2
+        #     name = line[1]
+        #     line = line[0]
 
-        molobj = smiles_to_molobj(line)
+        molobj: Optional[Mol] = smiles_to_molobj(line)
+
+        if molobj is None:
+            _logger.error(f"Unable to parse {line}")
+            continue
 
         # Compute 2D coords by default, to keep stereo
         AllChem.Compute2DCoords(molobj)
 
-        if includes_name:
-            yield molobj, name
-
-        else:
-            yield molobj
+        yield molobj
 
     return
 
@@ -1178,38 +1163,22 @@ def sdfstrs_to_molobjs(sdfs: str, remove_hs: bool = False) -> List[Mol]:
     return molobjs
 
 
-def sdfstr_to_molobj(sdfstr: str, remove_hs: bool = False, embed_properties: bool = True) -> Mol:
-    """Convert SDF string to Mol
-
-    TODO Fix suppl to
-    suppl = chem sdfsupplier
-    suppl.SetData(str, **kwargs)
-    molobj = next(suppl)
-
-    """
+def sdfstr_to_molobj(sdfstr: str, remove_hs: bool = False) -> Optional[Mol]:
+    """Convert SDF string to Mol"""
 
     suppl = Chem.SDMolSupplier()
     suppl.SetData(sdfstr, removeHs=remove_hs)
     try:
-        molobj = next(suppl)
+        molobj: Optional[Mol] = next(suppl)
     except StopIteration:
         molobj = None
-
-    # molobj = Chem.MolFromMolBlock(sdfstr, removeHs=remove_hs)
-    #
-    # if embed_properties:
-    #     properties = get_properties_from_sdf(sdfstr)
-    #
-    #     for key in properties.keys():
-    #         molobj.SetProp(key, properties[key])
-
     return molobj
 
 
 def sdfstr_to_smiles(sdfstr: str, remove_hs: bool = False) -> str:
-    """ SDF to SMILES converter """
+    """SDF to SMILES converter"""
     mol = Chem.MolFromMolBlock(sdfstr, removeHs=remove_hs)
-    smiles = Chem.MolToSmiles(mol)
+    smiles: str = Chem.MolToSmiles(mol)
     return smiles
 
 
@@ -1217,7 +1186,7 @@ def smiles_to_molobj(
     smiles: str, compute_2d: bool = False, add_hydrogens: bool = True
 ) -> Optional[Mol]:
 
-    molobj = Chem.MolFromSmiles(smiles)
+    molobj: Mol = Chem.MolFromSmiles(smiles)
 
     if molobj is None:
         return None
@@ -1232,14 +1201,14 @@ def smiles_to_molobj(
 
 
 def set_properties_on_molobj(molobj: Mol, properties: Dict) -> None:
-    """ incomplete """
+    """Set dictionary of properties to a Mol obj"""
     for key, value in properties.items():
-        molobj.SetProp(key, str(value))
+        molobj.SetProp(key, str(value))  # type: ignore[attr-defined]
     return
 
 
 def unique(molobjs: List[Mol]) -> List[Mol]:
-    """ Return only unique molecules, based on canonical SMILES """
+    """Return only unique molecules, based on canonical SMILES"""
     smiles_list = [molobj_to_smiles(x, canonical=True, remove_hs=True) for x in molobjs]
     _, indices = np.unique(smiles_list, return_index=True)
     return [molobjs[idx] for idx in indices]

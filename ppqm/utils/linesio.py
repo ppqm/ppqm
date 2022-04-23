@@ -4,7 +4,7 @@ from typing import Generator, List, Optional, Tuple
 
 
 def readlines_reverse(filename: Path) -> Generator[str, None, None]:
-    """ Read file, line by line, backwards """
+    """Read file, line by line, backwards"""
     with open(filename) as qfile:
         qfile.seek(0, os.SEEK_END)
         position = qfile.tell()
@@ -24,7 +24,7 @@ def readlines_reverse(filename: Path) -> Generator[str, None, None]:
 def enumerate_reversed(
     lines: List[str], max_lines: Optional[int] = None, length: Optional[int] = None
 ) -> Generator[Tuple[int, str], None, None]:
-    """ Enumerate over list values, backwards """
+    """Enumerate over list values, backwards"""
 
     if length is None:
         length = len(lines)
@@ -59,7 +59,7 @@ def get_index(
     return None
 
 
-def get_indices(lines: List[str], pattern: str, stoppattern: str = None) -> List[int]:
+def get_indices(lines: List[str], pattern: str, stoppattern: Optional[str] = None) -> List[int]:
 
     idxs = []
 
@@ -74,14 +74,31 @@ def get_indices(lines: List[str], pattern: str, stoppattern: str = None) -> List
     return idxs
 
 
+def get_rev_indices(
+    lines: List[str], pattern: str, stoppattern: Optional[str] = None
+) -> List[int]:
+
+    idxs = []
+
+    for i, line in enumerate_reversed(lines):
+
+        if pattern in line:
+            idxs.append(i)
+
+        if stoppattern and stoppattern in line:
+            break
+
+    return idxs
+
+
 def get_indices_patterns(
-    lines: List[str], patterns: List[str], stoppattern: str = None
+    lines: List[str], patterns: List[str], stoppattern: Optional[str] = None
 ) -> List[Optional[int]]:
 
     n_patterns = len(patterns)
     i_patterns = list(range(n_patterns))
 
-    idxs = [None] * n_patterns
+    idxs: List[Optional[int]] = [None] * n_patterns
 
     for i, line in enumerate(lines):
 
@@ -121,7 +138,7 @@ def get_indices_pattern(
         list: Indices of the first and the last line of the block (including the offset).
     """
 
-    idxs = [None] * 2
+    idxs: List[Optional[int]] = [None] * 2
 
     for i, line in enumerate(lines):
         if pattern in line:
@@ -133,7 +150,9 @@ def get_indices_pattern(
     return idxs
 
 
-def get_rev_index(lines: List[str], pattern: str, stoppattern: str = None) -> Optional[int]:
+def get_rev_index(
+    lines: List[str], pattern: str, stoppattern: Optional[str] = None
+) -> Optional[int]:
 
     for i, line in enumerate_reversed(lines):
 
@@ -147,13 +166,16 @@ def get_rev_index(lines: List[str], pattern: str, stoppattern: str = None) -> Op
 
 
 def get_rev_indices_patterns(
-    lines: List[str], patterns: List[str], stoppattern: str = None, maxiter: int = None
+    lines: List[str],
+    patterns: List[str],
+    stoppattern: Optional[str] = None,
+    maxiter: Optional[int] = None,
 ) -> List[Optional[int]]:
 
     n_patterns = len(patterns)
     i_patterns = list(range(n_patterns))
 
-    idxs = [None] * n_patterns
+    idxs: List[Optional[int]] = [None] * n_patterns
 
     # TODO Better way of admin how many lines are read
     n_read = 0

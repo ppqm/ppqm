@@ -1,49 +1,18 @@
-"""
+from typing import List
 
-Wrapper functions for nglviewer and jupyter helper functions
-
-Reference links
-- https://birdlet.github.io/2019/10/02/py3dmol_example/
-- http://nglviewer.org/nglview/latest/api.html#nglview.RdkitStructure
-- http://nglviewer.org/nglview/latest/api.html#nglview.show_rdkit
-
-
-Notes on nglviewer usage
-
->>> import nglview as nv
->>> from rdkit import Chem
-... from rdkit.Chem import AllChem
-... m = Chem.AddHs(Chem.MolFromSmiles('COc1ccc2[C@H](O)[C@@H](COc2c1)N3CCC(O)(CC3)c4ccc(F)cc4'))
-... _ = AllChem.EmbedMultipleConfs(m, useExpTorsionAnglePrefs=True, useBasicKnowledge=True)
-... view = nv.show_rdkit(m)
-... view
-
->>> # add component m2
->>> # create file-like object
->>> from nglview.show import StringIO
->>> m2 = Chem.AddHs(Chem.MolFromSmiles('N[C@H](C)C(=O)O'))
-... fh = StringIO(Chem.MolToPDBBlock(m2))
-... view.add_component(fh, ext='pdb')
-
->>> # load as trajectory, need to have ParmEd
->>> view = nv.show_rdkit(m, parmed=True)
-
-"""
-
-import IPython
-import ipywidgets
-import nglview
-import pandas as pd
+import IPython  # type: ignore[import]
+import ipywidgets  # type: ignore[import]
+import nglview  # type: ignore[import]
+import pandas as pd  # type: ignore[import]
 from ipywidgets import Layout, interact
-from rdkit.Chem import rdMolAlign
+from rdkit.Chem import rdMolAlign  # type: ignore[import]
 
 from ppqm import chembridge
+from ppqm.chembridge import Mol
 
 
-def show_molobj(molobj, align_conformers=True, show_properties=False):
-    """
-    Show molobj in jupyter with a slider for each conformer
-    """
+def show_molobj(molobj: Mol, align_conformers: bool = True, show_properties: bool = False) -> None:
+    """Show molobj in jupyter with a slider for each conformer"""
 
     if align_conformers:
         rdMolAlign.AlignMolConformers(molobj)
@@ -53,7 +22,7 @@ def show_molobj(molobj, align_conformers=True, show_properties=False):
 
     view = nglview.show_rdkit(molobj)
 
-    def _view_conformer(idx):
+    def _view_conformer(idx: int) -> None:
         coord = chembridge.get_coordinates(molobj, confid=idx)
         view.set_coordinates({0: coord})
 
@@ -69,17 +38,19 @@ def show_molobj(molobj, align_conformers=True, show_properties=False):
 
     IPython.core.display.display(view)
     if show_properties:
-        properties = molobj.GetPropsAsDict()
+        properties: dict = molobj.GetPropsAsDict()  # type: ignore
         pdf = pd.DataFrame([properties]).transpose()
         IPython.core.display.display(pdf)
 
 
-def show_molobjs(molobjs, align_conformers=True, show_properties=False):
+def show_molobjs(
+    molobjs: List[Mol], align_conformers: bool = True, show_properties: bool = False
+) -> None:
     """ """
 
     n_molobjs = len(molobjs)
 
-    def _view_molobj(idx):
+    def _view_molobj(idx: int) -> None:
         show_molobj(
             molobjs[idx], align_conformers=align_conformers, show_properties=show_properties
         )
