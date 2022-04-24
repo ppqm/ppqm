@@ -1,8 +1,8 @@
-from collections import ChainMap
+from pathlib import Path
 
 import pytest
-from context import RESOURCES, XTB_OPTIONS
-from rdkit import Chem
+from conftest import RESOURCES
+from rdkit import Chem  # type: ignore[import]
 
 from ppqm import chembridge, tasks, xtb
 
@@ -15,25 +15,19 @@ TEST_ENERGIES = [
 TEST_SMILES = ["O", "N"]
 
 
-def _get_options(tmpdir):
-    xtb_options = {"scr": tmpdir}
-    options_prime = ChainMap(xtb_options, XTB_OPTIONS)
-    options_prime = dict(options_prime)
-    return options_prime
+def _get_options(tmp_path: Path) -> dict:
+    print(tmp_path)
+    xtb_options = {"scr": tmp_path, "keep_files": True, "cmd": "xtb"}
+    return xtb_options
 
 
 @pytest.mark.parametrize("smiles, energy", TEST_ENERGIES)
-def test_axyzc_optimize(smiles, energy, tmpdir):
+def test_axyzc_optimize(smiles: str, energy: float, tmp_path: Path) -> None:
 
-    xtb_options = _get_options(tmpdir)
-
-    # TODO Get distances between heavy atoms
-    # TODO assert distances between heavy atoms approx(distance, 0.5)
-    # TODO Test distance
-    # - ensure convergence
-    # - ensure aang units
+    xtb_options = _get_options(tmp_path)
 
     molobj = chembridge.smiles_to_molobj(smiles)
+    assert molobj is not None
     molobj = tasks.generate_conformers(molobj, n_conformers=1)
 
     assert molobj is not None
@@ -46,20 +40,22 @@ def test_axyzc_optimize(smiles, energy, tmpdir):
     properties = xtb.get_properties_from_axyzc(
         atoms, coordinates, charge, options=calculation_options, **xtb_options
     )
+    assert properties is not None
 
     total_energy = properties[xtb.COLUMN_ENERGY]
     assert xtb.COLUMN_COORD in properties
-    assert pytest.approx(energy, 10 ** -2) == total_energy
+    assert pytest.approx(energy, 10**-2) == total_energy
 
 
 @pytest.mark.parametrize("smiles, energy", TEST_ENERGIES)
-def test_calc_options(smiles, energy, tmpdir):
+def test_calc_options(smiles: str, energy: float, tmp_path: Path) -> None:
 
     molobj = chembridge.smiles_to_molobj(smiles)
+    assert molobj is not None
     molobj = tasks.generate_conformers(molobj, n_conformers=2)
     calculation_options = {"opt": None, "gfn": 2, "gbsa": "water"}
 
-    xtb_options = _get_options(tmpdir)
+    xtb_options = _get_options(tmp_path)
 
     # Make calculator instance
     calc = xtb.XtbCalculator(**xtb_options)
@@ -74,7 +70,7 @@ def test_calc_options(smiles, energy, tmpdir):
     assert xtb.COLUMN_ENERGY in properties_list[0]
 
 
-def test_parseproperties():
+def test_parseproperties() -> None:
 
     filename = RESOURCES / "xtb/water.log"
 
@@ -82,54 +78,53 @@ def test_parseproperties():
         lines = f.readlines()
 
     properties = xtb.read_properties(lines)
+    assert properties is not None
     total_energy = properties[xtb.COLUMN_ENERGY]
     total_dipole = properties[xtb.COLUMN_DIPOLE]
 
     # Check energy
-    assert pytest.approx(-5.082177326958, 10 ** -7) == total_energy
+    assert pytest.approx(-5.082177326958, 10**-7) == total_energy
 
     # Check dipole moment
-    assert pytest.approx(2.422, 10 ** -4) == total_dipole
-
-    return
+    assert pytest.approx(2.422, 10**-4) == total_dipole
 
 
-def test_single_point_charges():
+def test_single_point_charges(tmp_path: Path) -> None:
     # Create molecule with a minus charge
     # Calculate the energy
+
+    xtb_options = _get_options(tmp_path)
+    calc = xtb.XtbCalculator(**xtb_options)
 
     smiles = "C[O-]"
 
     molobj = Chem.MolFromSmiles(smiles)
+    assert molobj is not None
     molobj = tasks.generate_conformers(molobj, n_conformers=2)
-    properties_list = xtb.get_properties_from_molobj(molobj)
-    assert xtb.COLUMN_ENERGY in properties_list[0]
-    assert isinstance(properties_list[0][xtb.COLUMN_ENERGY], float)
+    properties_list = calc.calculate(molobj, {})
+    properties = properties_list[0]
+    assert properties is not None
+    assert xtb.COLUMN_ENERGY in properties
+    assert isinstance(properties[xtb.COLUMN_ENERGY], float)
     assert len(properties_list) == 2
 
 
-def test_failed_scf():
-
+def test_failed_scf() -> None:
+    # TODO
     assert True
 
-    return
 
-
-def test_failed_optimize():
-
+def test_failed_optimize() -> None:
+    # TODO
     assert True
 
-    return
 
-
-def test_parallel():
-
+def test_parallel() -> None:
+    # TODO
     assert True
 
-    return
 
-
-def test_parse_sum_table():
+def test_parse_sum_table() -> None:
 
     sumtable = """
          :::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -160,28 +155,36 @@ def test_parse_sum_table():
     assert properties["gsolv"] == 0.000347007313
 
 
-def test_multiple_solvents():
+def test_multiple_solvents(tmp_path: Path) -> None:
 
-    kwargs = {"show_progress": False}
+    xtb_options = _get_options(tmp_path)
+    calc = xtb.XtbCalculator(**xtb_options)
 
     first_gen_options = {"gbsa": "water", "opt": None}
     second_gen_options = {"alpb": "water", "opt": None}
 
     smi = "C"
     molobj = Chem.MolFromSmiles(smi)
+    assert molobj is not None
     molobj = tasks.generate_conformers(molobj, n_conformers=1)
 
     assert molobj.GetNumConformers() == 1
 
-    properties = xtb.get_properties_from_molobj(molobj, options=first_gen_options, **kwargs)
+    properties_list = calc.calculate(molobj, first_gen_options)
+    assert len(properties_list)
 
-    properties = properties[0]
+    # Select first conformer
+    properties = properties_list[0]
+    assert properties is not None
 
+    print(properties.keys())
     assert "gsolv" in properties
     assert pytest.approx(0.00034, abs=1e-4) == properties["gsolv"]
 
-    properties = xtb.get_properties_from_molobj(molobj, options=second_gen_options, **kwargs)
-    properties = properties[0]
+    properties_list = calc.calculate(molobj, second_gen_options)
+    assert len(properties_list)
+    properties = properties_list[0]
+    assert properties is not None
 
     print(properties)
 
@@ -189,7 +192,7 @@ def test_multiple_solvents():
     assert pytest.approx(0.000243700318, abs=1e-4) == properties["gsolv"]
 
 
-def test_read_orbitals():
+def test_read_orbitals() -> None:
 
     # 61        2.0000           -0.3707448             -10.0885
     # 62        2.0000           -0.3635471              -9.8926
@@ -207,6 +210,7 @@ def test_read_orbitals():
     with open(logfilename, "r") as f:
         lines = f.readlines()
     properties = xtb.read_properties_orbitals(lines)
+    assert properties is not None
 
     assert properties["homo"] == -0.3540913
     assert properties["lumo"] == -0.2808508
@@ -218,7 +222,7 @@ def test_read_orbitals():
     with open(logfilename, "r") as f:
         lines = f.readlines()
     properties = xtb.read_properties_orbitals(lines)
-
+    assert properties is not None
     print(properties)
 
     assert properties["homo"] == -0.4396701
@@ -226,7 +230,7 @@ def test_read_orbitals():
     assert properties["lumo+1"] == 0.2725561
 
 
-def test_read_fukui():
+def test_read_fukui() -> None:
 
     # #        f(+)     f(-)     f(0)
     # 1O      -0.086   -0.598   -0.342
@@ -238,17 +242,19 @@ def test_read_fukui():
         lines = f.readlines()
 
     properties = xtb.read_properties_fukui(lines)
+    assert properties is not None
 
     assert "f_plus" in properties
     assert "f_minus" in properties
     assert "f_zero" in properties
-    assert len(properties.get("f_plus")) == 3
-    assert properties.get("f_plus")[0] == -0.086
+    assert properties.get("f_plus") is not None
+    assert len(properties.get("f_plus")) == 3  # type: ignore
+    assert properties.get("f_plus")[0] == -0.086  # type: ignore
 
 
-def test_read_omega():
+def test_read_omega() -> None:
 
-    # Global electrophilicity index (eV):    0.0058
+    # Global electrophilicity index (eV)->None:    0.0058
 
     logfilename = RESOURCES / "xtb/water_omega.log"
 
@@ -266,7 +272,10 @@ def test_read_omega():
     assert properties.get("global_electrophilicity_index") == 0.0058
 
 
-def test_calculate_fukui():
+def test_calculate_fukui(tmp_path: Path) -> None:
+
+    xtb_options = _get_options(tmp_path)
+    calc = xtb.XtbCalculator(**xtb_options)
 
     # Chembl
     chembl3586573 = "CCN1C(=O)CNc2ncc(-c3ccc(-c4nc[nH]n4)nc3C)nc21"
@@ -277,9 +286,6 @@ def test_calculate_fukui():
     molobj = tasks.generate_conformers(molobj, n_conformers=n_conformers)
     assert molobj.GetNumConformers() == n_conformers
     n_atoms = molobj.GetNumAtoms()
-
-    # xtb options
-    kwargs = {"show_progress": False, "n_cores": 1}
 
     # Calc options
     solvent = "h2o"
@@ -296,26 +302,32 @@ def test_calculate_fukui():
     }
 
     # Optimize structure
-    properties_list = xtb.get_properties_from_molobj(molobj, options=optimize_options, **kwargs)
+    properties_list = calc.calculate(molobj, optimize_options)
     properties = properties_list[0]
+    assert properties is not None
     assert xtb.COLUMN_COORD in properties
 
     # Set structure
     coord = properties.get(xtb.COLUMN_COORD)
+    assert coord is not None
     chembridge.molobj_set_coordinates(molobj, coord)
 
     # Get fukui
-    properties_list = xtb.get_properties_from_molobj(molobj, options=fukui_options, **kwargs)
+    properties_list = calc.calculate(molobj, fukui_options)
     assert isinstance(properties_list, list)
     assert len(properties_list) == n_conformers
 
     properties = properties_list[0]
+    assert properties is not None
 
     assert "f_plus" in properties
-    assert len(properties.get("f_plus")) == n_atoms
+    assert len(properties.get("f_plus")) == n_atoms  # type: ignore
 
 
-def test_calculate_electrophilicity():
+def test_calculate_electrophilicity(tmp_path: Path) -> None:
+
+    xtb_options = _get_options(tmp_path)
+    calc = xtb.XtbCalculator(**xtb_options)
 
     # Chembl
     smiles = "CCN1C(=O)CNc2ncc(-c3ccc(-c4nc[nH]n4)nc3C)nc21"  # chembl3586573
@@ -326,9 +338,6 @@ def test_calculate_electrophilicity():
     molobj = tasks.generate_conformers(molobj, n_conformers=n_conformers)
     assert molobj.GetNumConformers() == n_conformers
     molobj.GetNumAtoms()
-
-    # xtb options
-    kwargs = {"show_progress": False, "n_cores": 1}
 
     # Calc options
     solvent = "h2o"
@@ -345,20 +354,23 @@ def test_calculate_electrophilicity():
     }
 
     # Optimize structure
-    properties_list = xtb.get_properties_from_molobj(molobj, options=optimize_options, **kwargs)
+    properties_list = calc.calculate(molobj, optimize_options)
     properties = properties_list[0]
+    assert properties is not None
     assert xtb.COLUMN_COORD in properties
 
     # Set structure
     coord = properties.get(xtb.COLUMN_COORD)
+    assert coord is not None
     chembridge.molobj_set_coordinates(molobj, coord)
 
     # Get electrophilicity (vomega)
-    properties_list = xtb.get_properties_from_molobj(molobj, options=omega_options, **kwargs)
+    properties_list = calc.calculate(molobj, omega_options)
     assert isinstance(properties_list, list)
     assert len(properties_list) == n_conformers
 
     properties = properties_list[0]
+    assert properties is not None
 
     print(properties)
 
@@ -367,7 +379,7 @@ def test_calculate_electrophilicity():
     assert properties.get("global_electrophilicity_index") == pytest.approx(2, rel=1)
 
 
-def test_read_covalent():
+def test_read_covalent() -> None:
 
     #  #   Z          covCN         q      C6AA      alpha
     #  1   6 C        3.743    -0.105    22.589     6.780
@@ -379,6 +391,7 @@ def test_read_covalent():
         lines = f.readlines()
 
     properties = xtb.read_covalent_coordination(lines)
+    assert properties is not None
 
     assert "covCN" and "alpha" in properties
 
@@ -395,7 +408,7 @@ def test_read_covalent():
     assert properties["alpha"][-1] == 2.316
 
 
-def test_read_CM5_charges():
+def test_read_CM5_charges() -> None:
 
     logfilename = RESOURCES / "xtb/chembl3586573_gfn1.log"
     with open(logfilename, "r") as f:
