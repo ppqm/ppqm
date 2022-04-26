@@ -11,10 +11,10 @@ from typing import Any, Callable, Dict, List, Optional, Union
 import numpy as np
 from tqdm import tqdm  # type: ignore[import]
 
-from ppqm import WorkDir, chembridge, constants, units
+from ppqm import chembridge, constants, units
 from ppqm.calculator import BaseCalculator
 from ppqm.chembridge import Mol
-from ppqm.utils import func_parallel, linesio, shell
+from ppqm.utils import WorkDir, func_parallel, linesio, shell
 
 ORCA_CMD = "orca"
 ORCA_FILENAME = "_tmp_orca_input.inp"
