@@ -228,7 +228,9 @@ def properties_from_axyzc(
 ) -> Optional[dict]:
     """Calculate properties for atoms, coord and charge"""
 
-    properties_list = properties_from_many_axyzc([atoms], [coords], [charge], header, **kwargs)
+    properties_list = properties_from_many_axyzc(
+        [list(atoms)], [coords], [charge], header, **kwargs
+    )
 
     properties = properties_list[0]
 
@@ -236,7 +238,7 @@ def properties_from_axyzc(
 
 
 def properties_from_many_axyzc(
-    atoms_list: List[Union[List[str], np.ndarray]],
+    atoms_list: Union[List[List[str]], np.ndarray],
     coords_list: List[np.ndarray],
     charge_list: List[int],
     header: str,
