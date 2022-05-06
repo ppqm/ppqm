@@ -1091,29 +1091,29 @@ def read(filename: Path, remove_hs: bool = False, sanitize: bool = True) -> Iter
     """
 
     suffix = filename.suffix
+    print(suffix)
 
-    if suffix == "sdf" or suffix == "mol":
+    if suffix == ".sdf" or suffix == ".mol":
 
-        suppl = Chem.SDMolSupplier(filename, removeHs=remove_hs, sanitize=sanitize)
+        suppl = Chem.SDMolSupplier(str(filename), removeHs=remove_hs, sanitize=sanitize)
 
-    elif suffix == "sdf.gz":
+    elif suffix == ".sdf.gz":
 
         fobj = gzip.open(filename)
         suppl = Chem.ForwardSDMolSupplier(fobj, removeHs=remove_hs, sanitize=sanitize)
 
-    elif suffix == "smi":
+    elif suffix == ".smi":
 
         f = open(filename, "r")
         suppl = read_smi(f)
 
-    elif suffix == "smi.gz":
+    elif suffix == ".smi.gz":
 
         fobj = gzip.open(filename)
         suppl = read_smi(fobj)  # type: ignore
 
     else:
-        print("could not read file:", filename)
-        quit()
+        raise ValueError(f"Could not read {filename}")
 
     return suppl  # type: ignore
 

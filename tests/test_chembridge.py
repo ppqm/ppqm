@@ -197,10 +197,10 @@ def test_get_inertia_ratios() -> None:
     smiles = "C[NH+](CCC)C"  # n,n-dimethylpropan-1-amine
     n_conformers = 1
     molobj = Chem.MolFromSmiles(smiles)
-    molobj = tasks.generate_conformers(molobj, n_conformers=n_conformers)
+    molobj = tasks.generate_conformers(molobj, n_conformers=n_conformers, random_seed=5)
     ratios = chembridge.get_inertia_ratios(molobj)
 
-    reference = [0.25484739, 0.90477425]
+    reference = [0.323265, 0.897603]
     np.testing.assert_array_almost_equal(ratios[0], reference)
 
 
