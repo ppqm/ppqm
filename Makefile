@@ -13,7 +13,7 @@ setup-dev:
 	pre-commit install
 
 test:
-	${python} -m pytest -vrs tests
+	${python} -m pytest -rs tests
 
 cov:
 	${python} -m pytest -vrs --cov=${pkg} --cov-report html tests
