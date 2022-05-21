@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Any, Dict
 
 import pytest
 from conftest import RESOURCES
@@ -16,8 +15,8 @@ TEST_ENERGIES_PM3 = [
 
 TEST_ENERGIES_B3LYP = [
     ("O", -76.328663632482 * units.hartree_to_kcalmol),
-    # ("CC", -79.705551996245 * units.hartree_to_kcalmol),
-    # ("[NH4+]", -56.950888890358 * units.hartree_to_kcalmol),
+    ("CC", -79.705551996245 * units.hartree_to_kcalmol),
+    ("[NH4+]", -56.950888890358 * units.hartree_to_kcalmol),
 ]
 
 serine_num_atoms = 14
@@ -360,16 +359,12 @@ def test_read_properties_compromised_file() -> None:
     assert properties_dict["mulliken_charges"][0] == 0.220691
 
 
-def test_parallel() -> None:
+def test_parallel(tmp_path: Path) -> None:
     smiles = "C(C(=O)O)N"  # I like glycine
     molobj = Chem.MolFromSmiles(smiles)
 
-    orca_options: Dict[str, Any] = {
-        "scr": "./_tmp_directory_",  # Where should the calculations happen?
-        "cmd": "orca",  # Where is the binary executable/command?
-        "n_cores": 2,  # How many cores to use?
-        "show_progress": True,  # Show progressbar during calculation
-    }
+    orca_options = _get_options(tmp_path)
+    orca_options = {**orca_options, **dict(n_cores=2, show_progress=True)}
 
     calc = OrcaCalculator(**orca_options)
 

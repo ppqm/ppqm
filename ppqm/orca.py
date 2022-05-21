@@ -46,6 +46,7 @@ class OrcaCalculator(BaseCalculator):
         show_progress: bool = False,
         n_cores: int = 1,
         memory: int = 2,  # memory per core
+        keep_files: bool = False,
         **kwargs: Any,
     ) -> None:
 
@@ -56,6 +57,7 @@ class OrcaCalculator(BaseCalculator):
         self.n_cores = n_cores
         self.memory = memory
         self.show_progress = show_progress
+        self.keep_files = keep_files
 
         self.orca_options: Dict[str, Any] = {
             "cmd": self.cmd,
@@ -63,6 +65,7 @@ class OrcaCalculator(BaseCalculator):
             "filename": self.filename,
             "n_cores": self.n_cores,
             "memory": self.memory,  # memory per core
+            "keep_files": self.keep_files,
         }
 
         # Default Orca options
