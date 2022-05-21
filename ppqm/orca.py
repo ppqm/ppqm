@@ -77,25 +77,28 @@ class OrcaCalculator(BaseCalculator):
         assert shell.which(self.cmd), f"Cannot find {self.cmd}"
 
         # There is no such thing as "orca --version": https://orcaforum.kofo.mpg.de/viewtopic.php?f=8&t=8181
-        stdout, _ = shell.execute(f'{self.cmd} idonotexist.inp | grep "Program"')
+        stdout, _ = shell.execute(f'{self.cmd} idonotexist.inp | grep "Program Version"')
 
         assert stdout is not None
 
-        try:
-            stdout_lines = stdout.split("\n")
-            stdout_lines = [x.strip() for x in stdout_lines if "Program Version" in x]
-            version_ = stdout[0].split(" ")[2]
-            version = version_.split(".")
-            self.VERSION = version
-        except Exception:
-            assert False, "unsupported Orca version"
+        # try:
+        stdout_lines = stdout.split("\n")
+        # stdout_lines = [x.strip() for x in stdout_lines if "Program Version" in x]
+
+        idx = linesio.get_rev_index(stdout_lines, "Program Version")
+        assert idx is not None
+
+        line = stdout_lines[idx]
+        line_ = line.split()
+        version = line_[2]
+
+        self.version = version.split(".")
 
         # If health check has gone through, update absolute path
         fullcmd = shell.which(self.cmd)
         assert fullcmd is not None
 
         self.cmd = fullcmd
-
         self.orca_options["cmd"] = self.cmd
 
     def calculate(self, molobj: Mol, options: dict) -> List[Optional[dict]]:
@@ -263,6 +266,8 @@ def get_properties_from_axyzc(
     workdir = WorkDir(dir=scr, prefix="orca_", keep=keep_files)
     scr = workdir.get_path()
 
+    _logger.debug(f"Orca run: {fullcmd} in {scr}")
+
     # write input file
     input_header = get_header(options, n_cores=n_cores, memory=memory)
 
@@ -275,7 +280,12 @@ def get_properties_from_axyzc(
     cmd = " ".join([cmd, filename])
     _logger.debug(cmd)
 
-    lines = list(shell.stream(cmd, cwd=scr))
+    # lines = list(shell.stream(cmd, cwd=scr))
+
+    stdout, _ = shell.execute(cmd, cwd=scr)
+
+    assert stdout is not None
+    lines = stdout.split("\n")
 
     termination_pattern = "****ORCA TERMINATED NORMALLY****"
     idx = linesio.get_rev_index(lines, termination_pattern)
