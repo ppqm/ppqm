@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 from typing import Any, Dict, Generator, List, Optional, Union
 
@@ -7,6 +8,8 @@ from ppqm import chembridge, constants
 from ppqm.calculator import BaseCalculator
 from ppqm.chembridge import Mol
 from ppqm.utils import linesio, shell
+
+_logger = logging.getLogger(__name__)
 
 MNDO_CMD = "mndo"
 MNDO_ATOMLINE = "{atom:2s} {x} {opt_flag} {y} {opt_flag} {z} {opt_flag}"
@@ -88,6 +91,8 @@ class MndoCalculator(BaseCalculator):
         self, molobj: Mol, options: dict, optimize: bool = False
     ) -> List[Optional[dict]]:
 
+        # TODO Parallel interface
+
         input_string = self._get_input_from_molobj(
             molobj,
             options,
@@ -112,6 +117,11 @@ class MndoCalculator(BaseCalculator):
     ) -> Generator[List[str], None, None]:
 
         runcmd = f"{self.cmd} < {filename}"
+
+        _logger.debug(f"Running mndo: {runcmd} in {scr}")
+
+        print(runcmd)
+        print(scr)
 
         lines = shell.stream(runcmd, cwd=scr)
 
