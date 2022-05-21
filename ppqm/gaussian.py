@@ -141,29 +141,43 @@ def get_properties_from_axyzc(
     if not filename.endswith(".com"):
         filename += ".com"
 
-    workdir = WorkDir(dir=scr, prefix="g16_", keep=keep_files)
+    workdir = WorkDir(dir=scr, prefix="gaussian_", keep=keep_files)
     scr = workdir.get_path()
 
     # write input file
     input_header = get_header(options, memory=memory)
 
     inputstr = get_inputfile(
-        atoms_str, coordinates, charge, spin, input_header, footer=footer, title="g16 input"
+        atoms_str, coordinates, charge, spin, input_header, footer=footer, title="gaussian input"
     )
 
     with open(scr / filename, "w") as f:
         f.write(inputstr)
 
+    assert shell.which(cmd), f"Could not find {cmd}"
+
     # Run subprocess cmd
     cmd = " ".join([cmd, filename])
     _logger.debug(cmd)
+    _logger.debug(scr)
 
     lines = list(shell.stream(cmd, cwd=scr))
+
+    stdout, stderr = shell.execute(cmd, cwd=scr)
+
+    assert stdout is not None
+    assert stderr is not None
+
+    lines = stdout.split() + stderr.split()
+
+    if not len(lines):
+        with open((scr / filename).with_suffix(".log"), "r") as f:
+            lines = f.readlines()
 
     termination_pattern = "Normal termination of Gaussian"
     idx = linesio.get_rev_index(lines, termination_pattern, stoppattern="File lengths")
     if idx is None:
-        _logger.critical("Abnormal termination of Gaussian")
+        _logger.error("Abnormal termination of Gaussian")
         return None
 
     # Parse properties from Gaussian output

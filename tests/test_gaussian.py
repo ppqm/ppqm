@@ -4,6 +4,10 @@ import pytest
 from conftest import RESOURCES
 
 from ppqm import chembridge, gaussian, tasks
+from ppqm.utils import shell
+
+if shell.which(gaussian.G16_CMD) is None:
+    pytest.skip("Skipped. Could not find Gaussian executable", allow_module_level=True)
 
 TEST_ENERGIES = [
     ("O", -51.76150372010862),
@@ -13,7 +17,7 @@ TEST_ENERGIES = [
 
 
 def _get_options(tmp_path: Path) -> dict:
-    g16_options = {"scr": tmp_path, "memory": 2}
+    g16_options = dict(scr=tmp_path, memory=2, keep_files=True)
     return g16_options
 
 
