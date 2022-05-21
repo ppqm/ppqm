@@ -4,7 +4,6 @@ from typing import Any, Dict, List
 import numpy as np
 import pytest
 
-import ppqm
 from ppqm import chembridge, constants, gamess, tasks
 from ppqm.gamess import COLUMN_THERMO, GamessCalculator
 
@@ -48,7 +47,9 @@ $$$$
     # calculate returns List(properties) for every conformer
     results = calc.calculate(molobj, calculation_options)
     properties = results[0]
+    print(properties)
     assert properties is not None
+    print(properties.keys())
 
     atoms = properties[constants.COLUMN_ATOMS]
     energy = properties[constants.COLUMN_ENERGY]
@@ -289,11 +290,12 @@ $$$$
     assert molobj is not None
 
     options: Dict[str, Any] = dict()
+    options["basis"] = {"gbasis": "pm3"}
     options["system"] = {"mwords": 125}
     options["pcm"] = {"solvnt": "water", "mxts": 15000, "icav": 1, "idisp": 1}
     options["tescav"] = {"mthall": 4, "ntsall": 60}
 
-    calc = gamess.GamessCalculator(method_options={"method": "pm3"}, **gamess_options)
+    calc = gamess.GamessCalculator(**gamess_options)
 
     results = calc.calculate(molobj, options)
     properties = results[0]
@@ -376,8 +378,8 @@ def test_fail_wrong_method(tmp_path: Path) -> None:
     # will return None for each failed conformer
 
     assert results is not None
-    assert isinstance(results[0], dict)
-    assert "error" in results[0]
+    assert isinstance(results, list)
+    assert results[0] is None
 
 
 def test_get_header() -> None:
@@ -423,6 +425,7 @@ M  END """
     assert molobj is not None
     calc = gamess.GamessCalculator(**gamess_options)
 
+    print(calc)
     options = {
         "basis": {"gbasis": "pm3"},
         "contrl": {"runtyp": "optimize"},
@@ -435,4 +438,4 @@ M  END """
 
     properties = results[0]
     assert isinstance(properties, dict)
-    assert pytest.approx(17.56621, rel=10**-4) == properties[ppqm.constants.COLUMN_ENERGY]
+    assert pytest.approx(17.56621, rel=10**-4) == properties[constants.COLUMN_ENERGY]

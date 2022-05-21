@@ -1,7 +1,6 @@
-import glob
-import hashlib
 import logging
 import os
+import tempfile
 from collections import ChainMap
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -14,8 +13,8 @@ from ppqm.chembridge import Mol
 from ppqm.utils import linesio, shell
 
 GAMESS_CMD = "rungms"
-GAMESS_SCR = Path("$HOME/scr/")
-GAMESS_USERSCR = Path("$HOME/scr/")
+GAMESS_SCR = Path("~/scr/")
+GAMESS_USERSCR = Path("~/scr/")
 GAMESS_ATOMLINE = "{:2s}    {:2.1f}    {:f}     {:f}    {:f}"
 GAMESS_FILENAME = "_tmp_gamess.inp"
 GAMESS_SQM_METHODS = ["AM1", "PM3", "PM6"]
@@ -35,12 +34,14 @@ COLUMN_DIPOLE_TOTAL = "dipole_total"
 
 _logger = logging.getLogger(__name__)
 
+random_names = tempfile._get_candidate_names()  # type: ignore[attr-defined]
+
 
 class GamessCalculator(BaseCalculator):
     def __init__(
         self,
         cmd: str = GAMESS_CMD,
-        filename: str = GAMESS_FILENAME,
+        filename: Optional[str] = None,
         gamess_scr: Path = GAMESS_SCR,
         gamess_userscr: Path = GAMESS_USERSCR,
         n_cores: int = 1,
@@ -53,11 +54,14 @@ class GamessCalculator(BaseCalculator):
         self.n_cores = n_cores
         self.show_progress = show_progress
 
+        self.gamess_scr = gamess_scr.expanduser()
+        self.gamess_userscr = gamess_userscr.expanduser()
+
         self.gamess_options: Dict[str, Any] = {
             "cmd": self.cmd,
             "scr": self.scr,
-            "gamess_scr": gamess_scr,
-            "gamess_userscr": gamess_userscr,
+            "gamess_scr": gamess_scr.expanduser(),
+            "gamess_userscr": gamess_userscr.expanduser(),
             "filename": self.filename,
         }
 
@@ -114,9 +118,15 @@ class GamessCalculator(BaseCalculator):
     def calculate(self, molobj: Mol, options: dict) -> List[Optional[dict]]:
         """ """
 
+        # TODO Parallel wrapper
+
         # Merge options
         # options_prime = dict(ChainMap(options, self.options))
         options_prime = dict(ChainMap(options, {}))
+
+        if "contrl" not in options_prime:
+            options_prime["contrl"] = dict()
+
         options_prime["contrl"]["icharg"] = GAMESS_KEYWORD_CHARGE
 
         properties_list = []
@@ -128,7 +138,7 @@ class GamessCalculator(BaseCalculator):
 
             coord = chembridge.get_coordinates(molobj, confid=conf_idx)
             properties = properties_from_axyzc(
-                atoms, coord, charge, options_prime, **self.gamess_options
+                atoms, coord, charge, options_prime, options_gamess=self.gamess_options
             )
 
             properties_list.append(properties)
@@ -136,7 +146,7 @@ class GamessCalculator(BaseCalculator):
         return properties_list
 
     def __repr__(self) -> str:
-        return f"GamessCalc(cmd={self.cmd},scr={self.scr})"
+        return f"GamessCalc(cmd={self.cmd},scr={self.scr},gamess_scr={self.gamess_scr},gamess_userscr={self.gamess_userscr})"
 
 
 def properties_from_axyzc(
@@ -157,7 +167,7 @@ def properties_from_axyzc(
     inptxt = get_input(atoms, coords, header)
 
     # Call GAMESS
-    stdout, stderr = run_gamess(inptxt, **options_gamess)
+    stdout, _ = run_gamess(inptxt, **options_gamess)
 
     assert stdout is not None, "Uncaught exception"
     # TODO Check stderr
@@ -219,8 +229,8 @@ def run_gamess(
     cmd: str = GAMESS_CMD,
     scr: Path = constants.SCR,
     filename: Optional[str] = None,
-    gamess_scr: Path = Path("~/scr"),
-    gamess_userscr: Path = Path("~/scr"),
+    gamess_scr: Path = GAMESS_SCR,
+    gamess_userscr: Path = GAMESS_USERSCR,
     post_clean: bool = True,
     pre_clean: bool = True,
 ) -> Tuple[str, str]:
@@ -231,7 +241,10 @@ def run_gamess(
     # if filename is None
 
     if filename is None:
-        filename = hashlib.md5(input_text.encode()).hexdigest() + ".inp"
+        # filename = hashlib.md5(input_text.encode()).hexdigest() + ".inp"
+        filename = next(random_names)
+
+    assert filename is not None
 
     assert shell.command_exists(cmd), f"Could not find {cmd} in your enviroment"
 
@@ -278,17 +291,16 @@ def run_gamess(
 
 def clean(scr: Path, filename: str) -> None:
 
-    # TODO Use pathlib instead
-
     _logger.debug(f"removing {scr} {filename}")
 
-    scr = scr.expanduser()
+    scr = scr.expanduser().absolute()
 
-    search = str(scr / filename).replace(".inp", "*")
+    files_ = Path(scr).expanduser().glob(filename.replace(".inp", "*"))
 
-    files = glob.glob(search)
+    files = list(files_)
 
     for f in files:
+        print(f)
         os.remove(f)
 
 
@@ -309,11 +321,20 @@ def check_output(output: List[str]) -> bool:
     # grep "IMAGINARY FREQUENCY VIBRATION" *.log
 
 
-def get_errors(lines: List[str]) -> Dict[str, str]:
+def get_errors(lines: List[str]) -> Optional[Dict[str, str]]:
+    """
+    ddikick.x: Execution terminated due to error(s)
+    """
 
     msg = {}
 
     safeword = "NSERCH"
+
+    idx = linesio.get_rev_index(lines, safeword)
+    has_safeword = idx is not None
+
+    if has_safeword:
+        return None
 
     line: Union[str, List[str]]
 
@@ -325,6 +346,7 @@ def get_errors(lines: List[str]) -> Dict[str, str]:
         line_ = ". ".join(line)
         line_ = line_.replace("icharg=", "").replace("mult=", "")
         msg["error"] = line_ + ". Only multiplicity 1 allowed."
+        _logger.error(line)
         return msg
 
     key = "ERROR"
@@ -333,6 +355,7 @@ def get_errors(lines: List[str]) -> Dict[str, str]:
         line = lines[idx]
         line = line.replace("***", "").strip()
         msg["error"] = line
+        _logger.error(line)
         return msg
 
     idx = linesio.get_rev_index(
@@ -343,6 +366,7 @@ def get_errors(lines: List[str]) -> Dict[str, str]:
 
     if idx is not None:
         msg["error"] = "TOO_MANY_STEPS"
+        _logger.error("Optimization failed. Too many steps.")
         return msg
 
     idx = linesio.get_rev_index(
@@ -353,6 +377,28 @@ def get_errors(lines: List[str]) -> Dict[str, str]:
 
     if idx is not None:
         msg["error"] = "SCF_UNCONVERGED"
+        _logger.error("SCF unconverged")
+        return msg
+
+    idx = linesio.get_rev_index(
+        lines,
+        "Error changing to scratch directory",
+        stoppattern=safeword,
+    )
+
+    if idx is not None:
+        msg["error"] = "GAMESS configuration error"
+        _logger.error("GAMESS Scratch directory is bad")
+        return msg
+
+    idx = linesio.get_rev_index(
+        lines,
+        "Please save, rename, or erase these files from a previous run",
+        stoppattern=safeword,
+    )
+    if idx is not None:
+        msg["error"] = "GAMESS Error. Previous undeleted calculations in scratch folder"
+        _logger.error("Previous undeleted calculations in scratch folder with same name")
         return msg
 
     return msg
@@ -376,7 +422,7 @@ def get_properties(lines: List[str], options: dict = {}) -> Optional[dict]:
 
         errors = get_errors(lines)
         if errors is not None:
-            return errors
+            return None
 
         return None
 
