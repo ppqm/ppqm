@@ -2,13 +2,24 @@
 Psi Phi Package
 ===============
 
-Do you need rdkit? Do you need quantum chemistry? We got you bro.
+Do you need RDKit? Do you need quantum chemistry? We got you.
+This package is a simple bridge between RDKit and quantum chemistry (QC) packages
+that lack Python interfaces.
+
+Current version has calculator wrappers for
+
+- GAMESS
+- Gaussian
+- MNDO
+- MOPAC
+- Orca
+- xTB
 
 
-Examples
-========
+Example
+=======
 
-Assume all codesnippets below are using RDKit molecule objs
+Assume all codesnippets below are using RDKit molecule objs.
 
 .. code-block:: python
 
@@ -16,48 +27,37 @@ Assume all codesnippets below are using RDKit molecule objs
     Chem.AddHydrogens(molecule)
     AllChem.UFFOptimizeMolecule(molecule)
 
-Optimize using XTB
+
+The simple usage is to make an instance of a QC software.
+For example, using the popular package xTB, you can define the amount of cores
+to allocate and the exact path to the executable.
 
 .. code-block:: python
 
     from ppqm import XtbCalculator
-    xc = XtbCalculator()
-    molecule2 = xc.optimize(molecule, return_copy=True)
+    xtb = XtbCalculator(cmd="xtb", cores=4)
 
-Example of using GAMESS calculator and using specific options.
-As you notice, GAMESS needs a lot of settings to work with.
+The format for running calculations are based on Python dictionaries, which are
+translated into the right format. So for example running a GFN2 optimization in
+water, the input would be
 
 .. code-block:: python
 
-    from ppqm import GamessCalculator
-
-    # Let's set the complicated GAMESS settings
-    gamess_options = {
-        "scr": "/tmp/node/scr/space/slurm/id",
-        "cmd": "/opt/gamess/rungms",
-        "gamess_scr": "~/scr",
-        "gamess_userscr": "~/userscr",
-    }
-    gc = GamessCalculator(**gamess_options)
-
-    # Now that we have gamess setup, we can then the GAMESS options we all know
-    # and love. Knowing exactly what keywords to set in GAMESS, you'll have to
-    # read the manual
-    calculation_option = {
-        "runtyp": "optimize",
-        "statpt": {
-            "opttol": 0.005,
-            "nstep": 300,
-            "projct": False,
-        }
+    # Define the calculation
+    optimize_options = {,
+        "gfn": 2,,
+        "alpb": "h2o",
+        "opt": None,
     }
 
-    # We then use the options to get properties for the molecule.
-    # The return will be a list of dictionaries, per conformer in the molobj.
-    results = gc.calculate(molecule, calculation_option)
+    # Run the calculation
+    results = xtb.calculate(molecule, optimize_options)
 
-    for properties in results:
-        print(properties)
+    # Results is a List of Dict properties
+    for i, propeties in enumerate(results):
+        print(f"Conformer {i} properties: {properties}")
+
+For more documentation by example, checkout the notebooks directory.
 
 
 Notes on Jupyter usage
@@ -83,7 +83,6 @@ Contributions
 Fork, branch and use pre-commit.
 
 
-
 Other code bases
 ================
 
@@ -101,3 +100,10 @@ and find the one right for your project. Know one, not on the list? Add it.
 - https://gitlab.com/ase/ase
 - https://github.com/cclib/cclib
 - https://github.com/Acellera/moleculekit
+
+
+Future work
+===========
+
+- Separation of concern. The ppqm package should adapt to using `cclib` or
+similar to collect quantum output.
