@@ -13,6 +13,7 @@ from rdkit.Chem.EnumerateStereoisomers import (  # type: ignore[import]
     StereoEnumerationOptions,
 )
 from rdkit.Chem.MolStandardize import rdMolStandardize  # type: ignore[import]
+from rdkit.Chem.rdMolDescriptors import CalcNumUnspecifiedAtomStereoCenters  # type: ignore[import]
 
 from ppqm import units
 
@@ -247,7 +248,7 @@ def enumerate_stereocenters(
     molobj: Mol,
     max_num_unassigned: int = 3,
 ) -> Optional[List[Mol]]:
-    """ Find all un-assigned stereocenteres and assign them 
+    """Find all un-assigned stereocenteres and assign them
     In case an error occurs, it is logged and the function returns None.
     """
 
