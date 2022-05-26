@@ -71,7 +71,31 @@ def test_enumerate_stereocenters() -> None:
     assert smiles_prime in smiles_list
 
 
-def test_find_max_feature() -> None:
+def test_enumerate_stereocenters_multiple()->None:
+
+    start_smi = "BrC=CC1OC(C2)(F)C2(Cl)C1"
+    all_isomer_smis = set([
+        "F[C@@]12C[C@]1(Cl)C[C@@H](/C=C/Br)O2",
+        "F[C@@]12C[C@]1(Cl)C[C@@H](/C=C\Br)O2",
+        "F[C@@]12C[C@]1(Cl)C[C@H](/C=C/Br)O2",
+        "F[C@@]12C[C@]1(Cl)C[C@H](/C=C\Br)O2",
+        "F[C@]12C[C@@]1(Cl)C[C@@H](/C=C/Br)O2",
+        "F[C@]12C[C@@]1(Cl)C[C@@H](/C=C\Br)O2",
+        "F[C@]12C[C@@]1(Cl)C[C@H](/C=C/Br)O2",
+        "F[C@]12C[C@@]1(Cl)C[C@H](/C=C\Br)O2",
+    ])
+
+    molobj = Chem.MolFromSmiles(start_smi)
+    assert molobj is not None
+
+    # Get all enuerated stereo-centers
+    molobj_list = chembridge.enumerate_stereocenters(molobj)
+    stereo_smiles = set([Chem.MolToSmiles(mol) for mol in molobj_list])
+
+    assert stereo_smiles == all_isomer_smis
+
+
+def test_find_max_feature():
     smiles = "CCCCCC.CCCCO"
     smiles_prime = "CCCCO"
     smiles_tau = chembridge.find_max_feature(smiles)
