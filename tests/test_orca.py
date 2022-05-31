@@ -358,9 +358,10 @@ def test_read_properties_compromised_file() -> None:
 def test_parallel(tmp_path: Path) -> None:
     smiles = "C(C(=O)O)N"  # I like glycine
     molobj = Chem.MolFromSmiles(smiles)
+    total_cores = 4
 
     orca_options = _get_options(tmp_path)
-    orca_options = {**orca_options, **dict(n_cores=2, show_progress=True)}
+    orca_options = {**orca_options, **dict(n_cores=total_cores, show_progress=True)}
 
     calc = OrcaCalculator(**orca_options)
 
@@ -374,6 +375,8 @@ def test_parallel(tmp_path: Path) -> None:
         "def2/J": None,
     }
 
+    assert calc.n_cores == total_cores
+
     # new keywords for integration grid in newer version of orca
     # https://sites.google.com/site/orcainputlibrary/numerical-precision
     if int(calc.version[0]) < 5:
@@ -381,12 +384,16 @@ def test_parallel(tmp_path: Path) -> None:
         calculation_option["GridX4"] = None
 
     # generate conformers
-    molobj_conf = tasks.generate_conformers(molobj, max_conformers=2)
+    num_conformers = 2
+    molobj_conf = tasks.generate_conformers(molobj, max_conformers=num_conformers)
 
     # calculate energy of conformers
     results = calc.calculate(molobj_conf, calculation_option)
     assert len(results)
     assert results[1] is not None
+    assert (
+        calc.orca_options["n_cores"] == total_cores / num_conformers
+    )  # update after calc has been called
 
     # test for some values
     scf_energy = results[1]["scf_energy"]
