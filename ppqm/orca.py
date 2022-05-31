@@ -106,7 +106,7 @@ class OrcaCalculator(BaseCalculator):
 
     def calculate(self, molobj: Mol, options: dict) -> List[Optional[dict]]:
 
-        if self.n_cores and self.n_cores > 1:
+        if self.n_cores > 1:
             return self.calculate_parallel(molobj, options)
 
         return self.calculate_serial(molobj, options)
@@ -163,9 +163,9 @@ class OrcaCalculator(BaseCalculator):
 
         # If not singlet "spin" is part of options
         if "spin" in options.keys():
-            spin = str(options.pop("spin"))
+            spin = int(options.pop("spin"))
         else:
-            spin = str(1)
+            spin = int(1)
 
         options_prime = dict(ChainMap(options, self.options))
 
