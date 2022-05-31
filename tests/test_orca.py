@@ -309,8 +309,6 @@ def test_read_properties() -> None:
         "CPCM": "water",
         "RIJCOSX": None,
         "def2/J": None,
-        "Grid4": None,
-        "GridX4": None,
         "NMR": None,
         "def2/JK": None,
     }
@@ -335,8 +333,6 @@ def test_read_properties_compromised_file() -> None:
         "CPCM": "water",
         "RIJCOSX": None,
         "def2/J": None,
-        "Grid4": None,
-        "GridX4": None,
         "NMR": None,
         "def2/JK": None,
     }
@@ -376,9 +372,13 @@ def test_parallel(tmp_path: Path) -> None:
         "CPCM": "water",
         "RIJCOSX": None,
         "def2/J": None,
-        # "Grid4": None,
-        # "GridX4": None,
     }
+
+    # new keywords for integration grid in newer version of orca
+    # https://sites.google.com/site/orcainputlibrary/numerical-precision
+    if int(calc.version[0]) < 5:
+        calculation_option["Grid4"] = None
+        calculation_option["GridX4"] = None
 
     # generate conformers
     molobj_conf = tasks.generate_conformers(molobj, max_conformers=2)
@@ -444,8 +444,6 @@ def test_axyzc_optimize_b3lyp(smiles: str, energy: float, tmp_path: Path) -> Non
         "CPCM": "water",
         "RIJCOSX": None,
         "def2/J": None,
-        # "Grid4": None,
-        # "GridX4": None,
     }
     atoms, coordinates, charge = chembridge.get_axyzc(molobj, atomfmt=str)
 
