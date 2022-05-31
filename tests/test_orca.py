@@ -392,8 +392,9 @@ def test_parallel(tmp_path: Path) -> None:
     assert len(results)
     assert results[1] is not None
     assert (
-        calc.orca_options["n_cores"] == total_cores / num_conformers
+        calc.orca_options["n_cores"] == total_cores // num_conformers
     )  # update after calc has been called
+    assert calc.n_cores == total_cores  # should not have changed
 
     # test for some values
     scf_energy = results[1]["scf_energy"]
