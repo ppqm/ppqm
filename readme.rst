@@ -101,3 +101,4 @@ and find the one right for your project. Know one, not on the list? Add it.
 - https://gitlab.com/ase/ase
 - https://github.com/cclib/cclib
 - https://github.com/Acellera/moleculekit
+- https://github.com/jvalegre/aqme
