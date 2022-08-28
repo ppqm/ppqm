@@ -82,24 +82,23 @@ Contributions
 
 Fork, branch and use pre-commit.
 
-
 Other code bases
 ================
 
 "is this the first python wrapper for quantum chemistry?" No, check the others
-and find the one right for your project. Know one, not on the list? Add it.
+and find the one right for your project. Know one, not on the list? Add it. In
+alphabetic order.
 
-
-- https://github.com/kzfm/pygamess
-- https://github.com/duartegroup/autodE/
-- https://github.com/JelfsMaterialsGroup/stko
-- https://github.com/lukasturcani/stk
-- https://github.com/MolSSI
-- https://github.com/datamol-org/datamol
-- https://github.com/ekwan/cctk
-- https://gitlab.com/ase/ase
-- https://github.com/cclib/cclib
 - https://github.com/Acellera/moleculekit
+- https://github.com/JelfsMaterialsGroup/stko
+- https://github.com/MolSSI
+- https://github.com/cclib/cclib
+- https://github.com/datamol-org/datamol
+- https://github.com/duartegroup/autodE/
+- https://github.com/ekwan/cctk
+- https://github.com/kzfm/pygamess
+- https://github.com/lukasturcani/stk
+- https://gitlab.com/ase/ase
 
 
 Future work
