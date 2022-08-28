@@ -26,7 +26,7 @@ jobs:
           environment-file: environment_interactive.yml
           python-version: ${{ matrix.python-version }}
       - run: |
-          pip install src/
+          pip install .
       - run: |
           ls
           pwd
