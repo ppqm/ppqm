@@ -5,7 +5,11 @@ from conftest import RESOURCES
 from rdkit import Chem  # type: ignore[import]
 
 from ppqm import chembridge, orca, tasks, units
-from ppqm.orca import OrcaCalculator
+from ppqm.orca import ORCA_CMD, OrcaCalculator
+from ppqm.utils.shell import which
+
+if not which(ORCA_CMD):
+    pytest.skip("Could not find orca executable", allow_module_level=True)
 
 TEST_ENERGIES_PM3 = [
     ("O", -11.935809225486 * units.hartree_to_kcalmol),

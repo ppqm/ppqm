@@ -5,7 +5,11 @@ import numpy as np
 import pytest
 
 from ppqm import chembridge, constants, gamess, tasks
-from ppqm.gamess import COLUMN_THERMO, GamessCalculator
+from ppqm.gamess import COLUMN_THERMO, GAMESS_CMD, GamessCalculator
+from ppqm.utils.shell import which
+
+if not which(GAMESS_CMD) is None:
+    pytest.skip("Could not find GAMESS executable", allow_module_level=True)
 
 
 def _get_options(scr: Path) -> dict:

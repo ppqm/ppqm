@@ -5,6 +5,11 @@ from conftest import RESOURCES
 from rdkit import Chem  # type: ignore[import]
 
 from ppqm import chembridge, tasks, xtb
+from ppqm.utils.shell import which
+
+if not which(xtb.XTB_CMD):
+    pytest.skip("Could not find xTB executable", allow_module_level=True)
+
 
 TEST_ENERGIES = [
     ("O", -5.0705443306),
