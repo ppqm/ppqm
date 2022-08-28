@@ -11,7 +11,7 @@ from typing import Any, Callable, Dict, List, Optional, Union
 import numpy as np
 from tqdm import tqdm  # type: ignore[import]
 
-from ppqm import chembridge, constants, units
+from ppqm import chembridge, constants
 from ppqm.calculator import BaseCalculator
 from ppqm.chembridge import Mol
 from ppqm.utils import WorkDir, func_parallel, linesio, shell
@@ -106,7 +106,7 @@ class OrcaCalculator(BaseCalculator):
 
     def calculate(self, molobj: Mol, options: dict) -> List[Optional[dict]]:
 
-        if self.n_cores and self.n_cores > 1:
+        if self.n_cores > 1:
             return self.calculate_parallel(molobj, options)
 
         return self.calculate_serial(molobj, options)
@@ -163,9 +163,9 @@ class OrcaCalculator(BaseCalculator):
 
         # If not singlet "spin" is part of options
         if "spin" in options.keys():
-            spin = str(options.pop("spin"))
+            spin = int(options.pop("spin"))
         else:
-            spin = str(1)
+            spin = int(1)
 
         options_prime = dict(ChainMap(options, self.options))
 
@@ -429,8 +429,7 @@ def read_properties_sp(lines: List[str], atom_number: int) -> dict:
 
     for line in lines:
         if "FINAL SINGLE POINT ENERGY" in line:
-            # TODO JCK Not sure if there sohuld be a convertion here, might be misleading
-            scf_energy = float(line.split()[4]) * units.hartree_to_kcalmol
+            scf_energy = float(line.split()[4])
             properties[COLUMN_SCF_ENERGY] = scf_energy
             break
 
@@ -496,7 +495,7 @@ def get_gibbs_free_energy(lines: List[str], atom_number: int) -> Optional[dict]:
     gibbs_free_energy = None  # Return None by default
     for line in lines:
         if "Final Gibbs free energy" in line:
-            gibbs_free_energy = float(line.split()[5]) * units.hartree_to_kcalmol
+            gibbs_free_energy = float(line.split()[5])
             break
 
     return {COLUMN_GIBBS_FREE_ENERGY: gibbs_free_energy}
@@ -507,7 +506,7 @@ def get_enthalpy(lines: List[str], atom_number: int) -> Optional[dict]:
     enthalpy = None  # Return None by default
     for line in lines:
         if "Total enthalpy" in line:
-            enthalpy = float(line.split()[3]) * units.hartree_to_kcalmol
+            enthalpy = float(line.split()[3])
             break
 
     return {COLUMN_ENTHALPY: enthalpy}
@@ -518,7 +517,7 @@ def get_entropy(lines: List[str], atom_number: int) -> Optional[dict]:
     entropy = None  # Return None by default
     for line in lines:
         if "Final entropy term" in line:
-            entropy = float(line.split()[4]) * units.hartree_to_kcalmol
+            entropy = float(line.split()[4])
             break
 
     return {COLUMN_ENTROPY: entropy}
