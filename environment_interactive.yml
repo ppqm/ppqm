@@ -1,4 +1,4 @@
-name: ppqm_interative
+name: ppqm_interactive
 channels:
   - conda-forge
   - defaults
