@@ -3,17 +3,17 @@ mamba=mamba
 pkg=ppqm
 
 
-env:
+env_minimal:
 	${mamba} env create -f ./environment.yml -p ./env
 
-env_interactive:
+env:
 	${mamba} env create -f ./environment_interactive.yml -p ./env
 
 setup-dev:
 	pre-commit install
 
 test:
-	${python} -m pytest -vrs tests
+	${python} -m pytest -rs tests
 
 cov:
 	${python} -m pytest -vrs --cov=${pkg} --cov-report html tests

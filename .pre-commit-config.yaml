@@ -10,6 +10,15 @@ repos:
       - id: check-yaml
         args: ["--unsafe"]
       - id: check-added-large-files
+      - id: check-ast
+      - id: check-json
+      - id: debug-statements
+      - id: detect-aws-credentials
+        args: [--allow-missing-credentials]
+      - id: detect-private-key
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ['--maxkb=3000']
 
   - repo: https://github.com/myint/autoflake
     rev: v1.4
@@ -23,7 +32,7 @@ repos:
           - --ignore-init-module-imports
 
   - repo: https://github.com/pre-commit/mirrors-isort
-    rev: v5.7.0
+    rev: v5.10.1
     hooks:
       - id: isort
         name: Sorts imports
@@ -37,7 +46,7 @@ repos:
         ]
 
   - repo: https://github.com/psf/black
-    rev: 20.8b1
+    rev: 22.3.0
     hooks:
       - id: black
         name: Fixes formatting
@@ -46,7 +55,7 @@ repos:
 
 
   - repo: https://gitlab.com/pycqa/flake8
-    rev: 3.8.4
+    rev: 4.0.1
     hooks:
       - id: flake8
         name: Checks pep8 style
@@ -60,8 +69,20 @@ repos:
           "--ignore=E501,E203,W503",
         ]
 
+  # - repo: https://github.com/pre-commit/mirrors-mypy
+  #   rev: v0.782
+  #   hooks:
+  #   - id: mypy
+  #     args: [--ignore-missing-imports]
+
   - repo: local
     hooks:
+
+      - id: mypy
+        name: Static type checking
+        entry: mypy
+        files: \.py$
+        language: python
 
       - id: jupyisort
         name: Sorts ipynb imports

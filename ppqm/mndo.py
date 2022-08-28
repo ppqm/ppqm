@@ -1,114 +1,129 @@
-import copy
-import os
+import logging
+from pathlib import Path
+from typing import Any, Dict, Generator, List, Optional, Union
 
 import numpy as np
 
-from ppqm import chembridge, constants, linesio, shell
+from ppqm import chembridge, constants
 from ppqm.calculator import BaseCalculator
+from ppqm.chembridge import Mol
+from ppqm.utils import linesio, shell
+
+_logger = logging.getLogger(__name__)
 
 MNDO_CMD = "mndo"
 MNDO_ATOMLINE = "{atom:2s} {x} {opt_flag} {y} {opt_flag} {z} {opt_flag}"
 
 
 class MndoCalculator(BaseCalculator):
-    def __init__(self, cmd=MNDO_CMD, scr=constants.SCR, method="PM3"):
+    def __init__(
+        self,
+        cmd: str = MNDO_CMD,
+        scr: Path = constants.SCR,
+        n_cores: int = 1,
+        show_progress: bool = False,
+    ) -> None:
 
         super().__init__(scr=scr)
 
         self.cmd = cmd
-        self.method = method
 
         # TODO should be a parameter
         self.read_params = False
 
         # Constants
         self.atomline = MNDO_ATOMLINE
-        self.filename = "_tmp_mndo.inp"
+        self.default_filename = "_tmp_mndo.inp"
 
-    def optimize(
-        self,
-        molobj,
-        return_copy=True,
-        return_properties=False,
-        read_params=False,
-    ):
+        self.n_cores = n_cores
+        self.show_progress = show_progress
 
-        header = (
-            "{self.method} MULLIK PRECISE charge={charge} jprint=5\n" "nextmol=-1\nTITLE {title}"
-        )
+        # "{self.method} MULLIK PRECISE charge={charge} " "jprint=5\nnextmol=-1\nTITLE {title}"
+        self.default_options: Dict[str, Any] = {
+            "mullik": None,
+            "precise": None,
+            "jprint": 5,
+        }
 
-        if return_copy:
-            molobj = copy.deepcopy(molobj)
+    # def optimize(
+    #     self,
+    #     molobj: Mol,
+    #     return_copy: bool = True,
+    #     read_params: bool = False,
+    # )->Mol:
+    #
+    #     raise NotImplementedError
+    #
+    #     header = (
+    #         "{self.method} MULLIK PRECISE charge={charge} jprint=5\n" "nextmol=-1\nTITLE {title}"
+    #     )
+    #
+    #     if return_copy:
+    #         molobj = copy.deepcopy(molobj)
+    #
+    #     result_properties = self.calculate(molobj, header, optimize=True)
+    #
+    #     for _, properties in enumerate(result_properties):
+    #
+    #         if "coord" not in properties:
+    #             pass
+    #             # TODO What need to happen here? @anders
+    #
+    #         properties["coord"]
+    #
+    #         # TODO Set coord on conformer
+    #
+    #     return molobj
 
-        result_properties = self.calculate(molobj, header, optimize=True)
+    # def optimize_axyzc(self, atoms, coord, charge, title=""):
+    #     """"""
+    #     raise NotImplementedError
+    #
+    #     header = (
+    #         "{self.method} MULLIK PRECISE charge={charge} " "jprint=5\nnextmol=-1\nTITLE {title}"
+    #     )
+    #
+    #     properties_ = self.calculate_axyzc(atoms, coord, header, optimize=True)
+    #
+    #     return properties_
 
-        for i, properties in enumerate(result_properties):
+    def calculate(
+        self, molobj: Mol, options: dict, optimize: bool = False
+    ) -> List[Optional[dict]]:
 
-            if "coord" not in properties:
-                pass
-                # TODO What need to happen here? @anders
-
-            properties["coord"]
-
-            # TODO Set coord on conformer
-
-        return molobj
-
-    def optimize_axyzc(self, atoms, coord, charge, title=""):
-        """"""
-
-        header = (
-            "{self.method} MULLIK PRECISE charge={charge} " "jprint=5\nnextmol=-1\nTITLE {title}"
-        )
-
-        properties_ = self.calculate_axyzc(atoms, coord, header, optimize=True)
-
-        return properties_
-
-    def calculate(self, molobj, header, optimize=False):
+        # TODO Parallel interface
 
         input_string = self._get_input_from_molobj(
             molobj,
-            self.method,
+            options,
             read_params=self.read_params,
             optimize=optimize,
         )
 
-        filename = os.path.join(self.scr, self.filename)
+        filename = self.scr / self.default_filename
 
+        # TODO Split into multiple files, based on cores
         with open(filename, "w") as f:
             f.write(input_string)
 
-        calculations = self._run_mndo_file()
+        calculations = self._run_mndo_file(filename, scr=self.scr)
 
-        for output_lines in calculations:
-            properties = get_properties(output_lines)
-            yield properties
+        result: List[Optional[dict]] = [get_properties(lines) for lines in calculations]
 
-        return
+        return result
 
-    def calculate_axyzc(self, atoms, coords, header, optimize=False):
+    def _run_mndo_file(
+        self, filename: Path, scr: Optional[Path] = None
+    ) -> Generator[List[str], None, None]:
 
-        input_txt = get_input(atoms, coords, header, optimize=optimize)
+        runcmd = f"{self.cmd} < {filename}"
 
-        filename = os.path.join(self.scr, self.filename)
+        _logger.debug(f"Running mndo: {runcmd} in {scr}")
 
-        with open(filename, "w") as f:
-            f.write(input_txt)
+        print(runcmd)
+        print(scr)
 
-        calculations = self._run_mndo_file()
-
-        for output_lines in calculations:
-            properties = get_properties(output_lines)
-            yield properties
-
-        return
-
-    def _run_mndo_file(self):
-
-        runcmd = f"{self.cmd} < {self.filename}"
-
-        lines = shell.stream(runcmd, cwd=self.scr)
+        lines = shell.stream(runcmd, cwd=scr)
 
         molecule_lines = []
 
@@ -125,19 +140,22 @@ class MndoCalculator(BaseCalculator):
 
         return
 
-    def _get_input_from_molobj(self, molobj, header, read_params=False, optimize=False, title=""):
+    def _get_input_from_molobj(
+        self, molobj: Mol, options: dict, read_params: bool = False, optimize: bool = False
+    ) -> str:
         """"""
 
-        # TODO Switch from header to options
+        atoms, _, charge = chembridge.get_axyzc(molobj, atomfmt=str)
 
-        atoms, _, charge = chembridge.molobj_to_axyzc(molobj, atom_type="str")
+        options = {**options, "charge": charge}
+        header = get_header(options)
 
         n_confs = molobj.GetNumConformers()
 
         # Create input
         txt = []
         for i in range(n_confs):
-            coord = chembridge.molobj_to_coordinates(molobj, idx=i)
+            coord = chembridge.get_coordinates(molobj, confid=i)
             # header_prime = header.format(
             #     charge=charge, method=self.method, title=f"{title}_Conf_{i}"
             # )
@@ -145,26 +163,51 @@ class MndoCalculator(BaseCalculator):
                 atoms,
                 coord,
                 header,
-                read_params=self.read_params,
+                read_params=read_params,
                 optimize=optimize,
             )
             txt.append(tx)
 
-        txt = "".join(txt)
+        return "".join(txt)
 
-        return txt
-
-    def _set_input_file(self, input_str):
-
-        # TODO Set in scr
-
-        return
-
-    def __repr__(self):
-        return "MndoCalc(cmd={self.cmd},scr={self.scr}method={self.method})"
+    def __repr__(self) -> str:
+        return f"MndoCalc(cmd={self.cmd},scr={self.scr},n_cores={self.n_cores})"
 
 
-def get_input(atoms, coords, header, read_params=False, optimize=False):
+def get_header(options: dict) -> str:
+    """return mndoheader from options dict"""
+
+    "{self.method} MULLIK PRECISE charge={charge} jprint=5\nnextmol=-1\nTITLE {title}"
+
+    title = options.get("title", "TITLE")
+    if "title" in options:
+        del options["title"]
+
+    header: List[Any] = [""] * 4
+    header[0] = list()
+    header[1] = "nnextmol=-1"
+    header[2] = title
+
+    for key, val in options.items():
+
+        if val is not None:
+            keyword = f"{key}={val}"
+        else:
+            keyword = f"{key}"
+
+        header[0].append(keyword)
+
+    header[0] = " ".join(header[0])
+    return "\n".join(header)
+
+
+def get_input(
+    atoms: Union[List[str], np.ndarray],
+    coords: np.ndarray,
+    header: str,
+    read_params: bool = False,
+    optimize: bool = False,
+) -> str:
     """
     # note: internal coordinates are assumed for three-atom systems
 
@@ -176,9 +219,9 @@ def get_input(atoms, coords, header, read_params=False, optimize=False):
     txt = header
 
     if read_params:
-        txt = txt.split("\n")
-        txt[0] += " iparok=1"
-        txt = "\n".join(txt)
+        txt_ = txt.split("\n")
+        txt_[0] += " iparok=1"
+        txt = "\n".join(txt_)
 
     txt += "\n"
 
@@ -204,17 +247,13 @@ def get_input(atoms, coords, header, read_params=False, optimize=False):
 
     txt += "\n"
 
-    return
+    return txt
 
 
-def get_internal_coordinates(atoms, coord, optimize=False):
-    """
-
-    :param atoms: List[Str]
-    :param coord: Array[]
-    :param optimize: Boolean
-    :return Str:
-    """
+def get_internal_coordinates(
+    atoms: Union[List[str], np.ndarray], coord: np.ndarray, optimize: bool = False
+) -> str:
+    """Get MNDO input in internal coordinates format"""
 
     n_atoms = len(atoms)
 
@@ -252,14 +291,7 @@ def get_internal_coordinates(atoms, coord, optimize=False):
     return output
 
 
-def run_mndo_file(filename, scr=None, mndo_cmd=MNDO_CMD):
-
-    # TODO Needed here? or force people to use class
-
-    return
-
-
-def get_properties(output):
+def get_properties(output: List[str]) -> Optional[dict]:
     """"""
 
     if isinstance(output, str):
@@ -274,7 +306,7 @@ def get_properties(output):
     return result
 
 
-def get_properties_1scf(lines):
+def get_properties_1scf(lines: List[str]) -> Optional[dict]:
 
     properties = {}
 
@@ -282,6 +314,7 @@ def get_properties_1scf(lines):
     # INPUT IN INTERNAL COORDINATES
     # INPUT IN CARTESIAN COORDINATES
     idx = linesio.get_index(lines, "INPUT IN")
+    assert idx is not None, "Uncaught MNDO error"
     line = lines[idx]
     is_internal = "INTERNAL" in line
 
@@ -292,7 +325,7 @@ def get_properties_1scf(lines):
         "INPUT GEOMETRY",
     ]
 
-    idx_keywords = linesio.get_rev_indexes(lines, keywords)
+    idx_keywords = linesio.get_rev_indices_patterns(lines, keywords)
 
     # SCF energy
     idx_core = idx_keywords[0]
@@ -309,11 +342,11 @@ def get_properties_1scf(lines):
             line = lines[idx]
 
         # NOTE This should never happen, but better safe than sorry
-        line = line.split()
-        if len(line) < 2:
+        line_ = line.split()
+        if len(line_) < 2:
             e_scf = float("nan")
         else:
-            value = line[1]
+            value = line_[1]
             e_scf = float(value)
 
         properties["e_scf"] = e_scf  # ev
@@ -325,30 +358,30 @@ def get_properties_1scf(lines):
     else:
         idx = idx_keywords[1]
         line = lines[idx]
-        line = line.split()
-        value = line[2]
+        line_ = line.split()
+        value = line_[2]
         e_nuc = float(value)
         properties["e_nuc"] = e_nuc  # ev
 
     # eisol
     eisol = dict()
-    idxs = linesio.get_indexes_with_stop(lines, "EISOL", "IDENTIFICATION")
+    idxs = linesio.get_rev_indices(lines, "EISOL", stoppattern="IDENTIFICATION")
     for idx in idxs:
         line = lines[idx]
-        line = line.split()
-        atom = int(line[0])
+        line_ = line.split()
+        atom = int(line_[0])
         value = line[2]
         eisol[atom] = float(value)  # ev
 
     # # Enthalpy of formation
     idx_hof = linesio.get_index(lines, "SCF HEAT OF FORMATION")
+    assert idx_hof is not None, "Uncaught MNDO exception"
     line = lines[idx_hof]
-    line = line.split("FORMATION")
-    line = line[1]
-    line = line.split()
-    value = line[0]
-    value = float(value)
-    properties["h"] = value  # kcal/mol
+    line_ = line.split("FORMATION")
+    line = line_[1]
+    line_ = line.split()
+    value = line_[0]
+    properties["h"] = float(value)  # kcal/mol
 
     # ionization
     # idx = get_rev_index(lines, "IONIZATION ENERGY")
@@ -383,15 +416,15 @@ def get_properties_1scf(lines):
         idx_z = 4
 
         idx_coord = linesio.get_index(lines, "INITIAL CARTESIAN COORDINATES")
+        assert idx_coord is not None, "Uncaught MNDO error"
         idx_coord += 5
 
         j = idx_coord
         # continue until we hit a blank line
         while not lines[j].isspace() and lines[j].strip():
-            line = lines[j].split()
+            line_ = lines[j].split()
 
-            atom = line[idx_atm]
-            atom = int(atom)
+            atom = int(line_[idx_atm])
             x = float(line[idx_x])
             y = float(line[idx_y])
             z = float(line[idx_z])
@@ -409,24 +442,24 @@ def get_properties_1scf(lines):
         idx_z = 4
 
         idx = idx_keywords[3]
+        assert idx is not None, "Uncaght MNDO error"
         idx += 6
 
         j = idx
         # continue until we hit a blank line
         while not lines[j].isspace() and lines[j].strip():
-            line = lines[j].split()
-            atoms.append(int(line[idx_atm]))
-            x = line[idx_x]
-            y = line[idx_y]
-            z = line[idx_z]
+            line_ = lines[j].split()
+            atoms.append(int(line_[idx_atm]))
+            x = float(line_[idx_x])
+            y = float(line_[idx_y])
+            z = float(line_[idx_z])
             xyz = [x, y, z]
-            xyz = [float(c) for c in xyz]
             coord.append(xyz)
             j += 1
 
     # calculate energy
-    e_iso = [eisol[a] for a in atoms]
-    e_iso = np.sum(e_iso)
+    e_iso_ = [eisol[a] for a in atoms]
+    e_iso = np.sum(e_iso_)
     energy = e_nuc + e_scf - e_iso
 
     properties["energy"] = energy
@@ -434,27 +467,28 @@ def get_properties_1scf(lines):
     return properties
 
 
-def get_properties_optimize(lines):
+def get_properties_optimize(lines: List[str]) -> Optional[dict]:
     """
 
     TODO Read how many steps
 
     """
 
-    properties = {}
+    properties: Dict[str, Any] = {}
 
     # # Enthalpy of formation
     idx_hof = linesio.get_index(lines, "SCF HEAT OF FORMATION")
+    assert idx_hof is not None, "Uncaught MNDO error"
     line = lines[idx_hof]
-    line = line.split("FORMATION")
-    line = line[1]
-    line = line.split()
-    value = line[0]
-    value = float(value)
-    properties["h"] = value  # kcal/mol
+    line_ = line.split("FORMATION")
+    line = line_[1]
+    line_ = line.split()
+    value = line_[0]
+    properties["h"] = float(value)  # kcal/mol
 
     # optimized coordinates
     i = linesio.get_rev_index(lines, "CARTESIAN COORDINATES")
+    assert i is not None, "Uncaught MNDO error"
     idx_atm = 1
     idx_x = 2
     idx_y = 3
@@ -463,6 +497,7 @@ def get_properties_optimize(lines):
 
     if i < idx_hof:
         i = linesio.get_rev_index(lines, "X-COORDINATE")
+        assert i is not None, "Uncaught MNDO error"
         idx_atm = 1
         idx_x = 2
         idx_y = 4
@@ -475,24 +510,16 @@ def get_properties_optimize(lines):
 
     # continue until we hit a blank line
     while not lines[j].isspace() and lines[j].strip():
-        line = lines[j].split()
-        symbols.append(int(line[idx_atm]))
-        x = line[idx_x]
-        y = line[idx_y]
-        z = line[idx_z]
+        line_ = lines[j].split()
+        symbols.append(int(line_[idx_atm]))
+        x = float(line[idx_x])
+        y = float(line[idx_y])
+        z = float(line[idx_z])
         xyz = [x, y, z]
-        xyz = [float(c) for c in xyz]
         coord.append(xyz)
         j += 1
 
-    coord = np.array(coord)
-    properties["coord"] = coord
+    properties["coord"] = np.array(coord)
     properties["atoms"] = symbols
 
-    return
-
-
-def get_properties_gradient():
-    """"""
-
-    return
+    return properties

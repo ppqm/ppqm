@@ -1,17 +1,20 @@
 import logging
-import pathlib
-import tempfile
 from collections import ChainMap
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional, Union
 
-from tqdm import tqdm
+import numpy as np
+from tqdm import tqdm  # type: ignore[import]
 
-from ppqm import chembridge, constants, linesio, shell, units
+from ppqm import chembridge, constants, units
 from ppqm.calculator import BaseCalculator
+from ppqm.chembridge import Mol
+from ppqm.utils import WorkDir, linesio, shell
 
 G16_CMD = "g16"
 G16_FILENAME = "_tmp_g16_input.com"
 
-_logger = logging.getLogger("g16")
+_logger = logging.getLogger(__name__)
 
 COLUMN_SCF_ENERGY = "scf_energy"
 COLUMN_CONVERGED = "is_converged"
@@ -25,12 +28,12 @@ COLUMN_SHIELDING_CONSTANTS = "shielding_constants"
 class GaussianCalculator(BaseCalculator):
     def __init__(
         self,
-        cmd=G16_CMD,
-        filename=G16_FILENAME,
-        show_progress=False,
-        n_cores=None,
-        memory=2,
-        **kwargs,
+        cmd: str = G16_CMD,
+        filename: str = G16_FILENAME,
+        show_progress: bool = False,
+        n_cores: int = 1,
+        memory: int = 2,
+        **kwargs: Any,
     ):
 
         super().__init__(**kwargs)
@@ -41,26 +44,27 @@ class GaussianCalculator(BaseCalculator):
         self.memory = memory
         self.show_progress = show_progress
 
-        self.g16_options = {
+        self.g16_options: Dict[str, Any] = {
             "cmd": self.cmd,
             "scr": self.scr,
             "filename": self.filename,
             "memory": self.memory,
         }
 
-        # Default G16 options
-        self.options = {}
+        self.options: Dict[str, Any] = {}
 
-        #
         self.health_check()
 
     def __repr__(self) -> str:
         return f"G16Calc(cmd={self.cmd}, scr={self.scr}, n_cores={self.n_cores}, memory={self.memory}gb)"
 
-    def health_check(self):
+    def health_check(self) -> None:
         """ """
+        # TODO Check version
 
-    def calculate(self, molobj, options, footer=None):
+    def calculate(
+        self, molobj: Mol, options: dict, footer: Optional[str] = None
+    ) -> List[Optional[dict]]:
         """ """
 
         if self.n_cores > 1:
@@ -70,21 +74,23 @@ class GaussianCalculator(BaseCalculator):
 
         return results
 
-    def calculate_serial(self, molobj, options, footer=None):
+    def calculate_serial(
+        self, molobj: Mol, options: dict, footer: Optional[str] = None
+    ) -> List[Optional[dict]]:
         """ """
 
         # If not singlet "spin" is part of options
         if "spin" in options.keys():
-            spin = str(options.pop("spin"))
+            spin = int(options.pop("spin"))
         else:
-            spin = str(1)
+            spin = int(1)
 
-        options_prime = ChainMap(options, self.options)
-        options_prime = dict(options_prime)
+        options_prime = dict(ChainMap(options, self.options))
 
         n_confs = molobj.GetNumConformers()
         atoms, _, charge = chembridge.get_axyzc(molobj, atomfmt=str)
 
+        pbar = None
         if self.show_progress:
             pbar = tqdm(
                 total=n_confs,
@@ -109,81 +115,90 @@ class GaussianCalculator(BaseCalculator):
 
             properties_list.append(properties)
 
-            if self.show_progress:
+            if pbar:
                 pbar.update(1)
 
-        if self.show_progress:
+        if pbar:
             pbar.close()
 
         return properties_list
 
 
 def get_properties_from_axyzc(
-    atoms_str,
-    coordinates,
-    charge,
-    spin,
-    options=None,
-    scr=constants.SCR,
-    clean_tempfiles=False,
-    cmd=G16_CMD,
-    filename=G16_FILENAME,
-    footer=None,
-    **kwargs,
-):
-
-    if isinstance(scr, str):
-        scr = pathlib.Path(scr)
+    atoms_str: Union[List[str], np.ndarray],
+    coordinates: np.ndarray,
+    charge: int,
+    spin: int,
+    options: dict = {},
+    scr: Path = constants.SCR,
+    cmd: str = G16_CMD,
+    filename: str = G16_FILENAME,
+    footer: Optional[str] = None,
+    keep_files: bool = False,
+    memory: int = 2,
+) -> Optional[dict]:
 
     if not filename.endswith(".com"):
         filename += ".com"
 
-    tempdir = tempfile.TemporaryDirectory(dir=scr, prefix="g16_")
-    scr = pathlib.Path(tempdir.name)
+    workdir = WorkDir(dir=scr, prefix="gaussian_", keep=keep_files)
+    scr = workdir.get_path()
 
     # write input file
-    input_header = get_header(options, **kwargs)
+    input_header = get_header(options, memory=memory)
 
     inputstr = get_inputfile(
-        atoms_str, coordinates, charge, spin, input_header, footer=footer, title="g16 input"
+        atoms_str, coordinates, charge, spin, input_header, footer=footer, title="gaussian input"
     )
 
     with open(scr / filename, "w") as f:
         f.write(inputstr)
 
+    assert shell.which(cmd), f"Could not find {cmd}"
+
     # Run subprocess cmd
     cmd = " ".join([cmd, filename])
     _logger.debug(cmd)
+    _logger.debug(scr)
 
-    lines = shell.stream(cmd, cwd=scr)
-    lines = list(lines)
+    lines = list(shell.stream(cmd, cwd=scr))
 
-    # for line in lines:
-    #    print(line.strip())
-    # print("="*80 )
-    # print()
+    stdout, stderr = shell.execute(cmd, cwd=scr)
+
+    assert stdout is not None
+    assert stderr is not None
+
+    lines = stdout.split() + stderr.split()
+
+    if not len(lines):
+        with open((scr / filename).with_suffix(".log"), "r") as f:
+            lines = f.readlines()
 
     termination_pattern = "Normal termination of Gaussian"
     idx = linesio.get_rev_index(lines, termination_pattern, stoppattern="File lengths")
     if idx is None:
-        _logger.critical("Abnormal termination of Gaussian")
+        _logger.error("Abnormal termination of Gaussian")
         return None
 
     # Parse properties from Gaussian output
     properties = read_properties(lines, options)
 
-    # Clean scr dir. TODO: Does this work??
-    if clean_tempfiles:
-        tempdir.cleanup()
-
     return properties
 
 
-def get_inputfile(atom_strs, coordinates, charge, spin, header, footer=None, **kwargs):
+def get_inputfile(
+    atom_strs: Union[List[str], np.ndarray],
+    coordinates: np.ndarray,
+    charge: int,
+    spin: int,
+    header: str,
+    footer: Optional[str] = None,
+    title: str = "title",
+) -> str:
     """ """
 
     inputstr = header + 2 * "\n"
-    inputstr += f"  {kwargs['title']}" + 2 * "\n"
+    inputstr += f"  {title}" + 2 * "\n"
 
     inputstr += f"{charge}  {spin} \n"
     for atom_str, coord in zip(atom_strs, coordinates):
@@ -196,10 +211,10 @@ def get_inputfile(atom_strs, coordinates, charge, spin, header, footer=None, **k
     return inputstr
 
 
-def get_header(options, **kwargs):
-    """ Write G16 header """
+def get_header(options: dict, memory: int = 2) -> str:
+    """Write G16 header"""
 
-    header = f"%mem={kwargs.pop('memory')}gb\n"
+    header = f"%mem={memory}gb\n"
     header += "# "
     for key, value in options.items():
         if (value is None) or (not value):
@@ -218,11 +233,11 @@ def get_header(options, **kwargs):
     return header
 
 
-def read_properties(lines, options):
-    """ Extract values from output depending on calculation options """
+def read_properties(lines: List[str], options: dict) -> Optional[dict]:
+    """Extract values from output depending on calculation options"""
 
     # Collect readers
-    readers = []
+    readers: List[Callable] = []
 
     if "opt" in options:
         raise NotImplementedError("not implemented opt properties parser")
@@ -252,10 +267,8 @@ def read_properties(lines, options):
     return properties
 
 
-def read_properties_sp(lines):
-    """
-    Read Mulliken charges
-    """
+def read_properties_sp(lines: List[str]) -> Optional[dict]:
+    """Read Mulliken charges"""
     properties = dict()
 
     for line in lines:
@@ -264,46 +277,57 @@ def read_properties_sp(lines):
             properties[COLUMN_SCF_ENERGY] = scf_energy
             break
 
-    properties.update(get_mulliken_charges(lines))
+    charges = get_mulliken_charges(lines)
+
+    if charges is not None:
+        properties.update(charges)
 
     return properties
 
 
-def read_properties_opt(lines):
+def read_properties_opt(lines: List[str]) -> dict:
     """ """
+    raise NotImplementedError
 
 
-def get_mulliken_charges(lines):
-    """ Read Mulliken charges """
+def get_mulliken_charges(lines: List[str]) -> Optional[dict]:
+    """Read Mulliken charges"""
     keywords = ["Mulliken charges:", "Sum of Mulliken charges"]
     start, stop = linesio.get_rev_indices_patterns(lines, keywords)
+    if start is None or stop is None:
+        return None
     mulliken_charges = [float(x.split()[-1]) for x in lines[start + 2 : stop]]
     return {COLUMN_MULIKEN_CHARGES: mulliken_charges}
 
 
-def get_hirsfeld_charges(lines):
-    """ Read Hirsfeld charges - run a NBO calculation"""
+def get_hirsfeld_charges(lines: List[str]) -> Optional[dict]:
+    """Read Hirsfeld charges - run a NBO calculation"""
     keywords = ["Hirshfeld charges,", "Hirshfeld charges with"]
     start, stop = linesio.get_indices_patterns(lines, keywords)
+    if start is None or stop is None:
+        return None
     hirshfeld_charges = [float(line.split()[2]) for line in lines[start + 2 : stop - 1]]
 
     return {COLUMN_HIRSHFELD_CHARGES: hirshfeld_charges}
 
 
-def get_cm5_charges(lines):
-    """ Read CM5 charges - run a NBO calculation"""
+def get_cm5_charges(lines: List[str]) -> Optional[dict]:
+    """Read CM5 charges - run a NBO calculation"""
     keywords = ["Hirshfeld charges,", "Hirshfeld charges with"]
     start, stop = linesio.get_indices_patterns(lines, keywords)
+    if start is None or stop is None:
+        return None
     cm5_charges = [float(line.split()[-1]) for line in lines[start + 2 : stop - 1]]
 
     return {COLUMN_CM5_CHARGES: cm5_charges}
 
 
-def get_nbo_bond_orders(lines):
+def get_nbo_bond_orders(lines: List[str]) -> Optional[dict]:
     """
     Read Wiberg index - run a NBOread calculation.
     N.B. add $nbo bndidx $end to the footer.
     """
+
     keywords = ["Wiberg bond index matrix", "Wiberg bond index"]
     start, stop = linesio.get_indices_patterns(lines, keywords)
 
@@ -312,12 +336,12 @@ def get_nbo_bond_orders(lines):
         return None
 
     # Extract Bond order matrix
-    bond_idx_blocks = []
+    bond_idx_blocks: List[List[List[float]]] = []
     block_idx = 0
     for line in lines[start + 1 : stop]:
-        line = line.strip().split()
-        if line:  # filter empty strings
-            if "Atom" in line:
+        line_ = line.strip().split()
+        if len(line_):  # filter empty strings
+            if "Atom" in line_:
                 continue
 
             if set("".join(line)).issubset(set("-")):
@@ -325,7 +349,7 @@ def get_nbo_bond_orders(lines):
                 block_idx += 1
                 continue
 
-            bond_idx_blocks[block_idx - 1].append([float(x) for x in line[2:]])
+            bond_idx_blocks[block_idx - 1].append([float(x) for x in line_[2:]])
 
     # Format matrix
     bond_order_matrix = bond_idx_blocks[0]
@@ -336,8 +360,8 @@ def get_nbo_bond_orders(lines):
     return {COLUMN_NBO_BONDORDER: bond_order_matrix}
 
 
-def get_nmr_shielding_constants(lines):
-    """ Read GIAO NMR shielding constants """
+def get_nmr_shielding_constants(lines: List[str]) -> dict:
+    """Read GIAO NMR shielding constants"""
     keywords = ["Magnetic shielding tensor (ppm):", "************"]
     start, stop = linesio.get_rev_indices_patterns(lines, keywords)
 

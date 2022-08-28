@@ -1,20 +1,25 @@
+from pathlib import Path
+from typing import Any, Dict, List
+
 import numpy as np
 import pytest
-from context import GAMESS_OPTIONS
 
-import ppqm
-from ppqm import chembridge, gamess, tasks
-from ppqm.gamess import GamessCalculator
+from ppqm import chembridge, constants, gamess, tasks
+from ppqm.gamess import COLUMN_THERMO, GAMESS_CMD, GamessCalculator
+from ppqm.utils.shell import which
+
+if which(GAMESS_CMD) is None:
+    pytest.skip("Could not find GAMESS executable", allow_module_level=True)
 
 
-def _get_options(scr):
-    gamess_options = {"scr": scr, **GAMESS_OPTIONS}
+def _get_options(scr: Path) -> dict:
+    gamess_options = {"scr": scr, "cmd": "rungms"}
     return gamess_options
 
 
-def test_optimization(tmpdir):
+def test_optimization(tmp_path: Path) -> None:
 
-    gamess_options = _get_options(tmpdir)
+    gamess_options = _get_options(tmp_path)
 
     methane = """
 
@@ -34,19 +39,24 @@ $$$$
     """
 
     calculation_options = {
+        "basis": {"gbasis": "pm3"},
         "contrl": {"runtyp": "optimize"},
         "statpt": {"opttol": 0.0005, "nstep": 300, "projct": False},
     }
 
     molobj = chembridge.sdfstr_to_molobj(methane)
-    calc = gamess.GamessCalculator(method_options={"method": "pm3"}, **gamess_options)
+    assert molobj is not None
+    calc = gamess.GamessCalculator(**gamess_options)
 
     # calculate returns List(properties) for every conformer
     results = calc.calculate(molobj, calculation_options)
     properties = results[0]
+    print(properties)
+    assert properties is not None
+    print(properties.keys())
 
-    atoms = properties[ppqm.constants.COLUMN_ATOMS]
-    energy = properties[ppqm.constants.COLUMN_ENERGY]
+    atoms = properties[constants.COLUMN_ATOMS]
+    energy = properties[constants.COLUMN_ENERGY]
 
     assert (atoms == np.array([6, 1, 1, 1, 1], dtype=int)).all()
     np.testing.assert_almost_equal(energy, -13.0148)
@@ -54,25 +64,26 @@ $$$$
     return
 
 
-def test_optimization_read():
+def test_optimization_read() -> None:
 
     with open("tests/resources/gamess/gamess_methane.log", "r") as f:
         output = f.readlines()
 
     properties = gamess.get_properties(output)
+    assert properties is not None
 
-    atoms = properties[ppqm.constants.COLUMN_ATOMS]
-    energy = properties[ppqm.constants.COLUMN_ENERGY]
+    atoms = properties[constants.COLUMN_ATOMS]
+    energy = properties[constants.COLUMN_ENERGY]
 
     assert (atoms == np.array([6, 1, 1, 1, 1], dtype=int)).all()
     np.testing.assert_almost_equal(energy, -13.0148)
 
-    assert properties[ppqm.constants.COLUMN_COORDINATES] is not None
+    assert properties[constants.COLUMN_COORDINATES] is not None
 
 
-def test_vibration(tmpdir):
+def test_vibration(tmp_path: Path) -> None:
 
-    gamess_options = _get_options(tmpdir)
+    gamess_options = _get_options(tmp_path)
 
     methane = """
 
@@ -106,20 +117,24 @@ $$$$
     )
 
     molobj = chembridge.sdfstr_to_molobj(methane)
+    assert molobj is not None
     chembridge.molobj_set_coordinates(molobj, coordinates)
 
-    method_options = {"method": "pm3"}
     calculation_options = {
+        "basis": {"gbasis": "pm3"},
         "contrl": {"runtyp": "hessian", "maxit": 60},
     }
 
     molobj = chembridge.sdfstr_to_molobj(methane)
-    calc = GamessCalculator(method_options=method_options, **gamess_options)
+    assert molobj is not None
+
+    calc = GamessCalculator(**gamess_options)
     print(calc)
 
     # calculate returns List(properties) for every conformer
     results = calc.calculate(molobj, calculation_options)
     properties = results[0]
+    assert properties is not None
 
     # GAMESS prints out a thermodynamic table
 
@@ -132,20 +147,18 @@ $$$$
     #  TOTAL    126.716   129.194    67.577    27.195    35.509   206.665
     #  VIB. THERMAL CORRECTION E(T)-E(0) = H(T)-H(0) =        99.870 J/MOL
 
-    assert ppqm.constants.COLUMN_ENERGY in properties
-    assert pytest.approx(206.665, rel=3) == properties[ppqm.gamess.COLUMN_THERMO][-1, -1]
-
-    assert pytest.approx(-13.01, rel=2) == properties[ppqm.constants.COLUMN_ENERGY]
-
-    return
+    assert constants.COLUMN_ENERGY in properties
+    assert pytest.approx(206.665, rel=3) == properties[COLUMN_THERMO][-1, -1]
+    assert pytest.approx(-13.01, rel=2) == properties[constants.COLUMN_ENERGY]
 
 
-def test_vibration_read():
+def test_vibration_read() -> None:
 
     with open("tests/resources/gamess/gamess_methane_vib.log", "r") as f:
         output = f.readlines()
 
     properties = gamess.get_properties(output)
+    assert properties is not None
 
     vibs = properties["freq"]
     result = np.array(
@@ -173,9 +186,9 @@ def test_vibration_read():
     return
 
 
-def test_orbitals(tmpdir):
+def test_orbitals(tmp_path: Path) -> None:
 
-    gamess_options = _get_options(tmpdir)
+    gamess_options = _get_options(tmp_path)
 
     methane = """
 
@@ -205,14 +218,17 @@ $$$$
     }
 
     molobj = chembridge.sdfstr_to_molobj(methane)
+    assert molobj is not None
+
     calc = gamess.GamessCalculator(**gamess_options)
 
     # calculate returns List(properties) for every conformer
     results = calc.calculate(molobj, options)
     properties = results[0]
+    assert properties is not None
 
     orbitals = properties["orbitals"]
-    results = [
+    orbitals_ref: List[float] = [
         -11.0303,
         -0.9085,
         -0.5177,
@@ -224,17 +240,16 @@ $$$$
         0.7505,
     ]
 
-    np.testing.assert_almost_equal(orbitals, results)
-
-    return
+    np.testing.assert_almost_equal(orbitals, orbitals_ref)
 
 
-def test_orbitals_read():
+def test_orbitals_read() -> None:
 
     with open("tests/resources/gamess/gamess_methane_orb.log", "r") as f:
         output = f.readlines()
 
     properties = gamess.get_properties(output)
+    assert properties is not None
 
     orbitals = properties["orbitals"]
     results = [
@@ -254,9 +269,9 @@ def test_orbitals_read():
     return
 
 
-def test_solvation(tmpdir):
+def test_solvation(tmp_path: Path) -> None:
 
-    gamess_options = _get_options(tmpdir)
+    gamess_options = _get_options(tmp_path)
 
     methane = """
 
@@ -276,16 +291,19 @@ $$$$
     """
 
     molobj = chembridge.sdfstr_to_molobj(methane)
+    assert molobj is not None
 
-    options = dict()
+    options: Dict[str, Any] = dict()
+    options["basis"] = {"gbasis": "pm3"}
     options["system"] = {"mwords": 125}
     options["pcm"] = {"solvnt": "water", "mxts": 15000, "icav": 1, "idisp": 1}
     options["tescav"] = {"mthall": 4, "ntsall": 60}
 
-    calc = gamess.GamessCalculator(method_options={"method": "pm3"}, **gamess_options)
+    calc = gamess.GamessCalculator(**gamess_options)
 
     results = calc.calculate(molobj, options)
     properties = results[0]
+    assert properties is not None
 
     total_solvation = properties["solvation_total"]
     result = 1.24
@@ -294,12 +312,13 @@ $$$$
     return
 
 
-def test_solvation_read():
+def test_solvation_read() -> None:
 
     with open("tests/resources/gamess/gamess_methane_sol.log", "r") as f:
         output = f.readlines()
 
     properties = gamess.get_properties(output)
+    assert properties is not None
 
     total_solvation = properties["solvation_total"]
     result = 1.24
@@ -308,37 +327,44 @@ def test_solvation_read():
     return
 
 
-def test_water(tmpdir):
+def test_water(tmp_path: Path) -> None:
 
-    gamess_options = _get_options(tmpdir)
+    gamess_options = _get_options(tmp_path)
 
     smi = "O"
     reference_energy = -53.426
 
     # Get molecule with three conformers
     n_conformers = 3
-    molobj = tasks.generate_conformers(smi, n_conformers=n_conformers)
+    molobj = chembridge.smiles_to_molobj(smi)
+    assert molobj is not None
+    molobj = tasks.generate_conformers(molobj, n_conformers=n_conformers)
 
     # Get gamess calculator
-    method = "PM3"
-    method_options = {"method": method}
-    calc = gamess.GamessCalculator(method_options=method_options, **gamess_options)
+    calc = gamess.GamessCalculator(**gamess_options)
 
-    results = calc.optimize(molobj, return_properties=True)
+    options = {
+        "basis": {"gbasis": "pm3"},
+        "contrl": {"runtyp": "optimize"},
+        "statpt": {"opttol": 0.0005, "nstep": 300, "projct": False},
+    }
+
+    results = calc.calculate(molobj, options)
 
     for result in results:
-        assert pytest.approx(reference_energy, rel=1e-2) == result[ppqm.constants.COLUMN_ENERGY]
+        assert result is not None
+        assert pytest.approx(reference_energy, rel=1e-2) == result[constants.COLUMN_ENERGY]
 
-    return
 
+def test_fail_wrong_method(tmp_path: Path) -> None:
 
-def test_fail_wrong_method(tmpdir):
-
-    gamess_options = _get_options(tmpdir)
+    gamess_options = _get_options(tmp_path)
 
     # Get molecule with three conformers
     smi = "O"
-    molobj = tasks.generate_conformers(smi, n_conformers=1)
+    molobj = chembridge.smiles_to_molobj(smi)
+    assert molobj is not None
+    molobj = tasks.generate_conformers(molobj, n_conformers=1)
 
     # Set bad options
     options = {
@@ -356,11 +382,11 @@ def test_fail_wrong_method(tmpdir):
     # will return None for each failed conformer
 
     assert results is not None
-    assert isinstance(results[0], dict)
-    assert "error" in results[0]
+    assert isinstance(results, list)
+    assert results[0] is None
 
 
-def test_get_header():
+def test_get_header() -> None:
 
     options = {
         "contrl": {"scftyp": "rhf", "runtyp": "energy"},
@@ -379,14 +405,14 @@ def test_get_header():
     assert "projct=.F." in header
 
 
-def test_type():
+def test_type() -> None:
 
     # TODO read properties from log files
 
     return
 
 
-def test_dinitrogen(tmpdir):
+def test_dinitrogen(tmp_path: Path) -> None:
 
     sdf = """
 
@@ -397,14 +423,23 @@ def test_dinitrogen(tmpdir):
   1  2  3  0
 M  END """
 
-    gamess_options = _get_options(tmpdir)
+    gamess_options = _get_options(tmp_path)
 
     molobj = chembridge.sdfstr_to_molobj(sdf)
+    assert molobj is not None
     calc = gamess.GamessCalculator(**gamess_options)
-    results = calc.optimize(molobj, return_properties=True)
+
+    print(calc)
+    options = {
+        "basis": {"gbasis": "pm3"},
+        "contrl": {"runtyp": "optimize"},
+        "statpt": {"opttol": 0.0005, "nstep": 300, "projct": False},
+    }
+
+    results = calc.calculate(molobj, options)
 
     assert isinstance(results, list)
 
     properties = results[0]
     assert isinstance(properties, dict)
-    assert pytest.approx(17.56621, rel=10 ** -4) == properties[ppqm.constants.COLUMN_ENERGY]
+    assert pytest.approx(17.56621, rel=10**-4) == properties[constants.COLUMN_ENERGY]

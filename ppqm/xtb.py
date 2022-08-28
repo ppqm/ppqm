@@ -2,22 +2,25 @@
 xTB wrapper functions
 """
 
-import copy
 import functools
 import logging
 import multiprocessing
 import os
-import pathlib
-import shutil
-import tempfile
 from collections import ChainMap
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
-import rmsd
-from tqdm import tqdm
+import rmsd  # type: ignore[import]
+from tqdm import tqdm  # type: ignore[import]
 
-from ppqm import chembridge, constants, env, linesio, misc, shell, units
+from ppqm import WorkDir, chembridge, constants
 from ppqm.calculator import BaseCalculator
+from ppqm.chembridge import Mol
+from ppqm.utils import func_parallel, linesio, shell
+
+# from rdkit.Chem.rdchem import Mol   # type: ignore[import]
+
 
 XTB_CMD = "xtb"
 XTB_FILENAME = "_tmp_xtb_input.xyz"
@@ -31,89 +34,83 @@ COLUMN_DIPOLE = "dipole"
 COLUMN_CONVERGED = "is_converged"
 COLUMN_STEPS = "opt_steps"
 
-_logger = logging.getLogger("xtb")
+_logger = logging.getLogger(__name__)
 
 
 class XtbCalculator(BaseCalculator):
-    """
-
-    TODO Add options documentation for XTB calculations
-
-    """
+    """Wrapper for xTB. Please read more on xtb-docs.readthedocs.io"""
 
     def __init__(
         self,
-        cmd=XTB_CMD,
-        filename=XTB_FILENAME,
-        show_progress=False,
-        n_cores=None,
-        **kwargs,
-    ):
+        cmd: str = XTB_CMD,
+        filename: str = XTB_FILENAME,
+        show_progress: bool = False,
+        n_cores: int = 1,
+        keep_files: bool = False,
+        **kwargs: Any,
+    ) -> None:
         super().__init__(**kwargs)
 
-        self.cmd = cmd
-        self.filename = filename
-        self.n_cores = n_cores
-        self.show_progress = show_progress
+        self.cmd: str = cmd
+        self.filename: str = filename
+        self.n_cores: int = n_cores
+        self.show_progress: bool = show_progress
 
-        self.xtb_options = {
-            "cmd": self.cmd,
-            "scr": self.scr,
-            "filename": self.filename,
-        }
+        if n_cores < 0:
+            n_cores = multiprocessing.cpu_count()
+
+        # TODO Should not be using xtb_options
+        self.xtb_options: Dict[str, Any] = dict(
+            cmd=self.cmd,
+            scr=self.scr,
+            filename=self.filename,
+            keep_files=keep_files,
+        )
 
         # Default xtb options
-        self.options = {}
+        self.options: Dict = {}
 
         # Check version and command
         self.health_check()
 
-    def health_check(self):
+    def health_check(self) -> None:
 
-        assert env.which(self.cmd), f"Cannot find {self.cmd}"
+        assert shell.which(self.cmd), f"Cannot find {self.cmd}"
 
-        stdout, stderr = shell.execute(f"{self.cmd} --version")
+        stdout, _ = shell.execute(f"{self.cmd} --version")
+
+        assert stdout is not None
 
         try:
-            stdout = stdout.split("\n")
-            stdout = [x for x in stdout if "*" in x]
-            version = stdout[0].strip()
-            version = version.split()
-            version = version[3]
-            version = version.split(".")
-            major, minor, patch = version
+            stdout_lines = stdout.split("\n")
+            stdout_lines = [x for x in stdout_lines if "*" in x]
+            version = stdout_lines[0].strip().split()
+            version = version[3].split(".")
+            major, minor, _ = version
         except Exception:
             assert False, "too old xtb version"
 
         assert int(major) >= 6, "too old xtb version"
         assert int(minor) >= 4, "too old xtb version"
 
-    def _generate_options(self, optimize=True, hessian=False, gradient=False):
-        # TODO
-        options = ...
-        return options
-
-    def calculate(self, molobj, options, **kwargs):
+    def calculate(self, molobj: Mol, options: dict, **kwargs: Any) -> List[Optional[dict]]:
 
         # Merge options
-        options_prime = ChainMap(options, self.options)
-        options_prime = dict(options_prime)
+        options_prime = dict(ChainMap(options, self.options))
 
         if self.n_cores and self.n_cores > 1:
-            results = self.calculate_parallel(molobj, options_prime, **kwargs)
+            return self.calculate_parallel(molobj, options_prime, **kwargs)
 
-        else:
-            results = self.calculate_serial(molobj, options_prime, **kwargs)
+        return self.calculate_serial(molobj, options_prime, **kwargs)
 
-        return results
-
-    def calculate_serial(self, molobj, options, **kwargs):
+    def calculate_serial(self, molobj: Mol, options: dict, **kwargs: Any) -> List[Optional[dict]]:
 
         properties_list = []
         n_confs = molobj.GetNumConformers()
 
         atoms, _, charge = chembridge.get_axyzc(molobj, atomfmt=str)
 
+        pbar = None
         if self.show_progress:
             pbar = tqdm(
                 total=n_confs,
@@ -131,15 +128,17 @@ class XtbCalculator(BaseCalculator):
 
             properties_list.append(properties)
 
-            if self.show_progress:
+            if pbar:
                 pbar.update(1)
 
-        if self.show_progress:
+        if pbar:
             pbar.close()
 
         return properties_list
 
-    def calculate_parallel(self, molobj, options, n_cores=None):
+    def calculate_parallel(
+        self, molobj: Mol, options: dict, n_cores: int = 1
+    ) -> List[Optional[dict]]:
 
         _logger.debug("start xtb multiprocessing pool")
 
@@ -147,20 +146,20 @@ class XtbCalculator(BaseCalculator):
             n_cores = self.n_cores
 
         atoms, _, charge = chembridge.get_axyzc(molobj, atomfmt=str)
-        n_conformers = molobj.GetNumConformers()
+        n_conformers: int = molobj.GetNumConformers()
 
         coordinates_list = [
-            np.asarray(conformer.GetPositions()) for conformer in molobj.GetConformers()
+            np.asarray(conformer.GetPositions()) for conformer in molobj.GetConformers()  # type: ignore[attr-defined]
         ]
 
-        n_procs = min(n_cores, n_conformers)
+        n_procs: int = min(n_cores, n_conformers)
         results = []
 
         func = functools.partial(
             get_properties_from_acxyz, atoms, charge, options=options, **self.xtb_options
         )
 
-        results = misc.func_parallel(
+        results = func_parallel(
             func,
             coordinates_list,
             n_cores=n_procs,
@@ -171,147 +170,39 @@ class XtbCalculator(BaseCalculator):
 
         return results
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"XtbCalc(cmd={self.cmd},scr={self.scr},n_cores={self.n_cores})"
 
 
-def clean_dir(scr="./"):
-
-    suffix = "/"
-    if not scr.endswith(suffix):
-        scr += suffix
-
-    # TODO delete all tmp files made by xtb
-
-    return
-
-
-def health_check(config=None, cmd=XTB_CMD):
-    """
-    INCOMPLETE
-    """
-
-    path = env.which(cmd)
-
-    assert path is not None, f"{cmd} was not found in your environment"
-
-    return True
-
-
-def get_properties_from_molobj(molobj, show_progress=True, **kwargs):
-    """
-
-    INCOMPLETE
-
-    """
-
-    n_conformers = molobj.GetNumConformers()
-
-    if n_conformers == 0:
-        raise ValueError("No conformers found in molecule")
-
-    properties_list = []
-
-    atoms, _, charge = chembridge.get_axyzc(molobj, confid=-1, atomfmt=str)
-
-    if show_progress:
-        pbar = tqdm(total=n_conformers, desc="XTB", **constants.TQDM_OPTIONS)
-
-    # For conformers
-    for conformer in molobj.GetConformers():
-        coordinates = conformer.GetPositions()
-        coordinates = np.array(coordinates)
-        properties = get_properties_from_axyzc(atoms, coordinates, charge, **kwargs)
-        properties_list.append(properties)
-
-        if show_progress:
-            pbar.update(1)
-
-    if show_progress:
-        pbar.close()
-
-    return properties_list
-
-
-def get_properties_from_molobj_parallel(
-    molobj, show_progress=True, n_cores=1, scr=None, options={}
-):
-
-    worker_kwargs = {"scr": scr, "n_cores": 1, "options": options}
-    atoms, _, charge = chembridge.get_axyzc(molobj, atomfmt=str)
-
-    n_conformers = molobj.GetNumConformers()
-    coordinates_list = [
-        np.asarray(conformer.GetPositions()) for conformer in molobj.GetConformers()
-    ]
-
-    n_procs = min(n_cores, n_conformers)
-    results = []
-
-    func = functools.partial(get_properties_from_acxyz, atoms, charge, **worker_kwargs)
-
-    results = misc.func_parallel(
-        func,
-        coordinates_list,
-        n_cores=n_procs,
-        show_progress=show_progress,
-        title="XTB",
-    )
-
-    return results
-
-
-def get_output_from_axyzc(
-    atoms_str,
-    coordinates,
-    charge,
-    options=None,
-    scr=constants.SCR,
-    use_tempfile=True,
-    clean_tempfile=True,
-    cmd=XTB_CMD,
-    filename="_tmp_xtb_input.xyz",
-    n_cores=1,
-):
-    """ NOT DONE """
-    lines = ...
-    return lines
-
-
-def get_properties_from_acxyz(atoms, charge, coordinates, **kwargs):
-    """ get properties from atoms, charge and coordinates """
+def get_properties_from_acxyz(
+    atoms: Union[List[str], np.ndarray], charge: int, coordinates: np.ndarray, **kwargs: Any
+) -> Optional[dict]:
+    """get properties from atoms, charge and coordinates"""
     return get_properties_from_axyzc(atoms, coordinates, charge, **kwargs)
 
 
 def get_properties_from_axyzc(
-    atoms_str,
-    coordinates,
-    charge,
-    options=None,
-    scr=constants.SCR,
-    clean_files=True,
-    cmd=XTB_CMD,
-    filename="_tmp_xtb_input.xyz",
-    n_cores=1,
-    n_threads=1,
-    **kwargs,
-):
+    atoms_str: Union[List[str], np.ndarray],
+    coordinates: np.ndarray,
+    charge: int,
+    options: Optional[dict] = None,
+    scr: Path = constants.SCR,
+    keep_files: bool = False,
+    cmd: str = XTB_CMD,
+    filename: str = XTB_FILENAME,
+    n_cores: int = 1,
+) -> Optional[dict]:
     """Get XTB properties from atoms, coordinates and charge for a molecule."""
-
-    assert health_check(cmd=cmd)
-
-    if isinstance(scr, str):
-        scr = pathlib.Path(scr)
 
     if not filename.endswith(".xyz"):
         filename += ".xyz"
 
-    temp_scr = tempfile.mkdtemp(dir=scr, prefix="xtb_")
-    temp_scr = pathlib.Path(temp_scr)
+    workdir = WorkDir(dir=scr, prefix="xtb_", keep=keep_files)
+    temp_scr = workdir.get_path()
 
-    xtb_cmd = cmd
+    _logger.debug(f"xtb work dir {temp_scr}")
 
-    # Write input file
+    # Write input file (XYZ format)
     inputstr = rmsd.set_coordinates(atoms_str, coordinates, title="xtb input")
 
     with open(temp_scr / filename, "w") as f:
@@ -322,22 +213,23 @@ def get_properties_from_axyzc(
         f.write(str(charge))
 
     # Overwrite threads
-    env.set_threads(n_threads)
+    shell.set_threads(n_cores)
 
     # Run subprocess command
-    cmd = [cmd, f"{filename}"]
+    cmd_ = [cmd, f"{filename}"]
 
-    if options is not None:
-        cmd += parse_options(options)
+    if options:
+        cmd_ += parse_options(options)
 
     # Merge to string
-    cmd = " ".join(cmd)
-    cmd = f"cd {temp_scr}; " + cmd
+    cmd_full = " ".join(cmd_)
 
-    _logger.debug(cmd)
+    _logger.debug(cmd_full)
 
-    lines = shell.stream(cmd)
-    lines = list(lines)
+    stdout, stderr = shell.execute(cmd_full, cwd=temp_scr)
+    assert stdout is not None
+    assert stderr is not None
+    lines = stdout.split("\n") + stderr.split("\n")
 
     error_pattern = "abnormal termination of xtb"
     idx = linesio.get_rev_index(lines, error_pattern, stoppattern="#")
@@ -355,8 +247,8 @@ def get_properties_from_axyzc(
             for line in lines[idx + 1 : -2]:
                 _logger.critical(line.strip())
 
-        _logger.critical(cmd)
-        _logger.critical("xtbexec " + env.which(xtb_cmd))
+        _logger.critical(cmd_full)
+        _logger.critical("xtbexec " + str(shell.which(cmd)))
         _logger.critical("xtbpath " + os.environ.get("XTBPATH", ""))
         _logger.critical("xtbhome " + os.environ.get("XTBHOME", ""))
 
@@ -365,340 +257,14 @@ def get_properties_from_axyzc(
     # Parse properties from xtb output
     properties = read_properties(lines, options=options, scr=temp_scr)
 
-    # clean your room
-    if clean_files:
-        shutil.rmtree(temp_scr)
-
     return properties
-
-
-def calculate(molobj, confid=-1, show_progress=True, return_copy=True, **kwargs):
-    """
-
-    INCOMPLETE
-
-    """
-
-    # TODO Get coordinates
-    atoms, coordinates, charge = chembridge.get_axyzc(molobj, confid=confid, atomfmt=int)
-
-    properties = ...
-
-    if return_copy:
-        molobj = copy.deepcopy(molobj)
-
-    n_conf = molobj.GetNumConformers()
-
-    assert n_conf > 1, "No conformers to optimize"
-
-    energies = np.zeros(n_conf)
-
-    if show_progress:
-        pbar = tqdm(total=n_conf, desc="XTB", **constants.TQDM_OPTIONS)
-
-    # Iterat conformers and optimize with xtb
-    for i in range(n_conf):
-
-        atoms_str, coords, charge = chembridge.get_axyzc(molobj, confid=i, atomfmt=str)
-
-        properties = get_properties_from_axyzc(atoms_str, coords, charge=charge, **kwargs)
-
-        assert properties is not None, "Properties should never be None"
-
-        coord = properties[COLUMN_COORD]
-        chembridge.set_coordinates(molobj, coord, confid=i)
-
-        if COLUMN_ENERGY in properties:
-            total_energy = properties[COLUMN_ENERGY]
-        else:
-            total_energy = np.float("nan")
-
-        energies[i] = total_energy
-
-        if show_progress:
-            pbar.update(1)
-
-    if show_progress:
-        pbar.close()
-
-    return properties
-
-
-def optimize_molobj(molobj, return_copy=True, show_progress=True, **kwargs):
-    """
-
-    DEPRECIATED
-    TODO Should move into useing calculate_
-
-    TODO Embed energy into conformer?
-
-    """
-
-    if return_copy:
-        molobj = copy.deepcopy(molobj)
-
-    n_conf = molobj.GetNumConformers()
-
-    assert n_conf > 1, "No conformers to optimize"
-
-    energies = np.zeros(n_conf)
-
-    if show_progress:
-        pbar = tqdm(total=n_conf, desc="XTB", **constants.TQDM_OPTIONS)
-
-    # Iterat conformers and optimize with xtb
-    for i in range(n_conf):
-
-        atoms_str, coords, charge = chembridge.get_axyzc(molobj, confid=i, atomfmt=str)
-
-        properties = get_properties_from_axyzc(atoms_str, coords, charge=charge, **kwargs)
-
-        assert properties is not None, "Properties should never be None"
-
-        coord = properties[COLUMN_COORD]
-        chembridge.set_coordinates(molobj, coord, confid=i)
-
-        if COLUMN_ENERGY in properties:
-            total_energy = properties[COLUMN_ENERGY]
-        else:
-            total_energy = np.float("nan")
-
-        energies[i] = total_energy
-
-        if show_progress:
-            pbar.update(1)
-
-    if show_progress:
-        pbar.close()
-
-    return molobj, energies
-
-
-def _worker_calculate_molobj(job, atoms=None, charge=None, **kwargs):
-    """ INCOMPLETE """
-
-    # Get job info
-    i, coord = job
-
-    # Get process information
-    current = multiprocessing.current_process()
-    pid = current.name
-    pid = current._identity
-
-    if len(pid) == 0:
-        pid = 1
-    else:
-        pid = pid[0]
-
-    pid = str(pid)
-    scr = kwargs.get("scr")
-    scr = os.path.join(scr, pid)
-    kwargs["scr"] = scr
-
-    pathlib.Path(scr).mkdir(parents=True, exist_ok=True)
-
-    # Ensure only one thread per procs
-    kwargs["n_cores"] = 1
-
-    # TODO Should be general calculate with kwargs deciding to optimize
-
-    properties = get_properties_from_axyzc(atoms, coord, charge=charge, **kwargs)
-
-    return (i, properties)
-
-
-def _worker_calculate_axyzc(job, **kwargs):
-    """ INCOMPLETE """
-
-    atoms, coord, charge = job
-
-    # Get process information
-    current = multiprocessing.current_process()
-    pid = current.name
-    pid = current._identity
-
-    if len(pid) == 0:
-        pid = 1
-    else:
-        pid = pid[0]
-
-    pid = str(pid)
-    pid = f"_calcxtb_{pid}"
-    scr = kwargs.get("scr")
-    scr = os.path.join(scr, pid)
-    kwargs["scr"] = scr
-
-    pathlib.Path(scr).mkdir(parents=True, exist_ok=True)
-
-    # Ensure only one thread per procs
-    kwargs["n_cores"] = 1
-
-    properties = get_properties_from_axyzc(atoms, coord, charge, **kwargs)
-
-    return properties
-
-
-def procs_calculate_axyzc(molecules, n_cores=-1, show_progress=True, scr=None, cmd=XTB_CMD):
-    """
-
-    INCOMPLETE
-
-    Start multiple subprocess over n_cores
-
-    """
-    results = None
-    return results
-
-
-def parallel_calculate_axyzc(
-    molecules,
-    options=None,
-    n_cores=-1,
-    show_progress=True,
-    scr=None,
-    cmd=XTB_CMD,
-):
-    """
-
-    INCOMPLETE
-
-    From lists of atoms, coords and charges. Return properties(dict) per
-    molecule.
-
-    :param molecules: List[Tuple[List[], array, int]]
-
-    """
-
-    if scr is None:
-        scr = "_tmp_xtb_parallel_"
-
-    if n_cores == -1:
-        n_cores = env.get_available_cores()
-
-    # Ensure scratch directories
-    pathlib.Path(scr).mkdir(parents=True, exist_ok=True)
-
-    if show_progress:
-        pbar = tqdm(
-            total=len(molecules),
-            desc=f"XTB Parallel({n_cores})",
-            **constants.TQDM_OPTIONS,
-        )
-
-    # Pool
-    xtb_options = {"scr": scr, "cmd": cmd, "options": options}
-
-    # TODO Add this worker test to test_xtb
-    # TEST
-    # properties = _worker_calculate_axyzc(
-    #     molecules[0],
-    #     debug=True,
-    #     super_debug=True,
-    #     **options
-    # )
-    # print(properties)
-    # assert False
-
-    func = functools.partial(_worker_calculate_axyzc, **xtb_options)
-    p = multiprocessing.Pool(processes=n_cores)
-
-    try:
-        results_iter = p.imap(func, molecules, chunksize=1)
-        results = []
-        for result in results_iter:
-
-            if COLUMN_ENERGY not in result:
-                results[COLUMN_ENERGY] = np.float("nan")
-
-            # Update the progress bar
-            if show_progress:
-                pbar.update(1)
-
-            results.append(result)
-
-    except KeyboardInterrupt:
-        misc.eprint("got ^C while running pool of XTB workers...")
-        p.terminate()
-
-    except Exception as e:
-        misc.eprint("got exception: %r, terminating the pool" % (e,))
-        p.terminate()
-
-    finally:
-        p.terminate()
-
-    # End the progress
-    if show_progress:
-        pbar.close()
-
-    # TODO Clean scr dir for parallel folders, is the parallel folders needed
-    # if we use tempfile?
-
-    return results
-
-
-def parallel_calculate_molobj(
-    molobj,
-    return_molobj=True,
-    return_copy=True,
-    return_energies=True,
-    return_properties=False,
-    update_coordinates=True,
-    **kwargs,
-):
-    """
-    INCOMPLETE
-    """
-
-    if return_copy:
-        molobj = copy.deepcopy(molobj)
-
-    num_conformers = molobj.GetNumConformers()
-    assert num_conformers > 0, "No conformers to calculate"
-
-    atoms, _, charge = chembridge.get_axyzc(molobj, atomfmt=str)
-
-    jobs = []
-
-    for i in range(num_conformers):
-        conformer = molobj.GetConformer(id=i)
-        coordinates = conformer.GetPositions()
-        coordinates = np.array(coordinates)
-
-        jobs.append((atoms, coordinates, charge))
-
-    results = parallel_calculate_axyzc(jobs, **kwargs)
-
-    if update_coordinates:
-        for i, result in enumerate(results):
-
-            coordinates = result.get(COLUMN_COORD, None)
-            if coordinates is None:
-                continue
-
-            chembridge.set_coordinates(molobj, coordinates, confid=i)
-
-    ret = tuple()
-
-    if return_molobj:
-        ret += (molobj,)
-
-    if return_energies:
-        energies = [result[COLUMN_ENERGY] for result in results]
-        energies = np.array(energies)
-        ret += (energies,)
-
-    if return_properties:
-        ret += (results,)
-
-    return ret
 
 
 # Readers
 
 
-def read_status(lines):
-    """"""
+def read_status(lines: List[str]) -> bool:
+    """Did xtb end normally?"""
     keywords = [
         "Program stopped due to fatal error",
         "abnormal termination of xtb",
@@ -714,8 +280,37 @@ def read_status(lines):
     return True
 
 
-def parse_sum_table(lines):
-    """ """
+def read_atoms(lines: List[str]) -> int:
+    """Well, someone removed the atoms line in xtb"""
+
+    keyword = "ID    Z sym.   atoms"
+    idx = linesio.get_index(lines, keyword)
+
+    assert idx is not None, "Unexpected error. No atoms to be found"
+    idx += 1
+
+    line: str = lines[idx].strip()
+
+    atoms = list()
+
+    while line:
+        line_ = line.split()
+
+        atom = line_[2]
+        atom_indices = line_[3:]
+        n_atom = len(atom_indices)
+
+        atoms += [atom] * n_atom
+
+        idx += 1
+        line = lines[idx].strip()
+
+    n_atoms = len(atoms)
+    return n_atoms
+
+
+def parse_sum_table(lines: List[str]) -> dict:
+    """Parse the summary table from xtb log"""
 
     properties = dict()
 
@@ -731,23 +326,21 @@ def parse_sum_table(lines):
         if "Hessian" in line:
             break
 
-        line = (
+        line_ = (
             line.replace("w/o", "without")
             .replace(":", "")
             .replace("->", "")
             .replace("/", "_")
             .strip()
-        )
-        line = line.split()
+        ).split()
 
-        if len(line) < 2:
+        if len(line_) < 2:
             continue
 
-        value = line[-2]
-        value = float(value)
+        value = float(line_[-2])
         # unit = line[-1]
-        name = line[:-2]
-        name = "_".join(name).lower()
+        name_ = line_[:-2]
+        name = "_".join(name_).lower()
         name = name.replace("-", "_").replace(".", "")
 
         properties[name] = float(value)
@@ -755,10 +348,13 @@ def parse_sum_table(lines):
     return properties
 
 
-def read_properties(lines, options=None, scr=None):
-    """ Read output based on options or output """
+def read_properties(
+    lines: List[str], options: Optional[dict] = None, scr: Optional[Path] = None
+) -> Optional[dict]:
+    """Read output based on options or output"""
 
-    reader = None
+    reader: Optional[Callable] = None
+    properties: Optional[dict]
     read_files = True
 
     if options is None:
@@ -775,28 +371,40 @@ def read_properties(lines, options=None, scr=None):
     elif "opt" in options or "ohess" in options:
         reader = read_properties_opt
 
-    else:
+    if reader is None:
         reader = read_properties_sp
 
     properties = reader(lines)
 
+    if properties is None:
+        return None
+
+    assert isinstance(properties, dict)
+
     if scr is not None and read_files:
         # Parse file properties
-        charges = get_mulliken_charges(scr=scr)
-        bonds, bondorders = get_wbo(scr=scr)
 
-        properties["mulliken_charges"] = charges
+        files = [path.name for path in scr.iterdir()]
+
+        if "charges" in files:
+            charges = get_mulliken_charges(scr=scr)
+            properties["mulliken_charges"] = charges
+
+        if "wbo" in files:
+            bonds, bondorders = get_wbo(scr=scr)
+            properties["bonds"] = bonds
+            properties["bondorders"] = bondorders
+
+        # TODO Not sure if this should be here
         properties.update(get_cm5_charges(lines))  # Can return {} if not GFN1
-        properties["bonds"] = bonds
-        properties["bondorders"] = bondorders
 
-        if "vibspectrum" in os.listdir(scr):
+        if "vibspectrum" in files:
             properties["frequencies"] = get_frequencies(scr=scr)
 
     return properties
 
 
-def read_properties_sp(lines):
+def read_properties_sp(lines: List[str]) -> Optional[dict]:
     """
     TODO read dipole moment
     TODO Inlcude units in docstring
@@ -814,26 +422,26 @@ def read_properties_sp(lines):
         "final structure:",
         "::                     SUMMARY                     ::",
         "Property Printout  ",
-        "ITERATIONS",
     ]
 
     stoppattern = "CYCLE    "
     idxs = linesio.get_rev_indices_patterns(lines, keywords, stoppattern=stoppattern)
+
+    assert idxs[1] is not None, "Uncaught xtb exception. Please report."
+    assert idxs[2] is not None, "Uncaught xtb exception. Please report."
+
     idxs[0]
     idx_summary = idxs[1]
     idx_end_summary = idxs[2]
-    idxs[3]
-
-    if idx_summary is None:
-        # TODO Better fix
-        assert False, "uncaught xtb exception"
 
     # Get atom count
-    keyword = "number of atoms"
-    idx = linesio.get_index(lines, keyword)
-    line = lines[idx]
-    n_atoms = line.split()[-1]
-    n_atoms = int(n_atoms)
+    # keyword = "number of atoms"
+    # idx = linesio.get_index(lines, keyword)
+    # assert idx is not None, "Uncaught xtb exception. Should not happen"
+    # line = lines[idx]
+    # n_atoms_ = line.split()[-1]
+    # n_atoms = int(n_atoms_)
+    n_atoms = read_atoms(lines)
 
     # Get energies
     idx_summary = idxs[1] + 1
@@ -873,31 +481,30 @@ def read_properties_sp(lines):
     else:
         idx += 3
         line = lines[idx]
-        line = line.split()
-        dipole_tot = line[-1]
-        dipole_tot = float(dipole_tot)
+        line_ = line.split()
+        dipole_tot = float(line_[-1])
 
     properties = {
         COLUMN_DIPOLE: dipole_tot,
+        "n_atoms": n_atoms,
         **properties,
     }
 
     # Get covalent properties
     properties_covalent = read_covalent_coordination(lines)
+    if properties_covalent is not None:
+        properties = {**properties, **properties_covalent}
 
     # Get orbitals
     properties_orbitals = read_properties_orbitals(lines)
-    properties = {**properties, **properties_orbitals, **properties_covalent}
+    if properties_orbitals is not None:
+        properties = {**properties, **properties_orbitals}
 
     return properties
 
 
-def read_properties_opt(lines, convert_coords=False, debug=False):
+def read_properties_opt(lines: List[str]) -> Optional[dict]:
     """
-
-    TODO read dipole moment
-    TODO Inlcude units in docstring
-    TODO GEOMETRY OPTIMIZATION CONVERGED AFTER 48 ITERATIONS
 
     electornic_energy is SCC energy
 
@@ -909,27 +516,21 @@ def read_properties_opt(lines, convert_coords=False, debug=False):
 
     keywords = [
         "final structure:",
-        "::                     SUMMARY                     ::",
-        "Property Printout  ",
         "ITERATIONS",
     ]
 
     stoppattern = "CYCLE    "
     idxs = linesio.get_rev_indices_patterns(lines, keywords, stoppattern=stoppattern)
     idx_coord = idxs[0]
-    idx_summary = idxs[1]
-    idx_end_summary = idxs[2]
-    idx_optimization = idxs[3]
+    idx_optimization = idxs[1]
 
-    if idx_summary is None:
-        assert False, "Uncaught xtb exception. Please submit issue with calculation"
+    properties = read_properties_sp(lines)
+    assert properties is not None, "Uncaught error"
 
-    # Get atom count
-    keyword = "number of atoms"
-    idx = linesio.get_index(lines, keyword)
-    line = lines[idx]
-    n_atoms = line.split()[-1]
-    n_atoms = int(n_atoms)
+    n_atoms: int = properties["n_atoms"]
+
+    atoms: Optional[Union[List, np.ndarray]]
+    coords: Optional[Union[List, np.ndarray]]
 
     # Get coordinates
     if idx_coord is None:
@@ -938,14 +539,15 @@ def read_properties_opt(lines, convert_coords=False, debug=False):
 
     else:
 
-        def parse_coordline(line):
-            line = line.split()
-            atom = line[0]
-            coord = [float(x) for x in line[1:]]
+        def parse_coordline(line: str) -> Tuple[str, List[float]]:
+            line_ = line.split()
+            atom = line_[0]
+            coord = [float(x) for x in line_[1:]]
             return atom, coord
 
         atoms = []
         coords = []
+
         for i in range(idx_coord + 4, idx_coord + 4 + n_atoms):
             line = lines[i]
             atom, coord = parse_coordline(line)
@@ -955,39 +557,6 @@ def read_properties_opt(lines, convert_coords=False, debug=False):
         atoms = np.array(atoms)
         coords = np.array(coords)
 
-        if convert_coords:
-            coords *= units.bohr_to_aangstroem
-
-    # Get energies
-    idx_summary = idxs[1] + 1
-
-    # :: total energy        +1
-    # :: total w/o Gsasa/hb  +2
-    # :: gradient norm       +3
-    # :: HOMO-LUMO gap       +4
-    # ::.....................+4
-    # :: SCC energy          +5
-    # :: -> isotropic ES     +6
-    # :: -> anisotropic ES   +7
-    # :: -> anisotropic XC   +8
-    # :: -> dispersion       +9
-    # :: -> Gsolv            +10
-    # ::    -> Gborn         +11
-    # ::    -> Gsasa         +12
-    # ::    -> Ghb           +13
-    # ::    -> Gshift        +14
-    # :: repulsion energy    +15
-    # :: add. restraining    +16
-
-    prop_lines = lines[idx_summary : idx_end_summary - 2]
-    prop_dict = parse_sum_table(prop_lines)
-
-    # total_energy = prop_dict.get("total_energy", float("nan"))
-    # gsolv = prop_dict.get("gsolv", float("nan"))
-    # electronic_energy = prop_dict.get("scc_energy", float("nan"))
-
-    properties = prop_dict
-
     # Get dipole
     dipole_str = "molecular dipole:"
     idx = linesio.get_rev_index(lines, dipole_str)
@@ -996,9 +565,8 @@ def read_properties_opt(lines, convert_coords=False, debug=False):
     else:
         idx += 3
         line = lines[idx]
-        line = line.split()
-        dipole_tot = line[-1]
-        dipole_tot = float(dipole_tot)
+        line_ = line.split()
+        dipole_tot = float(line_[-1])
 
     if idx_optimization is None:
         is_converged = None
@@ -1012,12 +580,12 @@ def read_properties_opt(lines, convert_coords=False, debug=False):
         else:
             is_converged = True
 
-        line = line.split()
-        n_cycles = line[-3]
-        n_cycles = int(n_cycles)
+        line_ = line.split()
+        n_cycles = int(line_[-3])
 
     # Get covCN and alpha
     properties_covalent = read_covalent_coordination(lines)
+    assert properties_covalent is not None
 
     properties = {
         COLUMN_ATOMS: atoms,
@@ -1032,7 +600,7 @@ def read_properties_opt(lines, convert_coords=False, debug=False):
     return properties
 
 
-def read_properties_omega(lines):
+def read_properties_omega(lines: List[str]) -> Optional[dict]:
     """
 
 
@@ -1049,16 +617,15 @@ def read_properties_omega(lines):
         return None
 
     line = lines[indices[0]]
-    line = line.split()
-    global_index = line[-1]
-    global_index = float(global_index)
+    line_ = line.split()
+    global_index = float(line_[-1])
 
     properties = {"global_electrophilicity_index": global_index}
 
     return properties
 
 
-def read_properties_fukui(lines):
+def read_properties_fukui(lines: List[str]) -> Optional[dict]:
     """
     Read the Fukui properties fro XTB log
 
@@ -1073,49 +640,50 @@ def read_properties_fukui(lines):
 
     indices = linesio.get_rev_indices_patterns(lines, keywords)
 
-    if indices[0] is None:
+    if indices[0] is None or indices[1] is None or indices[2] is None:
         return None
 
     start_index = indices[1]
     end_index = indices[2]
 
-    f_plus_list = []
-    f_minus_list = []
-    f_zero_list = []
+    f_plus_list = list()
+    f_minus_list = list()
+    f_zero_list = list()
 
     for i in range(start_index + 1, end_index - 1):
         line = lines[i]
-        line = line.split()
+        line_ = line.split()
 
-        f_plus = float(line[1])
-        f_minus = float(line[2])
-        f_zero = float(line[3])
+        f_plus = float(line_[1])
+        f_minus = float(line_[2])
+        f_zero = float(line_[3])
 
         f_plus_list.append(f_plus)
         f_minus_list.append(f_minus)
         f_zero_list.append(f_zero)
 
-    f_plus_list = np.array(f_plus_list)
-    f_minus_list = np.array(f_minus_list)
-    f_zero_list = np.array(f_zero_list)
+    f_plus_vec = np.array(f_plus_list)
+    f_minus_vec = np.array(f_minus_list)
+    f_zero_vec = np.array(f_zero_list)
 
     properties = {
-        "f_plus": f_plus_list,
-        "f_minus": f_minus_list,
-        "f_zero": f_zero_list,
+        "f_plus": f_plus_vec,
+        "f_minus": f_minus_vec,
+        "f_zero": f_zero_vec,
     }
 
     return properties
 
 
-def get_mulliken_charges(scr=None):
+def get_mulliken_charges(scr: Optional[Path] = None) -> Optional[np.ndarray]:
 
     if scr is None:
-        scr = pathlib.Path(".")
+        scr = Path(".")
 
     filename = scr / "charges"
 
     if not filename.is_file():
+        _logger.error("Unable to read 'charges' in {scr}")
         return None
 
     # read charges files from work dir
@@ -1124,8 +692,8 @@ def get_mulliken_charges(scr=None):
     return charges
 
 
-def get_cm5_charges(lines):
-    """ Get CM5 charges from gfn1-xTB calculation """
+def get_cm5_charges(lines: List[str]) -> dict:
+    """Get CM5 charges from gfn1-xTB calculation"""
 
     keywords = ["Mulliken/CM5 charges", "Wiberg/Mayer (AO) data"]
     start, stop = linesio.get_rev_indices_patterns(lines, keywords)
@@ -1142,15 +710,16 @@ def get_cm5_charges(lines):
     return {"cm5_charges": cm5_charges}
 
 
-def get_wbo(scr=None):
+def get_wbo(scr: Optional[Path] = None) -> Tuple[List[Tuple[int, int]], List[float]]:
+    """Get wiberg bonds and borders from xtb result folder"""
 
     if scr is None:
-        scr = pathlib.Path(".")
+        scr = Path(".")
 
     filename = scr / "wbo"
 
     if not filename.is_file():
-        return None
+        return [], []
 
     # Read WBO file
     with open(filename, "r") as f:
@@ -1161,8 +730,8 @@ def get_wbo(scr=None):
     return bonds, bondorders
 
 
-def read_wbo(lines):
-    """"""
+def read_wbo(lines: List[str]) -> Tuple[List[Tuple[int, int]], List[float]]:
+    """Read Wiberg bond order lines"""
     # keyword = "Wiberg bond orders"
 
     bonds = []
@@ -1171,14 +740,14 @@ def read_wbo(lines):
         parts = line.strip().split()
         bondorders.append(float(parts[-1]))
         parts = parts[:2]
-        parts = [int(x) - 1 for x in parts]
-        parts = (min(parts), max(parts))
-        bonds.append(parts)
+        parts_ = [int(x) - 1 for x in parts]
+        parts__ = (min(parts_), max(parts_))
+        bonds.append(parts__)
 
     return bonds, bondorders
 
 
-def read_properties_orbitals(lines, n_offset=2):
+def read_properties_orbitals(lines: List[str], n_offset: int = 2) -> Optional[dict]:
     """
 
     format:
@@ -1198,7 +767,7 @@ def read_properties_orbitals(lines, n_offset=2):
     keywords = ["(HOMO)", "(LUMO)"]
     indices = linesio.get_rev_indices_patterns(lines, keywords)
 
-    if indices[0] is None:
+    if indices[0] is None or indices[1] is None:
         return None
 
     idx_homo = indices[0]
@@ -1210,45 +779,45 @@ def read_properties_orbitals(lines, n_offset=2):
 
     # HOMO
     line = lines[idx_homo]
-    line = line.split()
-    energy_homo = float(line[2])
+    line_ = line.split()
+    energy_homo = float(line_[2])
 
     properties["homo"] = energy_homo
 
     # HOMO Offsets
     for i in range(n_offset):
         line = lines[idx_homo - (i + 1)]
-        line = line.strip().split()
+        line_ = line.strip().split()
 
-        if len(line) < 3:
+        if len(line_) < 3:
             continue
 
-        value = line[2]
+        value = line_[2]
         properties[f"homo-{i+1}"] = float(value)
 
     # LUMO
     line = lines[idx_lumo]
-    line = line.split()
+    line_ = line.split()
     idx_lumo_col = 1
-    energy_lumo = float(line[idx_lumo_col])
+    energy_lumo = float(line_[idx_lumo_col])
 
     properties["lumo"] = energy_lumo
 
     # Lumo Offsets
     for i in range(n_offset):
         line = lines[idx_lumo + (i + 1)]
-        line = line.strip().split()
+        line_ = line.strip().split()
 
-        if len(line) < 3:
+        if len(line_) < 3:
             continue
 
-        value = line[idx_lumo_col]
+        value = line_[idx_lumo_col]
         properties[f"lumo+{i+1}"] = float(value)
 
     return properties
 
 
-def read_covalent_coordination(lines):
+def read_covalent_coordination(lines: List[str]) -> Optional[dict]:
     """
     Read computed covalent coordination number.
 
@@ -1263,37 +832,34 @@ def read_covalent_coordination(lines):
     Mol. C6AA /au·bohr
 
     """
-    properties = {"covCN": [], "alpha": []}
+    properties: dict = {"covCN": [], "alpha": []}
 
     start_line = linesio.get_rev_index(lines, "covCN")
-    if (start_line) is None:
-        properties["covCN"] = None
-        properties["alpha"] = None
-    else:
-        for line in lines[start_line + 1 :]:
-            if set(line).issubset(set(["\n"])):
-                break
 
-            line = line.strip().split()
-            covCN = float(line[3])
-            alpha = float(line[-1])
+    if start_line is None:
+        return None
 
-            properties["covCN"].append(covCN)
-            properties["alpha"].append(alpha)
+    for line in lines[start_line + 1 :]:
+        if set(line).issubset(set(["\n"])):
+            break
+
+        line_ = line.strip().split()
+        covCN = float(line_[3])
+        alpha = float(line_[-1])
+
+        properties["covCN"].append(covCN)
+        properties["alpha"].append(alpha)
 
     return properties
 
 
-def get_frequencies(scr=None):
+def get_frequencies(scr: Optional[Path] = None) -> List[float]:
     """ """
 
     if scr is None:
-        scr = pathlib.Path(".")
+        scr = Path(".")
 
     filename = scr / "vibspectrum"
-
-    if not filename.is_file():
-        return None
 
     # Read WBO file
     with open(filename, "r") as f:
@@ -1303,8 +869,8 @@ def get_frequencies(scr=None):
     return frequencies
 
 
-def read_frequencies(lines):
-    """" """
+def read_frequencies(lines: List[str]) -> List[float]:
+    """ """
     frequencies = []
     for line in lines[3:]:
 
@@ -1317,23 +883,19 @@ def read_frequencies(lines):
     return frequencies
 
 
-def parse_options(options, return_list=True):
-    """ Parse dictionary/json of options, and return arg list for xtb """
+def parse_options(options: dict) -> List[str]:
+    """Parse dictionary/json of options, and return arg list for xtb"""
 
-    cmd_options = []
+    cmd_options: List[str] = []
 
     for key, value in options.items():
 
+        txt: str
         if value is not None:
             txt = f"--{key} {value}"
         else:
             txt = f"--{key}"
 
         cmd_options.append(txt)
-
-    if return_list:
-        return cmd_options
-
-    cmd_options = " ".join(cmd_options)
 
     return cmd_options

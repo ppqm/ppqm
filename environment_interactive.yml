@@ -1,14 +1,14 @@
-name: ppqm_interative
+name: ppqm_interactive
 channels:
   - conda-forge
   - defaults
 dependencies:
-  - python=3.9
   - ipywidgets
   - jupyter
   - jupyterlab
   - jupytext
   - matplotlib
+  - mypy
   - networkx
   - nglview
   - numpy
