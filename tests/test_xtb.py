@@ -5,6 +5,11 @@ from conftest import RESOURCES
 from rdkit import Chem  # type: ignore[import]
 
 from ppqm import chembridge, tasks, xtb
+from ppqm.utils.shell import which
+
+if not which(xtb.XTB_CMD):
+    pytest.skip("Could not find xTB executable", allow_module_level=True)
+
 
 TEST_ENERGIES = [
     ("O", -5.0705443306),
@@ -376,7 +381,9 @@ def test_calculate_electrophilicity(tmp_path: Path) -> None:
 
     assert "global_electrophilicity_index" in properties
     assert isinstance(properties.get("global_electrophilicity_index"), float)
-    assert properties.get("global_electrophilicity_index") == pytest.approx(2, rel=1)
+
+    # Global electrophilicity index (eV):    2.4365 un-optimized
+    assert properties.get("global_electrophilicity_index") == pytest.approx(4.9368, rel=1)
 
 
 def test_read_covalent() -> None:

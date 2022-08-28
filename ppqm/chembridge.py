@@ -552,26 +552,26 @@ def get_inertia(atoms: Union[List[int], np.ndarray], coordinates: np.ndarray) ->
     Ixz = atoms * X * Z
     Iyz = atoms * Y * Z
 
-    Ixx = np.sum(Ixx)
-    Iyy = np.sum(Iyy)
-    Izz = np.sum(Izz)
+    Ixx_ = np.sum(Ixx)
+    Iyy_ = np.sum(Iyy)
+    Izz_ = np.sum(Izz)
 
-    Ixy = np.sum(Ixy)
-    Ixz = np.sum(Ixz)
-    Iyz = np.sum(Iyz)
+    Ixy_ = np.sum(Ixy)
+    Ixz_ = np.sum(Ixz)
+    Iyz_ = np.sum(Iyz)
 
     inertia = np.zeros((3, 3))
 
-    inertia[0, 0] = Ixx
-    inertia[1, 1] = Iyy
-    inertia[2, 2] = Izz
+    inertia[0, 0] = Ixx_
+    inertia[1, 1] = Iyy_
+    inertia[2, 2] = Izz_
 
-    inertia[0, 1] = -Ixy
-    inertia[1, 0] = -Ixy
-    inertia[0, 2] = -Ixz
-    inertia[2, 0] = -Ixz
-    inertia[1, 2] = -Iyz
-    inertia[2, 1] = -Iyz
+    inertia[0, 1] = -Ixy_
+    inertia[1, 0] = -Ixy_
+    inertia[0, 2] = -Ixz_
+    inertia[2, 0] = -Ixz_
+    inertia[1, 2] = -Iyz_
+    inertia[2, 1] = -Iyz_
 
     w, _ = np.linalg.eig(inertia)
 
@@ -597,14 +597,14 @@ def get_inertia_diag(atoms: Union[List[int], np.ndarray], coordinates: np.ndarra
     Iy = atoms * ry2
     Iz = atoms * rz2
 
-    Ix = np.sum(Ix)
-    Iy = np.sum(Iy)
-    Iz = np.sum(Iz)
+    Ix_ = np.sum(Ix)
+    Iy_ = np.sum(Iy)
+    Iz_ = np.sum(Iz)
 
     inertia = np.zeros(3)
-    inertia[0] = Ix
-    inertia[1] = Iy
-    inertia[2] = Iz
+    inertia[0] = Ix_
+    inertia[1] = Iy_
+    inertia[2] = Iz_
 
     return inertia
 

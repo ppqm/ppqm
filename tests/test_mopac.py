@@ -7,6 +7,10 @@ import rmsd  # type: ignore[import]
 from conftest import RESOURCES
 
 from ppqm import chembridge, mopac, tasks
+from ppqm.utils.shell import which
+
+if not which(mopac.MOPAC_CMD):
+    pytest.skip("Could not find MOPAC executable", allow_module_level=True)
 
 
 def _get_options(scr: Path) -> dict:
