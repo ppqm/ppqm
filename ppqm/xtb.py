@@ -200,6 +200,8 @@ def get_properties_from_axyzc(
     workdir = WorkDir(dir=scr, prefix="xtb_", keep=keep_files)
     temp_scr = workdir.get_path()
 
+    _logger.debug(f"xtb work dir {temp_scr}")
+
     # Write input file (XYZ format)
     inputstr = rmsd.set_coordinates(atoms_str, coordinates, title="xtb input")
 
@@ -276,6 +278,35 @@ def read_status(lines: List[str]) -> bool:
             return False
 
     return True
+
+
+def read_atoms(lines: List[str]) -> int:
+    """Well, someone removed the atoms line in xtb"""
+
+    keyword = "ID    Z sym.   atoms"
+    idx = linesio.get_index(lines, keyword)
+
+    assert idx is not None, "Unexpected error. No atoms to be found"
+    idx += 1
+
+    line: str = lines[idx].strip()
+
+    atoms = list()
+
+    while line:
+        line_ = line.split()
+
+        atom = line_[2]
+        atom_indices = line_[3:]
+        n_atom = len(atom_indices)
+
+        atoms += [atom] * n_atom
+
+        idx += 1
+        line = lines[idx].strip()
+
+    n_atoms = len(atoms)
+    return n_atoms
 
 
 def parse_sum_table(lines: List[str]) -> dict:
@@ -404,13 +435,13 @@ def read_properties_sp(lines: List[str]) -> Optional[dict]:
     idx_end_summary = idxs[2]
 
     # Get atom count
-    keyword = "number of atoms"
-    idx = linesio.get_index(lines, keyword)
-    assert idx is not None, "Uncaught xtb exception. Should not happen"
-
-    line = lines[idx]
-    n_atoms_ = line.split()[-1]
-    n_atoms = int(n_atoms_)
+    # keyword = "number of atoms"
+    # idx = linesio.get_index(lines, keyword)
+    # assert idx is not None, "Uncaught xtb exception. Should not happen"
+    # line = lines[idx]
+    # n_atoms_ = line.split()[-1]
+    # n_atoms = int(n_atoms_)
+    n_atoms = read_atoms(lines)
 
     # Get energies
     idx_summary = idxs[1] + 1

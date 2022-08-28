@@ -381,7 +381,9 @@ def test_calculate_electrophilicity(tmp_path: Path) -> None:
 
     assert "global_electrophilicity_index" in properties
     assert isinstance(properties.get("global_electrophilicity_index"), float)
-    assert properties.get("global_electrophilicity_index") == pytest.approx(2, rel=1)
+
+    # Global electrophilicity index (eV):    2.4365 un-optimized
+    assert properties.get("global_electrophilicity_index") == pytest.approx(4.9368, rel=1)
 
 
 def test_read_covalent() -> None:
