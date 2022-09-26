@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-import setuptools  # type:ignore
+from setuptools import find_packages, setup  # type: ignore
 
-setuptools.setup(
+setup(
     name="ppqm",
     version="0",
     maintainer="Jimmy Kromann",
     python_requires=">=3.6",
     install_requires=[],
-    packages=["ppqm"],
+    packages=find_packages(),
 )
