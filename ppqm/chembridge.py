@@ -530,7 +530,7 @@ def get_dipole_moment(
     xyz = np.array([x, y, z])
 
     # Calculate total moment vector length
-    total_moment: float = np.linalg.norm(xyz)
+    total_moment = float(np.linalg.norm(xyz))
 
     return total_moment
 
