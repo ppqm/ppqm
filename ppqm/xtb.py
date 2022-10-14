@@ -687,7 +687,7 @@ def get_mulliken_charges(scr: Optional[Path] = None) -> Optional[np.ndarray]:
         return None
 
     # read charges files from work dir
-    charges = np.loadtxt(filename)
+    charges: np.ndarray = np.loadtxt(filename)
 
     return charges
 

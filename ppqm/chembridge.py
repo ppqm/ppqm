@@ -449,10 +449,12 @@ def get_canonical_smiles(smiles: str) -> str:
     return smiles
 
 
-def get_center_of_mass(atoms: Union[List[int], np.ndarray], coordinates: np.ndarray) -> np.ndarray:
+def get_center_of_mass(
+    atomic_masses: Union[List[float], np.ndarray], coordinates: np.ndarray
+) -> np.ndarray:
     """Calculate center of mass"""
 
-    total_mass = np.sum(atoms)
+    total_mass = np.sum(atomic_masses)
 
     X = coordinates[:, 0]
     Y = coordinates[:, 1]
@@ -460,9 +462,9 @@ def get_center_of_mass(atoms: Union[List[int], np.ndarray], coordinates: np.ndar
 
     R = np.zeros(3)
 
-    R[0] = np.sum(atoms * X)
-    R[1] = np.sum(atoms * Y)
-    R[2] = np.sum(atoms * Z)
+    R[0] = np.sum(atomic_masses * X)
+    R[1] = np.sum(atomic_masses * Y)
+    R[2] = np.sum(atomic_masses * Z)
     R /= total_mass
 
     return R
@@ -481,7 +483,8 @@ def get_dipole_moments(molobj: Mol) -> np.ndarray:
     AllChem.ComputeGasteigerCharges(molobj)
 
     atoms = molobj.GetAtoms()  # type: ignore[attr-defined]
-    atoms_int = np.array([atom.GetAtomicNum() for atom in atoms])
+    # atoms_int = np.array([atom.GetAtomicNum() for atom in atoms])
+    atoms_mass = np.array([atom.GetMass() for atom in atoms])
     atoms_charge = np.array([atom.GetDoubleProp("_GasteigerCharge") for atom in atoms])
 
     # Calculate moments for each conformer
@@ -490,14 +493,17 @@ def get_dipole_moments(molobj: Mol) -> np.ndarray:
         coordinates = conformer.GetPositions()
         coordinates = np.array(coordinates)
 
-        total_moment = get_dipole_moment(atoms_int, coordinates, atoms_charge)
+        total_moment = get_dipole_moment(atoms_mass, coordinates, atoms_charge)
         moments.append(total_moment)
 
     return np.array(moments)
 
 
 def get_dipole_moment(
-    atoms: np.ndarray, coordinates: np.ndarray, charges: np.ndarray, is_centered: bool = False
+    atomic_masses: np.ndarray,
+    coordinates: np.ndarray,
+    charges: np.ndarray,
+    is_centered: bool = False,
 ) -> float:
     """
 
@@ -510,7 +516,7 @@ def get_dipole_moment(
     # total_charge = int(np.sum(charges))
 
     if not is_centered:
-        center = get_center_of_mass(atoms, coordinates)
+        center = get_center_of_mass(atomic_masses, coordinates)
         coordinates = coordinates - center
 
     X = coordinates[:, 0] * charges
@@ -524,15 +530,17 @@ def get_dipole_moment(
     xyz = np.array([x, y, z])
 
     # Calculate total moment vector length
-    total_moment: float = np.linalg.norm(xyz)  # type: ignore
+    total_moment: float = np.linalg.norm(xyz)
 
     return total_moment
 
 
-def get_inertia(atoms: Union[List[int], np.ndarray], coordinates: np.ndarray) -> np.ndarray:
+def get_inertia(
+    atomic_masses: Union[List[float], np.ndarray], coordinates: np.ndarray
+) -> np.ndarray:
     """Calculate inertia moments"""
 
-    com = get_center_of_mass(atoms, coordinates)
+    com = get_center_of_mass(atomic_masses, coordinates)
 
     coordinates -= com
 
@@ -544,13 +552,13 @@ def get_inertia(atoms: Union[List[int], np.ndarray], coordinates: np.ndarray) ->
     ryy = X**2 + Z**2
     rzz = X**2 + Y**2
 
-    Ixx = atoms * rxx
-    Iyy = atoms * ryy
-    Izz = atoms * rzz
+    Ixx = atomic_masses * rxx
+    Iyy = atomic_masses * ryy
+    Izz = atomic_masses * rzz
 
-    Ixy = atoms * Y * X
-    Ixz = atoms * X * Z
-    Iyz = atoms * Y * Z
+    Ixy = atomic_masses * Y * X
+    Ixz = atomic_masses * X * Z
+    Iyz = atomic_masses * Y * Z
 
     Ixx_ = np.sum(Ixx)
     Iyy_ = np.sum(Iyy)
@@ -575,13 +583,13 @@ def get_inertia(atoms: Union[List[int], np.ndarray], coordinates: np.ndarray) ->
 
     w, _ = np.linalg.eig(inertia)
 
-    return w
+    return np.asarray(w)
 
 
-def get_inertia_diag(atoms: Union[List[int], np.ndarray], coordinates: np.ndarray) -> np.ndarray:
+def get_inertia_diag(atomic_masses: np.ndarray, coordinates: np.ndarray) -> np.ndarray:
     """Calculate the inertia diagonal vector"""
 
-    com = get_center_of_mass(atoms, coordinates)
+    com = get_center_of_mass(atomic_masses, coordinates)
 
     coordinates -= com
 
@@ -593,9 +601,9 @@ def get_inertia_diag(atoms: Union[List[int], np.ndarray], coordinates: np.ndarra
     ry2 = X**2 + Z**2
     rz2 = X**2 + Y**2
 
-    Ix = atoms * rx2
-    Iy = atoms * ry2
-    Iz = atoms * rz2
+    Ix = atomic_masses * rx2
+    Iy = atomic_masses * ry2
+    Iz = atomic_masses * rz2
 
     Ix_ = np.sum(Ix)
     Iy_ = np.sum(Iy)

@@ -208,6 +208,9 @@ def test_get_dipole_moments() -> None:
     molobj = tasks.generate_conformers(molobj, n_conformers=n_conformers)
 
     moments = chembridge.get_dipole_moments(molobj)
+
+    print(moments)
+
     assert moments is not None
     assert isinstance(moments, np.ndarray)
     assert moments.shape == (n_conformers,)
