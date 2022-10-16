@@ -362,7 +362,7 @@ def test_read_properties_compromised_file() -> None:
 def test_parallel(tmp_path: Path) -> None:
     smiles = "C(C(=O)O)N"  # I like glycine
     molobj = Chem.MolFromSmiles(smiles)
-    total_cores = 4
+    total_cores = 2
 
     orca_options = _get_options(tmp_path)
     orca_options = {**orca_options, **dict(n_cores=total_cores, show_progress=True)}
