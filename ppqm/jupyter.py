@@ -1,11 +1,11 @@
 from typing import List
 
-import IPython  # type: ignore[import]
-import ipywidgets  # type: ignore[import]
-import nglview  # type: ignore[import]
-import pandas as pd  # type: ignore[import]
+import IPython
+import ipywidgets  # type: ignore[import-untyped]
+import nglview  # type: ignore[import-untyped]
+import pandas as pd  # type: ignore[import-untyped]
 from ipywidgets import Layout, interact
-from rdkit.Chem import rdMolAlign  # type: ignore[import]
+from rdkit.Chem import rdMolAlign  # type: ignore[import-untyped]
 
 from ppqm import chembridge
 from ppqm.chembridge import Mol

@@ -54,8 +54,8 @@ repos:
         args: ["--line-length=99"]
 
 
-  - repo: https://gitlab.com/pycqa/flake8
-    rev: 4.0.1
+  - repo: https://github.com/pycqa/flake8
+    rev: 6.1.0
     hooks:
       - id: flake8
         name: Checks pep8 style

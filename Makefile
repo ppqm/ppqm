@@ -1,16 +1,23 @@
 python=python
 mamba=mamba
 pkg=ppqm
+pip=./env/bin/pip
 
+all: env
 
 env_minimal:
-	${mamba} env create -f ./environment.yml -p ./env
+	${mamba} env create -f ./environment_minimal.yml -p ./env --quiet
+	${pip} install -e .
 
 env:
-	${mamba} env create -f ./environment_interactive.yml -p ./env
+	${mamba} env create -f ./environment_interactive.yml -p ./env --quiet
+	${pip} install -e .
 
 setup-dev:
 	pre-commit install
+
+format:
+	pre-commit run --all-files
 
 test:
 	${python} -m pytest -rs tests

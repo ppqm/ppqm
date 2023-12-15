@@ -3,10 +3,9 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - python=3.9
-  - rdkit
-  - numpy
-  - scipy
   - networkx
+  - numpy
+  - rdkit
   - rmsd
+  - scipy
   - tqdm
