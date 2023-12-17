@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any, Dict, Generator, List, Optional, Union
 
 import numpy as np
+from cclib.parser import MOPAC as MOPACParser  # type: ignore
 
 from ppqm import chembridge, constants
 from ppqm.calculator import BaseCalculator
@@ -131,7 +132,7 @@ class MopacCalculator(BaseCalculator):
 
         return
 
-    def _read_file(self) -> Generator[List[str], None, None]:
+    def _read_file(self) -> Generator[list[str], None, None]:
 
         filename = str(self.scr / self.filename)
         filename = filename.replace(".mop", ".out")
@@ -168,7 +169,7 @@ def run_mopac(filename: str, cmd: str = MOPAC_CMD, scr: Optional[Path] = None) -
 
     command = " ".join([cmd, filename])
 
-    stdout, stderr = shell.execute(command, cwd=scr)
+    _, _ = shell.execute(command, cwd=scr)
 
     # TODO Check stdout and stderr for error and return False
 
@@ -238,16 +239,16 @@ def properties_from_axyzc(
 
 
 def properties_from_many_axyzc(
-    atoms_list: Union[List[List[str]], np.ndarray],
-    coords_list: List[np.ndarray],
-    charge_list: List[int],
+    atoms_list: list[list[str]] | np.ndarray,
+    coords_list: list[np.ndarray],
+    charge_list: list[int],
     header: str,
-    titles: Optional[List[str]] = None,
+    titles: List[str] | None = None,
     optimize: bool = False,
     cmd: str = MOPAC_CMD,
     filename: str = MOPAC_FILENAME,
-    scr: Optional[Path] = None,
-) -> List[Optional[dict]]:
+    scr: Path | None = None,
+) -> List[dict | None]:
     """
     Calculate properties from a series of atoms, coord and charges. Written as one input file for MOPAC.
 
@@ -323,7 +324,7 @@ def read_output(
     return
 
 
-def has_error(lines: List[str]) -> bool:
+def has_error(lines: list[str]) -> bool:
     #
     #  *  Errors detected in keywords.  Job stopped here to avoid wasting time.
     #  *
@@ -367,7 +368,7 @@ def has_error(lines: List[str]) -> bool:
     return False
 
 
-def get_properties(lines: List[str]) -> Optional[dict]:
+def get_properties(lines: list[str], use_cclib: bool = True) -> dict | None:
     """
     TODO Check common errors
 
@@ -375,6 +376,13 @@ def get_properties(lines: List[str]) -> Optional[dict]:
     UNRECOGNIZED KEY-WORDS: (MULIKEN)
 
     """
+
+    if use_cclib:
+        mopac_parser = MOPACParser(lines)
+        print(mopac_parser)
+
+        # TOOD Get properties
+        return {}
 
     properties: Optional[dict]
 
