@@ -58,7 +58,7 @@ def stream(cmd: str, cwd: Optional[Path] = None, shell: bool = True) -> Generato
 
 def execute(
     cmd: str, cwd: Optional[Path] = None, shell: bool = True, timeout: Optional[int] = None
-) -> Tuple[Optional[str], Optional[str]]:
+) -> Tuple[str, str, bool]:
     """Execute command in directory, and return stdout and stderr
 
     :param cmd: The shell command
@@ -83,10 +83,12 @@ def execute(
     try:
         stdout, stderr = process.communicate(timeout=timeout)
     except TimeoutExpired:
-        stdout = None
-        stderr = None
+        stdout = ""
+        stderr = ""
 
-    return stdout, stderr
+    return_code = process.poll()
+
+    return stdout, stderr, return_code
 
 
 def source(bashfile: Path) -> dict:

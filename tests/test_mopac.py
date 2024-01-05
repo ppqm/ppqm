@@ -6,15 +6,17 @@ import pytest
 import rmsd  # type: ignore[import-untyped]
 from conftest import RESOURCES
 
-from ppqm import chembridge, mopac, tasks
+from ppqm import MopacCalculator, chembridge, tasks
+from ppqm.calculators import mopac
+from ppqm.calculators.mopac.constants import MOPAC_CMD
 from ppqm.utils.shell import which
 
-if not which(mopac.MOPAC_CMD):
+if not which(MOPAC_CMD):
     pytest.skip("Could not find MOPAC executable", allow_module_level=True)
 
 
 def _get_options(scr: Path) -> dict:
-    mopac_options = dict(scr=scr, cmd=which(mopac.MOPAC_CMD))
+    mopac_options = dict(scr=scr, cmd=which(MOPAC_CMD))
     return mopac_options
 
 
@@ -35,9 +37,9 @@ def test_optimize_water_and_get_energy(tmp_path: Path) -> None:
 
     # Get mopac calculator
     calculation_options = {"PM6": None}
-    calc = mopac.MopacCalculator(**mopac_options)
+    calc = MopacCalculator(**mopac_options)
 
-    # Optimize water
+    # Optimize water in PM6 gasphase
     properties_per_conformer = calc.calculate(molobj, calculation_options)
 
     assert len(properties_per_conformer) == n_conformers
@@ -120,6 +122,8 @@ def test_read_properties() -> None:
     filename = "tests/resources/mopac/output_with_error.txt"
     error_idx = 2
 
+    # TODO Read with Parser
+
     output = mopac.read_output(filename, translate_filename=False)
 
     result_list = []
@@ -146,9 +150,7 @@ def test_read_properties() -> None:
 def test_xyz_usage(tmp_path: Path) -> None:
 
     mopac_options = _get_options(tmp_path)
-
     xyz_file = RESOURCES / "compounds/CHEMBL1234757.xyz"
-
     method = "PM3"
 
     # Get XYZ

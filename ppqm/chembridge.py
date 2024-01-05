@@ -12,7 +12,8 @@ from rdkit.Chem.EnumerateStereoisomers import (  # type: ignore[import-untyped]
     EnumerateStereoisomers,
     StereoEnumerationOptions,
 )
-from rdkit.Chem.MolStandardize import rdMolStandardize  # type: ignore[import-untyped]
+
+# from rdkit.Chem.MolStandardize import rdMolStandardize  # TODO check dreprecation
 from rdkit.Chem.rdMolDescriptors import (  # type: ignore[import-untyped]
     CalcNumUnspecifiedAtomStereoCenters,
 )
@@ -1079,7 +1080,7 @@ def neutralize_molobj(molobj: Mol) -> Mol:
     if total_charge == 0:
         return molobj
 
-    molobj = rdMolStandardize.ChargeParent(molobj)
+    # molobj = rdMolStandardize.ChargeParent(molobj)
     return molobj
 
 
