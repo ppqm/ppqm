@@ -1,7 +1,6 @@
 _tmp_*
 .vim
 _test_*
-rmsd
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
