@@ -449,13 +449,11 @@ def get_canonical_smiles(smiles: str) -> str:
     return smiles
 
 
-def get_center_of_mass(
-    atomic_masses: np.ndarray, coordinates: np.ndarray
-) -> np.ndarray:
+def get_center_of_mass(atomic_masses: np.ndarray, coordinates: np.ndarray) -> np.ndarray:
     """Calculate the center of mass
-    
+
     Args:
-        atomic_masses (np.ndarray): 
+        atomic_masses (np.ndarray):
             numpy array of atomic masses. Must have shape (n_atoms)
         coordinates (np.ndarray):
             numpy array of coordinates. Must have shape (n_atoms, 3)
@@ -464,36 +462,39 @@ def get_center_of_mass(
         The center of mass of the molecule, as a numpy array of shape (3)
     """
 
-    assert len(atomic_masses.shape) == 1, "Input array has wrong shape" 
-    assert atomic_masses.shape[0] == coordinates.shape[0], "Input array has wrong shape" 
-    assert coordinates.shape[1] == 3, "Input array has wrong shape" 
- 
-    total_mass = np.sum(atomic_masses)
+    assert len(atomic_masses.shape) == 1, "Input array has wrong shape"
+    assert atomic_masses.shape[0] == coordinates.shape[0], "Input array has wrong shape"
+    assert coordinates.shape[1] == 3, "Input array has wrong shape"
 
-    return np.matmul(atomic_masses, coordinates) / total_mass
+    total_mass = np.sum(atomic_masses)
+    com: np.ndarray = np.matmul(atomic_masses, coordinates) / total_mass
+
+    return com
 
 
 def get_center_of_charge(
     atomic_charges: np.ndarray, coordinates: np.ndarray, atomic_masses: np.ndarray
-) -> np.ndarray: 
+) -> np.ndarray:
     """Calculate the center of charge. If the molecule is neutral, the function
-        returns the center of mass instead. 
-    
+        returns the center of mass instead.
+
     Args:
-        atomic_charges (np.ndarray): 
+        atomic_charges (np.ndarray):
             numpy array of atomic charges. Must have shape (n_atoms)
         coordinates (np.ndarray):
             numpy array of coordinates. Must have shape (n_atoms, 3)
-        atomic_masses (np.ndarray): 
+        atomic_masses (np.ndarray):
             numpy array of atomic masses. Must have shape (n_atoms)
 
     returns:
         The center of charge of the molecule, as a numpy array of shape (3)
     """
-    if np.isclose(np.sum(atomic_charges), 0): 
+    if np.isclose(np.sum(atomic_charges), 0):
         return get_center_of_mass(atomic_masses, coordinates)
 
-    return np.matmul(atomic_charges, coordinates) / np.sum(atomic_charges)
+    center_of_charge: np.ndarray = np.matmul(atomic_charges, coordinates) / np.sum(atomic_charges)
+
+    return center_of_charge
 
 
 def get_dipole_moments(molobj: Mol) -> np.ndarray:
@@ -532,23 +533,23 @@ def get_dipole_moment(
     is_centered: bool = False,
 ) -> float:
     """
-    Calculates the dipolemoment of a conformer. If the molecule is charged, the 
-    reference point is taken to be the center of charge. In the case of an uncharged 
-    molecule, the dipole moment does not depend on the reference point. 
+    Calculates the dipolemoment of a conformer. If the molecule is charged, the
+    reference point is taken to be the center of charge. In the case of an uncharged
+    molecule, the dipole moment does not depend on the reference point.
 
     Args:
-        atomic_masses (np.ndarray): 
+        atomic_masses (np.ndarray):
             numpy array of atomic masses. Must have shape (n_atoms)
         coordinates (np.ndarray):
             numpy array of coordinates. Must have shape (n_atoms, 3)
-        atomic_charges (np.ndarray): 
+        atomic_charges (np.ndarray):
             numpy array of atomic charges. Must have shape (n_atoms)
         is_centered (bool):
-            whether to set the reference point. If set to true, the origin of the 
-            coordinates is used as a reference point. Defaults to False. 
+            whether to set the reference point. If set to true, the origin of the
+            coordinates is used as a reference point. Defaults to False.
 
     returns:
-        The length of the dipole moment of the conformer. 
+        The length of the dipole moment of the conformer.
 
     """
     if not is_centered:
@@ -556,25 +557,23 @@ def get_dipole_moment(
         coordinates = coordinates - center
 
     moment = np.matmul(atomic_charges, coordinates)
-    
+
     total_moment = float(np.linalg.norm(moment))
 
     return total_moment
 
 
-def get_inertia_tensor(
-    atomic_masses: Union[List[float], np.ndarray], coordinates: np.ndarray
-) -> np.ndarray:
+def get_inertia_tensor(atomic_masses: np.ndarray, coordinates: np.ndarray) -> np.ndarray:
     """Calculate the inertia tensor of a collection of point masses
     Args:
-        atomic_masses (np.ndarray): 
+        atomic_masses (np.ndarray):
             numpy array of atomic masses. Must have shape (n_atoms)
         coordinates (np.ndarray):
             numpy array of coordinates. Must have shape (n_atoms, 3)
 
     returns:
         The inertia tensor, as a numpy array of shape (3,3)
-    
+
     """
 
     com = get_center_of_mass(atomic_masses, coordinates)
@@ -583,14 +582,12 @@ def get_inertia_tensor(
 
     mass_matrix = np.diag(atomic_masses)
     helper = coordinates.T.dot(mass_matrix).dot(coordinates)
-    inertia_tensor = np.diag(np.ones(3)) * helper.trace() - helper
+    inertia_tensor: np.ndarray = np.diag(np.ones(3)) * helper.trace() - helper
 
     return inertia_tensor
 
 
-def get_inertia(
-    atomic_masses: Union[List[float], np.ndarray], coordinates: np.ndarray
-) -> np.ndarray:
+def get_inertia(atomic_masses: np.ndarray, coordinates: np.ndarray) -> np.ndarray:
     """Calculate the moments of inertia, i.e. the eigenvalues of the inertia tensor"""
 
     inertia_tensor = get_inertia_tensor(atomic_masses, coordinates)
