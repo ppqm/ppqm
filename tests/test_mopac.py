@@ -3,7 +3,7 @@ from typing import Any, Dict, List
 
 import numpy as np
 import pytest
-import rmsd  # type: ignore[import]
+import rmsd  # type: ignore[import-untyped]
 from conftest import RESOURCES
 
 from ppqm import chembridge, mopac, tasks
@@ -14,7 +14,7 @@ if not which(mopac.MOPAC_CMD):
 
 
 def _get_options(scr: Path) -> dict:
-    mopac_options = {"scr": scr, "cmd": "mopac"}
+    mopac_options = dict(scr=scr, cmd=which(mopac.MOPAC_CMD))
     return mopac_options
 
 
@@ -178,6 +178,6 @@ def test_options() -> None:
 
     header = mopac.get_header(options)
 
-    assert type(header) == str
+    assert isinstance(header, str)
     assert "Test Mol" in header
     assert len(header.split("\n")) == 3

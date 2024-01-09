@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 from conftest import RESOURCES
-from rdkit import Chem  # type: ignore[import]
+from rdkit import Chem  # type: ignore[import-untyped]
 
 from ppqm import chembridge, tasks, xtb
 from ppqm.utils.shell import which
@@ -156,7 +156,7 @@ def test_parse_sum_table() -> None:
 
     lines = sumtable.split("\n")
     properties = xtb.parse_sum_table(lines)
-    assert type(properties) == dict
+    assert isinstance(properties, dict)
     assert properties["gsolv"] == 0.000347007313
 
 

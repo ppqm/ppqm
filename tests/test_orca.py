@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 from conftest import RESOURCES
-from rdkit import Chem  # type: ignore[import]
+from rdkit import Chem  # type: ignore[import-untyped]
 
 from ppqm import chembridge, orca, tasks
 from ppqm.orca import ORCA_CMD, OrcaCalculator

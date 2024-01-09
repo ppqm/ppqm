@@ -11,15 +11,15 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
-import rmsd  # type: ignore[import]
-from tqdm import tqdm  # type: ignore[import]
+import rmsd  # type: ignore[import-untyped]
+from tqdm import tqdm  # type: ignore[import-untyped]
 
 from ppqm import WorkDir, chembridge, constants
 from ppqm.calculator import BaseCalculator
 from ppqm.chembridge import Mol
 from ppqm.utils import func_parallel, linesio, shell
 
-# from rdkit.Chem.rdchem import Mol   # type: ignore[import]
+# from rdkit.Chem.rdchem import Mol   # type: ignore[import-untyped]
 
 
 XTB_CMD = "xtb"

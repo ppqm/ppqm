@@ -37,6 +37,6 @@ def test_optimize_water(tmp_path: Path) -> None:
     assert properties is not None
     assert len(properties)
 
-    water_atomization: float = properties[0]["h"]  # type: ignore
+    water_atomization: float = properties[0]["h"]
 
     assert pytest.approx(-224.11087077483552, rel=1e-2) == water_atomization

@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Union
 
 import numpy as np
-from tqdm import tqdm  # type: ignore[import]
+from tqdm import tqdm  # type: ignore[import-untyped]
 
 from ppqm import chembridge, constants, units
 from ppqm.calculator import BaseCalculator
