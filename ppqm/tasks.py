@@ -2,9 +2,9 @@
 
 from typing import Optional
 
-import rdkit.Chem as Chem  # type: ignore[import]
-import rdkit.Chem.AllChem as AllChem  # type: ignore[import]
-import rdkit.Chem.rdMolDescriptors as rdMolDescriptors  # type: ignore[import]
+import rdkit.Chem as Chem  # type: ignore[import-untyped]
+import rdkit.Chem.AllChem as AllChem  # type: ignore[import-untyped]
+import rdkit.Chem.rdMolDescriptors as rdMolDescriptors  # type: ignore[import-untyped]
 from rdkit.Chem import rdDistGeom
 
 from ppqm import chembridge

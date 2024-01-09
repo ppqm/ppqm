@@ -4,12 +4,12 @@ import sys
 import threading
 from typing import Any, Callable, List, Optional, Sequence
 
-from tqdm import tqdm  # type: ignore
+from tqdm import tqdm  # type: ignore[import-untyped]
 
 try:
     import thread  # type: ignore
 except ImportError:
-    import _thread as thread  # type: ignore[no-redef]
+    import _thread as thread
 
 from ppqm import constants
 

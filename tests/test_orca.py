@@ -2,9 +2,9 @@ from pathlib import Path
 
 import pytest
 from conftest import RESOURCES
-from rdkit import Chem  # type: ignore[import]
+from rdkit import Chem  # type: ignore[import-untyped]
 
-from ppqm import chembridge, orca, tasks, units
+from ppqm import chembridge, orca, tasks
 from ppqm.orca import ORCA_CMD, OrcaCalculator
 from ppqm.utils.shell import which
 
@@ -12,15 +12,15 @@ if not which(ORCA_CMD):
     pytest.skip("Could not find orca executable", allow_module_level=True)
 
 TEST_ENERGIES_PM3 = [
-    ("O", -11.935809225486 * units.hartree_to_kcalmol),
-    ("CC", -12.124869353328 * units.hartree_to_kcalmol),
-    ("[NH4+]", -7.972867788142 * units.hartree_to_kcalmol),
+    ("O", -11.935809225486),
+    ("CC", -12.124869353328),
+    ("[NH4+]", -7.972867788142),
 ]
 
 TEST_ENERGIES_B3LYP = [
-    ("O", -76.328663632482 * units.hartree_to_kcalmol),
-    ("CC", -79.705551996245 * units.hartree_to_kcalmol),
-    ("[NH4+]", -56.950888890358 * units.hartree_to_kcalmol),
+    ("O", -76.328663632482),
+    ("CC", -79.705551996245),
+    ("[NH4+]", -56.950888890358),
 ]
 
 serine_num_atoms = 14
@@ -222,7 +222,7 @@ def test_get_gibbs_free_energy() -> None:
 
     assert isinstance(result_orca_4["gibbs_free_energy"], float)
 
-    assert result_orca_4["gibbs_free_energy"] == -40.42878184 * units.hartree_to_kcalmol
+    assert result_orca_4["gibbs_free_energy"] == -40.42878184
 
     # orca 5.0.2
 
@@ -234,7 +234,7 @@ def test_get_gibbs_free_energy() -> None:
 
     assert isinstance(result_orca_5["gibbs_free_energy"], float)
 
-    assert result_orca_5["gibbs_free_energy"] == -398.37468900 * units.hartree_to_kcalmol
+    assert result_orca_5["gibbs_free_energy"] == -398.37468900
 
 
 def test_get_enthalpy() -> None:
@@ -255,7 +255,7 @@ def test_get_enthalpy() -> None:
 
     assert isinstance(result_orca_4["enthalpy"], float)
 
-    assert result_orca_4["enthalpy"] == -40.40529550 * units.hartree_to_kcalmol
+    assert result_orca_4["enthalpy"] == -40.40529550
 
     # orca 5.0.2
 
@@ -267,7 +267,7 @@ def test_get_enthalpy() -> None:
 
     assert isinstance(result_orca_5["enthalpy"], float)
 
-    assert result_orca_5["enthalpy"] == -398.33479178 * units.hartree_to_kcalmol
+    assert result_orca_5["enthalpy"] == -398.33479178
 
 
 def test_get_entropy() -> None:
@@ -288,7 +288,7 @@ def test_get_entropy() -> None:
 
     assert isinstance(result_orca_4["entropy"], float)
 
-    assert result_orca_4["entropy"] == 0.02348634 * units.hartree_to_kcalmol
+    assert result_orca_4["entropy"] == 0.02348634
 
     # orca 5.0.2
 
@@ -300,7 +300,7 @@ def test_get_entropy() -> None:
 
     assert isinstance(result_orca_5["entropy"], float)
 
-    assert result_orca_5["entropy"] == 0.03989722 * units.hartree_to_kcalmol
+    assert result_orca_5["entropy"] == 0.03989722
 
 
 def test_read_properties() -> None:
@@ -313,8 +313,6 @@ def test_read_properties() -> None:
         "CPCM": "water",
         "RIJCOSX": None,
         "def2/J": None,
-        "Grid4": None,
-        "GridX4": None,
         "NMR": None,
         "def2/JK": None,
     }
@@ -339,8 +337,6 @@ def test_read_properties_compromised_file() -> None:
         "CPCM": "water",
         "RIJCOSX": None,
         "def2/J": None,
-        "Grid4": None,
-        "GridX4": None,
         "NMR": None,
         "def2/JK": None,
     }
@@ -366,9 +362,10 @@ def test_read_properties_compromised_file() -> None:
 def test_parallel(tmp_path: Path) -> None:
     smiles = "C(C(=O)O)N"  # I like glycine
     molobj = Chem.MolFromSmiles(smiles)
+    total_cores = 2
 
     orca_options = _get_options(tmp_path)
-    orca_options = {**orca_options, **dict(n_cores=2, show_progress=True)}
+    orca_options = {**orca_options, **dict(n_cores=total_cores, show_progress=True)}
 
     calc = OrcaCalculator(**orca_options)
 
@@ -380,23 +377,34 @@ def test_parallel(tmp_path: Path) -> None:
         "CPCM": "water",
         "RIJCOSX": None,
         "def2/J": None,
-        # "Grid4": None,
-        # "GridX4": None,
     }
 
+    assert calc.n_cores == total_cores
+
+    # new keywords for integration grid in newer version of orca
+    # https://sites.google.com/site/orcainputlibrary/numerical-precision
+    if int(calc.version[0]) < 5:
+        calculation_option["Grid4"] = None
+        calculation_option["GridX4"] = None
+
     # generate conformers
-    molobj_conf = tasks.generate_conformers(molobj, max_conformers=2)
+    num_conformers = 2
+    molobj_conf = tasks.generate_conformers(molobj, max_conformers=num_conformers)
 
     # calculate energy of conformers
     results = calc.calculate(molobj_conf, calculation_option)
     assert len(results)
     assert results[1] is not None
+    assert (
+        calc.orca_options["n_cores"] == total_cores // num_conformers
+    )  # update after calc has been called
+    assert calc.n_cores == total_cores  # should not have changed
 
     # test for some values
     scf_energy = results[1]["scf_energy"]
     mulliken_charge = results[1]["mulliken_charges"][0]
 
-    assert pytest.approx(scf_energy, 10**-4) == -178251.589166
+    assert pytest.approx(scf_energy, 10**-4) == -284.06522738493
     assert pytest.approx(mulliken_charge, 10**-1) == 0.111094
 
 
@@ -448,8 +456,6 @@ def test_axyzc_optimize_b3lyp(smiles: str, energy: float, tmp_path: Path) -> Non
         "CPCM": "water",
         "RIJCOSX": None,
         "def2/J": None,
-        # "Grid4": None,
-        # "GridX4": None,
     }
     atoms, coordinates, charge = chembridge.get_axyzc(molobj, atomfmt=str)
 

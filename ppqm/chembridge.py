@@ -6,14 +6,16 @@ from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
 import numpy as np
-from rdkit import Chem, RDLogger  # type: ignore[import]
-from rdkit.Chem import AllChem, Draw, rdFreeSASA, rdmolops  # type: ignore[import]
-from rdkit.Chem.EnumerateStereoisomers import (  # type: ignore[import]
+from rdkit import Chem, RDLogger  # type: ignore[import-untyped]
+from rdkit.Chem import AllChem, Draw, rdFreeSASA, rdmolops  # type: ignore[import-untyped]
+from rdkit.Chem.EnumerateStereoisomers import (  # type: ignore[import-untyped]
     EnumerateStereoisomers,
     StereoEnumerationOptions,
 )
-from rdkit.Chem.MolStandardize import rdMolStandardize  # type: ignore[import]
-from rdkit.Chem.rdMolDescriptors import CalcNumUnspecifiedAtomStereoCenters  # type: ignore[import]
+from rdkit.Chem.MolStandardize import rdMolStandardize  # type: ignore[import-untyped]
+from rdkit.Chem.rdMolDescriptors import (  # type: ignore[import-untyped]
+    CalcNumUnspecifiedAtomStereoCenters,
+)
 
 from ppqm import units
 
@@ -139,10 +141,8 @@ ATOM_LIST = [
 class Mol:
     """Meta class for typing rdkit functions"""
 
-    ...
-
     def GetNumConformers(self) -> int:
-        ...
+        return 0
 
 
 def axyzc_to_molobj(atoms: List[str], coord: np.ndarray, charge: int) -> Mol:
