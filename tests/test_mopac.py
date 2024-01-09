@@ -31,7 +31,6 @@ def test_optimize_water_and_get_energy(tmp_path: Path) -> None:
     assert molobj.GetNumAtoms() == 3  # type: ignore[attr-defined]
 
     mopac_options = _get_options(tmp_path)
-    print(mopac_options)
 
     # Get mopac calculator
     calculation_options = {"PM6": None}
