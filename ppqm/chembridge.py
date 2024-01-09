@@ -461,11 +461,17 @@ def get_center_of_mass(atomic_masses: np.ndarray, coordinates: np.ndarray) -> np
     returns:
         The center of mass of the molecule, as a numpy array of shape (3)
     """
+    # check input shapes
+    atm_shape = atomic_masses.shape
+    coord_shape = coordinates.shape
+    if len(atm_shape) != 1:
+        raise ValueError(f"Atomic masses should have shape (N,), but got {atm_shape}.")
+    if atm_shape[0] != coord_shape[0]:
+        raise ValueError("Must provide same number of coordinates and masses.")
+    if coord_shape[1] != 3:
+        raise ValueError(f"Coordinates should have shape (N,3), but got {coord_shape}.")
 
-    assert len(atomic_masses.shape) == 1, "Input array has wrong shape"
-    assert atomic_masses.shape[0] == coordinates.shape[0], "Input array has wrong shape"
-    assert coordinates.shape[1] == 3, "Input array has wrong shape"
-
+    # calculate center of mass
     total_mass = np.sum(atomic_masses)
     com: np.ndarray = np.matmul(atomic_masses, coordinates) / total_mass
 
@@ -491,6 +497,16 @@ def get_center_of_charge(
     """
     if np.isclose(np.sum(atomic_charges), 0):
         return get_center_of_mass(atomic_masses, coordinates)
+
+    # check input shapes
+    atc_shape = atomic_charges.shape
+    coord_shape = coordinates.shape
+    if len(atc_shape) != 1:
+        raise ValueError(f"Atomic charges should have shape (N,), but got {atc_shape}.")
+    if atc_shape[0] != coord_shape[0]:
+        raise ValueError("Must provide same number of coordinates and charges.")
+    if coord_shape[1] != 3:
+        raise ValueError(f"Coordinates should have shape (N,3), but got {coord_shape}.")
 
     center_of_charge: np.ndarray = np.matmul(atomic_charges, coordinates) / np.sum(atomic_charges)
 
