@@ -329,7 +329,7 @@ def read_properties(
     read_files = True
 
     if options is None:
-        reader = read_properties_opt
+        reader = read_properties_sp
 
     elif "vfukui" in options:
         reader = read_properties_fukui
