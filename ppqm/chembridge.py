@@ -254,6 +254,7 @@ def enumerate_stereocenters(
 
     properties = get_properties_from_molobj(molobj)
 
+    Chem.AssignStereochemistry(molobj)
     num_unassigned = CalcNumUnspecifiedAtomStereoCenters(molobj)
     if num_unassigned > max_num_unassigned:
         smi = Chem.MolToSmiles(molobj)
