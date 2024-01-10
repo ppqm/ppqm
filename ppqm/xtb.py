@@ -280,35 +280,6 @@ def read_status(lines: List[str]) -> bool:
     return True
 
 
-def read_atoms(lines: List[str]) -> int:
-    """Well, someone removed the atoms line in xtb"""
-
-    keyword = "ID    Z sym.   atoms"
-    idx = linesio.get_index(lines, keyword)
-
-    assert idx is not None, "Unexpected error. No atoms to be found"
-    idx += 1
-
-    line: str = lines[idx].strip()
-
-    atoms = list()
-
-    while line:
-        line_ = line.split()
-
-        atom = line_[2]
-        atom_indices = line_[3:]
-        n_atom = len(atom_indices)
-
-        atoms += [atom] * n_atom
-
-        idx += 1
-        line = lines[idx].strip()
-
-    n_atoms = len(atoms)
-    return n_atoms
-
-
 def parse_sum_table(lines: List[str]) -> dict:
     """Parse the summary table from xtb log"""
 
@@ -430,7 +401,7 @@ def read_properties_sp(lines: List[str]) -> Optional[dict]:
     assert idxs[1] is not None, "Uncaught xtb exception. Please report."
     assert idxs[2] is not None, "Uncaught xtb exception. Please report."
 
-    idxs[0]
+    idx_coord = idxs[0]
     idx_summary = idxs[1]
     idx_end_summary = idxs[2]
 
@@ -441,7 +412,6 @@ def read_properties_sp(lines: List[str]) -> Optional[dict]:
     # line = lines[idx]
     # n_atoms_ = line.split()[-1]
     # n_atoms = int(n_atoms_)
-    n_atoms = read_atoms(lines)
 
     # Get energies
     idx_summary = idxs[1] + 1
@@ -486,9 +456,15 @@ def read_properties_sp(lines: List[str]) -> Optional[dict]:
 
     properties = {
         COLUMN_DIPOLE: dipole_tot,
-        "n_atoms": n_atoms,
         **properties,
     }
+
+    if idx_coord is not None:
+        try:
+            num_atoms = int(lines[idx_coord + 2])
+            properties["n_atoms"] = num_atoms
+        except ValueError:
+            _logger.error("Unable to parse number of atoms")
 
     # Get covalent properties
     properties_covalent = read_covalent_coordination(lines)
@@ -526,6 +502,7 @@ def read_properties_opt(lines: List[str]) -> Optional[dict]:
 
     properties = read_properties_sp(lines)
     assert properties is not None, "Uncaught error"
+    assert "n_atoms" in properties, "Unable to parse number of atoms"
 
     n_atoms: int = properties["n_atoms"]
 

@@ -49,6 +49,7 @@ def test_axyzc_optimize(smiles: str, energy: float, tmp_path: Path) -> None:
 
     total_energy = properties[xtb.COLUMN_ENERGY]
     assert xtb.COLUMN_COORD in properties
+    assert len(properties[xtb.COLUMN_COORD]) == len(atoms)
     assert pytest.approx(energy, 10**-2) == total_energy
 
 
