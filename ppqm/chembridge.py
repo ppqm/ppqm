@@ -450,28 +450,73 @@ def get_canonical_smiles(smiles: str) -> str:
     return smiles
 
 
-def get_center_of_mass(atoms: Union[List[int], np.ndarray], coordinates: np.ndarray) -> np.ndarray:
-    """Calculate center of mass"""
+def get_center_of_mass(atomic_masses: np.ndarray, coordinates: np.ndarray) -> np.ndarray:
+    """Calculate the center of mass
 
-    total_mass = np.sum(atoms)
+    Args:
+        atomic_masses (np.ndarray):
+            numpy array of atomic masses. Must have shape (n_atoms)
+        coordinates (np.ndarray):
+            numpy array of coordinates. Must have shape (n_atoms, 3)
 
-    X = coordinates[:, 0]
-    Y = coordinates[:, 1]
-    Z = coordinates[:, 2]
+    returns:
+        The center of mass of the molecule, as a numpy array of shape (3)
+    """
+    # check input shapes
+    atm_shape = atomic_masses.shape
+    coord_shape = coordinates.shape
+    if len(atm_shape) != 1:
+        raise ValueError(f"Atomic masses should have shape (N,), but got {atm_shape}.")
+    if atm_shape[0] != coord_shape[0]:
+        raise ValueError("Must provide same number of coordinates and masses.")
+    if coord_shape[1] != 3:
+        raise ValueError(f"Coordinates should have shape (N,3), but got {coord_shape}.")
 
-    R = np.zeros(3)
+    # calculate center of mass
+    total_mass = np.sum(atomic_masses)
+    com: np.ndarray = np.matmul(atomic_masses, coordinates) / total_mass
 
-    R[0] = np.sum(atoms * X)
-    R[1] = np.sum(atoms * Y)
-    R[2] = np.sum(atoms * Z)
-    R /= total_mass
+    return com
 
-    return R
+
+def get_center_of_charge(
+    atomic_charges: np.ndarray, coordinates: np.ndarray, atomic_masses: np.ndarray
+) -> np.ndarray:
+    """Calculate the center of charge. If the molecule is neutral, the function
+        returns the center of mass instead.
+
+    Args:
+        atomic_charges (np.ndarray):
+            numpy array of atomic charges. Must have shape (n_atoms)
+        coordinates (np.ndarray):
+            numpy array of coordinates. Must have shape (n_atoms, 3)
+        atomic_masses (np.ndarray):
+            numpy array of atomic masses. Must have shape (n_atoms)
+
+    returns:
+        The center of charge of the molecule, as a numpy array of shape (3)
+    """
+    if np.isclose(np.sum(atomic_charges), 0):
+        return get_center_of_mass(atomic_masses, coordinates)
+
+    # check input shapes
+    atc_shape = atomic_charges.shape
+    coord_shape = coordinates.shape
+    if len(atc_shape) != 1:
+        raise ValueError(f"Atomic charges should have shape (N,), but got {atc_shape}.")
+    if atc_shape[0] != coord_shape[0]:
+        raise ValueError("Must provide same number of coordinates and charges.")
+    if coord_shape[1] != 3:
+        raise ValueError(f"Coordinates should have shape (N,3), but got {coord_shape}.")
+
+    center_of_charge: np.ndarray = np.matmul(atomic_charges, coordinates) / np.sum(atomic_charges)
+
+    return center_of_charge
 
 
 def get_dipole_moments(molobj: Mol) -> np.ndarray:
     """
-    Compute dipole moment for all conformers, using Gasteiger charges and
+    Compute norm of the dipole moment for all conformers, using Gasteiger charges and
     coordinates from conformers
 
     Expects molobj to contain conformers
@@ -482,7 +527,8 @@ def get_dipole_moments(molobj: Mol) -> np.ndarray:
     AllChem.ComputeGasteigerCharges(molobj)
 
     atoms = molobj.GetAtoms()  # type: ignore[attr-defined]
-    atoms_int = np.array([atom.GetAtomicNum() for atom in atoms])
+    # atoms_int = np.array([atom.GetAtomicNum() for atom in atoms])
+    atoms_mass = np.array([atom.GetMass() for atom in atoms])
     atoms_charge = np.array([atom.GetDoubleProp("_GasteigerCharge") for atom in atoms])
 
     # Calculate moments for each conformer
@@ -491,123 +537,87 @@ def get_dipole_moments(molobj: Mol) -> np.ndarray:
         coordinates = conformer.GetPositions()
         coordinates = np.array(coordinates)
 
-        total_moment = get_dipole_moment(atoms_int, coordinates, atoms_charge)
+        total_moment = get_dipole_moment(atoms_mass, coordinates, atoms_charge)
         moments.append(total_moment)
 
     return np.array(moments)
 
 
 def get_dipole_moment(
-    atoms: np.ndarray, coordinates: np.ndarray, charges: np.ndarray, is_centered: bool = False
+    atomic_masses: np.ndarray,
+    coordinates: np.ndarray,
+    atomic_charges: np.ndarray,
+    is_centered: bool = False,
 ) -> float:
     """
+    Calculates the dipolemoment of a conformer. If the molecule is charged, the
+    reference point is taken to be the center of charge. In the case of an uncharged
+    molecule, the dipole moment does not depend on the reference point.
 
-    from wikipedia:
-    For a charged molecule the center of charge should be the reference point
-    instead of the center of mass.
+    Args:
+        atomic_masses (np.ndarray):
+            numpy array of atomic masses. Must have shape (n_atoms)
+        coordinates (np.ndarray):
+            numpy array of coordinates. Must have shape (n_atoms, 3)
+        atomic_charges (np.ndarray):
+            numpy array of atomic charges. Must have shape (n_atoms)
+        is_centered (bool):
+            whether to set the reference point. If set to true, the origin of the
+            coordinates is used as a reference point. Defaults to False.
+
+    returns:
+        The length of the dipole moment of the conformer.
 
     """
-
-    # total_charge = int(np.sum(charges))
-
     if not is_centered:
-        center = get_center_of_mass(atoms, coordinates)
+        center = get_center_of_charge(atomic_charges, coordinates, atomic_masses)
         coordinates = coordinates - center
 
-    X = coordinates[:, 0] * charges
-    Y = coordinates[:, 1] * charges
-    Z = coordinates[:, 2] * charges
+    moment = np.matmul(atomic_charges, coordinates)
 
-    x = np.sum(X)
-    y = np.sum(Y)
-    z = np.sum(Z)
-
-    xyz = np.array([x, y, z])
-
-    # Calculate total moment vector length
-    total_moment: float = np.linalg.norm(xyz)  # type: ignore
+    total_moment = float(np.linalg.norm(moment))
 
     return total_moment
 
 
-def get_inertia(atoms: Union[List[int], np.ndarray], coordinates: np.ndarray) -> np.ndarray:
-    """Calculate inertia moments"""
+def get_inertia_tensor(atomic_masses: np.ndarray, coordinates: np.ndarray) -> np.ndarray:
+    """Calculate the inertia tensor of a collection of point masses
+    Args:
+        atomic_masses (np.ndarray):
+            numpy array of atomic masses. Must have shape (n_atoms)
+        coordinates (np.ndarray):
+            numpy array of coordinates. Must have shape (n_atoms, 3)
 
-    com = get_center_of_mass(atoms, coordinates)
+    returns:
+        The inertia tensor, as a numpy array of shape (3,3)
+
+    """
+
+    com = get_center_of_mass(atomic_masses, coordinates)
 
     coordinates -= com
 
-    X = coordinates[:, 0]
-    Y = coordinates[:, 1]
-    Z = coordinates[:, 2]
+    mass_matrix = np.diag(atomic_masses)
+    helper = coordinates.T.dot(mass_matrix).dot(coordinates)
+    inertia_tensor: np.ndarray = np.diag(np.ones(3)) * helper.trace() - helper
 
-    rxx = Y**2 + Z**2
-    ryy = X**2 + Z**2
-    rzz = X**2 + Y**2
-
-    Ixx = atoms * rxx
-    Iyy = atoms * ryy
-    Izz = atoms * rzz
-
-    Ixy = atoms * Y * X
-    Ixz = atoms * X * Z
-    Iyz = atoms * Y * Z
-
-    Ixx_ = np.sum(Ixx)
-    Iyy_ = np.sum(Iyy)
-    Izz_ = np.sum(Izz)
-
-    Ixy_ = np.sum(Ixy)
-    Ixz_ = np.sum(Ixz)
-    Iyz_ = np.sum(Iyz)
-
-    inertia = np.zeros((3, 3))
-
-    inertia[0, 0] = Ixx_
-    inertia[1, 1] = Iyy_
-    inertia[2, 2] = Izz_
-
-    inertia[0, 1] = -Ixy_
-    inertia[1, 0] = -Ixy_
-    inertia[0, 2] = -Ixz_
-    inertia[2, 0] = -Ixz_
-    inertia[1, 2] = -Iyz_
-    inertia[2, 1] = -Iyz_
-
-    w, _ = np.linalg.eig(inertia)
-
-    return w
+    return inertia_tensor
 
 
-def get_inertia_diag(atoms: Union[List[int], np.ndarray], coordinates: np.ndarray) -> np.ndarray:
+def get_inertia(atomic_masses: np.ndarray, coordinates: np.ndarray) -> np.ndarray:
+    """Calculate the moments of inertia, i.e. the eigenvalues of the inertia tensor"""
+
+    inertia_tensor = get_inertia_tensor(atomic_masses, coordinates)
+
+    return np.linalg.eigvals(inertia_tensor)
+
+
+def get_inertia_diag(atomic_masses: np.ndarray, coordinates: np.ndarray) -> np.ndarray:
     """Calculate the inertia diagonal vector"""
 
-    com = get_center_of_mass(atoms, coordinates)
+    inertia_tensor = get_inertia_tensor(atomic_masses, coordinates)
 
-    coordinates -= com
-
-    X = coordinates[:, 0]
-    Y = coordinates[:, 1]
-    Z = coordinates[:, 2]
-
-    rx2 = Y**2 + Z**2
-    ry2 = X**2 + Z**2
-    rz2 = X**2 + Y**2
-
-    Ix = atoms * rx2
-    Iy = atoms * ry2
-    Iz = atoms * rz2
-
-    Ix_ = np.sum(Ix)
-    Iy_ = np.sum(Iy)
-    Iz_ = np.sum(Iz)
-
-    inertia = np.zeros(3)
-    inertia[0] = Ix_
-    inertia[1] = Iy_
-    inertia[2] = Iz_
-
-    return inertia
+    return inertia_tensor.diagonal().copy()
 
 
 def get_inertia_ratio(inertia: np.ndarray) -> np.ndarray:

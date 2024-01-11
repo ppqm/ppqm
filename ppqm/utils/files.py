@@ -56,7 +56,7 @@ def save_array(arr: np.ndarray) -> str:
 
 def load_array(txt: str) -> np.ndarray:
     s = StringIO(txt)
-    arr = np.loadtxt(s)
+    arr: np.ndarray = np.loadtxt(s)
     return arr
 
 
