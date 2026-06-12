@@ -7,7 +7,7 @@ name = "ppqm"
 dynamic = ["version"]
 maintainers = [{name = "Jimmy Kromann"}, {name = "Hagen Muenkler"}]
 description = "Utilities for running QM calculations with RDKit"
-readme = "readme.rst"
+readme = "readme.md"
 license = {text = "MIT"}
 requires-python = ">=3.10"
 classifiers = [

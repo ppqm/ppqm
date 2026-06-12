@@ -40,7 +40,7 @@ test-dist:
 	${python} -m twine check dist/*
 
 upload:
-	${python} -m twine upload ./dist/*
+	${python} -m twine upload --verbose ./dist/*
 
 diff-report:
 	git diff '@{2 month ago}' HEAD > change_month.diff
