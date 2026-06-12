@@ -40,4 +40,4 @@ jobs:
       - name: Test installation from wheel
         run: |
           pip install dist/*.whl
-          python -c "import ppqm; print(ppqm.version.__version__)"
+          python -c "import ppqm; print(ppqm.__version__)"
