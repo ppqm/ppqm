@@ -13,7 +13,6 @@ def _get_options(scr: Path) -> dict:
 
 
 def test_optimize_water(tmp_path: Path) -> None:
-
     mndo_options = _get_options(tmp_path)
 
     # Get molecule

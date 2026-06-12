@@ -2,14 +2,14 @@ import logging
 import os
 import shutil
 import subprocess
+from collections.abc import Generator
 from pathlib import Path
 from subprocess import TimeoutExpired
-from typing import Generator, Optional, Tuple, Union
 
 _logger = logging.getLogger(__name__)
 
 
-def _switch_workdir(path: Optional[Path]) -> bool:
+def _switch_workdir(path: Path | None) -> bool:
     """Check if it makes sense to change directory"""
 
     if path is None:
@@ -23,7 +23,7 @@ def _switch_workdir(path: Optional[Path]) -> bool:
     return True
 
 
-def stream(cmd: str, cwd: Optional[Path] = None, shell: bool = True) -> Generator[str, None, None]:
+def stream(cmd: str, cwd: Path | None = None, shell: bool = True) -> Generator[str, None, None]:
     """Execute command in directory, and stream stdout. Last yield is
     stderr
 
@@ -46,8 +46,7 @@ def stream(cmd: str, cwd: Optional[Path] = None, shell: bool = True) -> Generato
         cwd=cwd,
     )
 
-    for stdout_line in iter(popen.stdout.readline, ""):  # type: ignore
-        yield stdout_line
+    yield from iter(popen.stdout.readline, "")
 
     # Yield errors
     stderr = popen.stderr.read()  # type: ignore
@@ -57,8 +56,8 @@ def stream(cmd: str, cwd: Optional[Path] = None, shell: bool = True) -> Generato
 
 
 def execute(
-    cmd: str, cwd: Optional[Path] = None, shell: bool = True, timeout: Optional[int] = None
-) -> Tuple[Optional[str], Optional[str]]:
+    cmd: str, cwd: Path | None = None, shell: bool = True, timeout: int | None = None
+) -> tuple[str | None, str | None]:
     """Execute command in directory, and return stdout and stderr
 
     :param cmd: The shell command
@@ -109,10 +108,9 @@ def source(bashfile: Path) -> dict:
 
     lines = stdout.split("\n")
 
-    variables = dict()
+    variables = {}
 
     for line in lines:
-
         line_ = line.split("=")
 
         # Ignore wrong lines
@@ -138,7 +136,7 @@ def source(bashfile: Path) -> dict:
     return variables
 
 
-def which(cmd: str) -> Optional[str]:
+def which(cmd: str) -> str | None:
     """find location of command in system"""
     return shutil.which(cmd)
 
@@ -148,15 +146,11 @@ def command_exists(cmd: str) -> bool:
 
     path = which(cmd)
 
-    if path is None:
-        return False
-
-    return True
+    return path is not None
 
 
-def get_threads() -> Optional[int]:
-
-    n: Union[None, int, str] = os.environ.get("OMP_NUM_THREADS", None)
+def get_threads() -> int | None:
+    n: None | int | str = os.environ.get("OMP_NUM_THREADS", None)
 
     if n is None:
         return None

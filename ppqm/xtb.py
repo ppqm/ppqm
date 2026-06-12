@@ -7,8 +7,9 @@ import logging
 import multiprocessing
 import os
 from collections import ChainMap
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 import numpy as np
 import rmsd  # type: ignore[import-untyped]
@@ -60,21 +61,20 @@ class XtbCalculator(BaseCalculator):
             n_cores = multiprocessing.cpu_count()
 
         # TODO Should not be using xtb_options
-        self.xtb_options: Dict[str, Any] = dict(
-            cmd=self.cmd,
-            scr=self.scr,
-            filename=self.filename,
-            keep_files=keep_files,
-        )
+        self.xtb_options: dict[str, Any] = {
+            "cmd": self.cmd,
+            "scr": self.scr,
+            "filename": self.filename,
+            "keep_files": keep_files,
+        }
 
         # Default xtb options
-        self.options: Dict = {}
+        self.options: dict = {}
 
         # Check version and command
         self.health_check()
 
     def health_check(self) -> None:
-
         assert shell.which(self.cmd), f"Cannot find {self.cmd}"
 
         stdout, _ = shell.execute(f"{self.cmd} --version")
@@ -87,14 +87,13 @@ class XtbCalculator(BaseCalculator):
             version = stdout_lines[0].strip().split()
             version = version[3].split(".")
             major, minor, _ = version
-        except Exception:
-            assert False, "too old xtb version"
+        except Exception as err:
+            raise AssertionError("too old xtb version") from err
 
         assert int(major) >= 6, "too old xtb version"
         assert int(minor) >= 4, "too old xtb version"
 
-    def calculate(self, molobj: Mol, options: dict, **kwargs: Any) -> List[Optional[dict]]:
-
+    def calculate(self, molobj: Mol, options: dict, **kwargs: Any) -> list[dict | None]:
         # Merge options
         options_prime = dict(ChainMap(options, self.options))
 
@@ -103,8 +102,7 @@ class XtbCalculator(BaseCalculator):
 
         return self.calculate_serial(molobj, options_prime, **kwargs)
 
-    def calculate_serial(self, molobj: Mol, options: dict, **kwargs: Any) -> List[Optional[dict]]:
-
+    def calculate_serial(self, molobj: Mol, options: dict, **kwargs: Any) -> list[dict | None]:
         properties_list = []
         n_confs = molobj.GetNumConformers()
 
@@ -119,7 +117,6 @@ class XtbCalculator(BaseCalculator):
             )
 
         for conf_idx in range(n_confs):
-
             coord = chembridge.get_coordinates(molobj, confid=conf_idx)
 
             properties = get_properties_from_axyzc(
@@ -138,8 +135,7 @@ class XtbCalculator(BaseCalculator):
 
     def calculate_parallel(
         self, molobj: Mol, options: dict, n_cores: int = 1
-    ) -> List[Optional[dict]]:
-
+    ) -> list[dict | None]:
         _logger.debug("start xtb multiprocessing pool")
 
         if not n_cores:
@@ -149,7 +145,8 @@ class XtbCalculator(BaseCalculator):
         n_conformers: int = molobj.GetNumConformers()
 
         coordinates_list = [
-            np.asarray(conformer.GetPositions()) for conformer in molobj.GetConformers()  # type: ignore[attr-defined]
+            np.asarray(conformer.GetPositions())
+            for conformer in molobj.GetConformers()  # type: ignore[attr-defined]
         ]
 
         n_procs: int = min(n_cores, n_conformers)
@@ -175,23 +172,23 @@ class XtbCalculator(BaseCalculator):
 
 
 def get_properties_from_acxyz(
-    atoms: Union[List[str], np.ndarray], charge: int, coordinates: np.ndarray, **kwargs: Any
-) -> Optional[dict]:
+    atoms: list[str] | np.ndarray, charge: int, coordinates: np.ndarray, **kwargs: Any
+) -> dict | None:
     """get properties from atoms, charge and coordinates"""
     return get_properties_from_axyzc(atoms, coordinates, charge, **kwargs)
 
 
 def get_properties_from_axyzc(
-    atoms_str: Union[List[str], np.ndarray],
+    atoms_str: list[str] | np.ndarray,
     coordinates: np.ndarray,
     charge: int,
-    options: Optional[dict] = None,
+    options: dict | None = None,
     scr: Path = constants.SCR,
     keep_files: bool = False,
     cmd: str = XTB_CMD,
     filename: str = XTB_FILENAME,
     n_cores: int = 1,
-) -> Optional[dict]:
+) -> dict | None:
     """Get XTB properties from atoms, coordinates and charge for a molecule."""
 
     if not filename.endswith(".xyz"):
@@ -234,7 +231,6 @@ def get_properties_from_axyzc(
     error_pattern = "abnormal termination of xtb"
     idx = linesio.get_rev_index(lines, error_pattern, stoppattern="#")
     if idx is not None:
-
         _logger.critical(error_pattern)
 
         idx = linesio.get_rev_index(lines, "ERROR")
@@ -243,7 +239,6 @@ def get_properties_from_axyzc(
             _logger.critical("could not read error message")
 
         else:
-
             for line in lines[idx + 1 : -2]:
                 _logger.critical(line.strip())
 
@@ -263,7 +258,7 @@ def get_properties_from_axyzc(
 # Readers
 
 
-def read_status(lines: List[str]) -> bool:
+def read_status(lines: list[str]) -> bool:
     """Did xtb end normally?"""
     keywords = [
         "Program stopped due to fatal error",
@@ -273,20 +268,15 @@ def read_status(lines: List[str]) -> bool:
 
     idxs = linesio.get_rev_indices_patterns(lines, keywords, stoppattern=stoppattern)
 
-    for idx in idxs:
-        if idx is not None:
-            return False
-
-    return True
+    return all(idx is None for idx in idxs)
 
 
-def parse_sum_table(lines: List[str]) -> dict:
+def parse_sum_table(lines: list[str]) -> dict:
     """Parse the summary table from xtb log"""
 
-    properties = dict()
+    properties = {}
 
     for line in lines:
-
         if ":::" in line:
             continue
 
@@ -320,12 +310,12 @@ def parse_sum_table(lines: List[str]) -> dict:
 
 
 def read_properties(
-    lines: List[str], options: Optional[dict] = None, scr: Optional[Path] = None
-) -> Optional[dict]:
+    lines: list[str], options: dict | None = None, scr: Path | None = None
+) -> dict | None:
     """Read output based on options or output"""
 
-    reader: Optional[Callable] = None
-    properties: Optional[dict]
+    reader: Callable | None = None
+    properties: dict | None
     read_files = True
 
     if options is None:
@@ -375,7 +365,7 @@ def read_properties(
     return properties
 
 
-def read_properties_sp(lines: List[str]) -> Optional[dict]:
+def read_properties_sp(lines: list[str]) -> dict | None:
     """
     TODO read dipole moment
     TODO Inlcude units in docstring
@@ -479,7 +469,7 @@ def read_properties_sp(lines: List[str]) -> Optional[dict]:
     return properties
 
 
-def read_properties_opt(lines: List[str]) -> Optional[dict]:
+def read_properties_opt(lines: list[str]) -> dict | None:
     """
 
     electornic_energy is SCC energy
@@ -506,8 +496,8 @@ def read_properties_opt(lines: List[str]) -> Optional[dict]:
 
     n_atoms: int = properties["n_atoms"]
 
-    atoms: Optional[Union[List, np.ndarray]]
-    coords: Optional[Union[List, np.ndarray]]
+    atoms: list | np.ndarray | None
+    coords: list | np.ndarray | None
 
     # Get coordinates
     if idx_coord is None:
@@ -516,7 +506,7 @@ def read_properties_opt(lines: List[str]) -> Optional[dict]:
 
     else:
 
-        def parse_coordline(line: str) -> Tuple[str, List[float]]:
+        def parse_coordline(line: str) -> tuple[str, list[float]]:
             line_ = line.split()
             atom = line_[0]
             coord = [float(x) for x in line_[1:]]
@@ -550,12 +540,8 @@ def read_properties_opt(lines: List[str]) -> Optional[dict]:
         n_cycles = None
 
     else:
-
         line = lines[idx_optimization]
-        if "FAILED" in line:
-            is_converged = False
-        else:
-            is_converged = True
+        is_converged = "FAILED" not in line
 
         line_ = line.split()
         n_cycles = int(line_[-3])
@@ -577,7 +563,7 @@ def read_properties_opt(lines: List[str]) -> Optional[dict]:
     return properties
 
 
-def read_properties_omega(lines: List[str]) -> Optional[dict]:
+def read_properties_omega(lines: list[str]) -> dict | None:
     """
 
 
@@ -602,7 +588,7 @@ def read_properties_omega(lines: List[str]) -> Optional[dict]:
     return properties
 
 
-def read_properties_fukui(lines: List[str]) -> Optional[dict]:
+def read_properties_fukui(lines: list[str]) -> dict | None:
     """
     Read the Fukui properties fro XTB log
 
@@ -623,9 +609,9 @@ def read_properties_fukui(lines: List[str]) -> Optional[dict]:
     start_index = indices[1]
     end_index = indices[2]
 
-    f_plus_list = list()
-    f_minus_list = list()
-    f_zero_list = list()
+    f_plus_list = []
+    f_minus_list = []
+    f_zero_list = []
 
     for i in range(start_index + 1, end_index - 1):
         line = lines[i]
@@ -652,8 +638,7 @@ def read_properties_fukui(lines: List[str]) -> Optional[dict]:
     return properties
 
 
-def get_mulliken_charges(scr: Optional[Path] = None) -> Optional[np.ndarray]:
-
+def get_mulliken_charges(scr: Path | None = None) -> np.ndarray | None:
     if scr is None:
         scr = Path(".")
 
@@ -669,7 +654,7 @@ def get_mulliken_charges(scr: Optional[Path] = None) -> Optional[np.ndarray]:
     return charges
 
 
-def get_cm5_charges(lines: List[str]) -> dict:
+def get_cm5_charges(lines: list[str]) -> dict:
     """Get CM5 charges from gfn1-xTB calculation"""
 
     keywords = ["Mulliken/CM5 charges", "Wiberg/Mayer (AO) data"]
@@ -687,7 +672,7 @@ def get_cm5_charges(lines: List[str]) -> dict:
     return {"cm5_charges": cm5_charges}
 
 
-def get_wbo(scr: Optional[Path] = None) -> Tuple[List[Tuple[int, int]], List[float]]:
+def get_wbo(scr: Path | None = None) -> tuple[list[tuple[int, int]], list[float]]:
     """Get wiberg bonds and borders from xtb result folder"""
 
     if scr is None:
@@ -699,7 +684,7 @@ def get_wbo(scr: Optional[Path] = None) -> Tuple[List[Tuple[int, int]], List[flo
         return [], []
 
     # Read WBO file
-    with open(filename, "r") as f:
+    with open(filename) as f:
         lines = f.readlines()
 
     bonds, bondorders = read_wbo(lines)
@@ -707,7 +692,7 @@ def get_wbo(scr: Optional[Path] = None) -> Tuple[List[Tuple[int, int]], List[flo
     return bonds, bondorders
 
 
-def read_wbo(lines: List[str]) -> Tuple[List[Tuple[int, int]], List[float]]:
+def read_wbo(lines: list[str]) -> tuple[list[tuple[int, int]], list[float]]:
     """Read Wiberg bond order lines"""
     # keyword = "Wiberg bond orders"
 
@@ -724,7 +709,7 @@ def read_wbo(lines: List[str]) -> Tuple[List[Tuple[int, int]], List[float]]:
     return bonds, bondorders
 
 
-def read_properties_orbitals(lines: List[str], n_offset: int = 2) -> Optional[dict]:
+def read_properties_orbitals(lines: list[str], n_offset: int = 2) -> dict | None:
     """
 
     format:
@@ -739,7 +724,7 @@ def read_properties_orbitals(lines: List[str], n_offset: int = 2) -> Optional[di
 
     """
 
-    properties = dict()
+    properties = {}
 
     keywords = ["(HOMO)", "(LUMO)"]
     indices = linesio.get_rev_indices_patterns(lines, keywords)
@@ -770,7 +755,7 @@ def read_properties_orbitals(lines: List[str], n_offset: int = 2) -> Optional[di
             continue
 
         value = line_[2]
-        properties[f"homo-{i+1}"] = float(value)
+        properties[f"homo-{i + 1}"] = float(value)
 
     # LUMO
     line = lines[idx_lumo]
@@ -789,12 +774,12 @@ def read_properties_orbitals(lines: List[str], n_offset: int = 2) -> Optional[di
             continue
 
         value = line_[idx_lumo_col]
-        properties[f"lumo+{i+1}"] = float(value)
+        properties[f"lumo+{i + 1}"] = float(value)
 
     return properties
 
 
-def read_covalent_coordination(lines: List[str]) -> Optional[dict]:
+def read_covalent_coordination(lines: list[str]) -> dict | None:
     """
     Read computed covalent coordination number.
 
@@ -817,7 +802,7 @@ def read_covalent_coordination(lines: List[str]) -> Optional[dict]:
         return None
 
     for line in lines[start_line + 1 :]:
-        if set(line).issubset(set(["\n"])):
+        if set(line).issubset({"\n"}):
             break
 
         line_ = line.strip().split()
@@ -830,7 +815,7 @@ def read_covalent_coordination(lines: List[str]) -> Optional[dict]:
     return properties
 
 
-def get_frequencies(scr: Optional[Path] = None) -> List[float]:
+def get_frequencies(scr: Path | None = None) -> list[float]:
     """ """
 
     if scr is None:
@@ -839,18 +824,17 @@ def get_frequencies(scr: Optional[Path] = None) -> List[float]:
     filename = scr / "vibspectrum"
 
     # Read WBO file
-    with open(filename, "r") as f:
+    with open(filename) as f:
         lines = f.readlines()
 
     frequencies = read_frequencies(lines)
     return frequencies
 
 
-def read_frequencies(lines: List[str]) -> List[float]:
+def read_frequencies(lines: list[str]) -> list[float]:
     """ """
     frequencies = []
     for line in lines[3:]:
-
         if "$end" in line:
             break
         if "-" in line:  # non vib modes
@@ -860,18 +844,14 @@ def read_frequencies(lines: List[str]) -> List[float]:
     return frequencies
 
 
-def parse_options(options: dict) -> List[str]:
+def parse_options(options: dict) -> list[str]:
     """Parse dictionary/json of options, and return arg list for xtb"""
 
-    cmd_options: List[str] = []
+    cmd_options: list[str] = []
 
     for key, value in options.items():
-
         txt: str
-        if value is not None:
-            txt = f"--{key} {value}"
-        else:
-            txt = f"--{key}"
+        txt = f"--{key} {value}" if value is not None else f"--{key}"
 
         cmd_options.append(txt)
 

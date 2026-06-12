@@ -44,7 +44,6 @@ def _get_options(tmp_path: Path) -> dict:
 
 
 def test_get_mulliken_charges() -> None:
-
     # orca 4.2.1
 
     mulliken_charges = orca.get_mulliken_charges(lines_orca_4, serine_num_atoms)
@@ -75,7 +74,6 @@ def test_get_mulliken_charges() -> None:
 
 
 def test_get_loewdin_charges() -> None:
-
     # orca 4.2.1
 
     loewdin_charges = orca.get_loewdin_charges(lines_orca_4, serine_num_atoms)
@@ -106,7 +104,6 @@ def test_get_loewdin_charges() -> None:
 
 
 def test_get_hirshfeld_charges() -> None:
-
     # orca 4.2.1
 
     hirshfeld_charges = orca.get_hirshfeld_charges(lines_orca_4, serine_num_atoms)
@@ -137,7 +134,6 @@ def test_get_hirshfeld_charges() -> None:
 
 
 def test_get_nmr_shielding_constants() -> None:
-
     # orca 4.2.1
 
     shielding_constants = orca.get_nmr_shielding_constants(lines_orca_4, serine_num_atoms)
@@ -168,7 +164,6 @@ def test_get_nmr_shielding_constants() -> None:
 
 
 def test_get_vibrational_frequencies() -> None:
-
     # orca 4.2.1
 
     methane_num_atoms = 5
@@ -205,7 +200,6 @@ def test_get_vibrational_frequencies() -> None:
 
 
 def test_get_gibbs_free_energy() -> None:
-
     # orca 4.2.1
 
     methane_num_atoms = 5
@@ -238,7 +232,6 @@ def test_get_gibbs_free_energy() -> None:
 
 
 def test_get_enthalpy() -> None:
-
     # orca 4.2.1
 
     methane_num_atoms = 5
@@ -271,7 +264,6 @@ def test_get_enthalpy() -> None:
 
 
 def test_get_entropy() -> None:
-
     # orca 4.2.1
 
     methane_num_atoms = 5
@@ -304,7 +296,6 @@ def test_get_entropy() -> None:
 
 
 def test_read_properties() -> None:
-
     options = {
         "B3LYP": None,
         "def2-SVP": None,
@@ -328,7 +319,6 @@ def test_read_properties() -> None:
 
 
 def test_read_properties_compromised_file() -> None:
-
     options = {
         "B3LYP": None,
         "def2-SVP": None,
@@ -365,7 +355,7 @@ def test_parallel(tmp_path: Path) -> None:
     total_cores = 2
 
     orca_options = _get_options(tmp_path)
-    orca_options = {**orca_options, **dict(n_cores=total_cores, show_progress=True)}
+    orca_options = {**orca_options, **{"n_cores": total_cores, "show_progress": True}}
 
     calc = OrcaCalculator(**orca_options)
 

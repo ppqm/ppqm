@@ -5,8 +5,9 @@ ORCA wrapper functions
 import functools
 import logging
 from collections import ChainMap
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any
 
 import numpy as np
 from tqdm import tqdm  # type: ignore[import-untyped]
@@ -49,7 +50,6 @@ class OrcaCalculator(BaseCalculator):
         keep_files: bool = False,
         **kwargs: Any,
     ) -> None:
-
         super().__init__(**kwargs)
 
         self.cmd = cmd
@@ -59,7 +59,7 @@ class OrcaCalculator(BaseCalculator):
         self.show_progress = show_progress
         self.keep_files = keep_files
 
-        self.orca_options: Dict[str, Any] = {
+        self.orca_options: dict[str, Any] = {
             "cmd": self.cmd,
             "scr": self.scr,
             "filename": self.filename,
@@ -74,7 +74,10 @@ class OrcaCalculator(BaseCalculator):
         self.health_check()
 
     def __repr__(self) -> str:
-        return f"OrcaCalc(cmd={self.cmd}, scr={self.scr}, n_cores={self.n_cores}, memory={self.memory}gb)"
+        return (
+            f"OrcaCalc(cmd={self.cmd}, scr={self.scr},"
+            f" n_cores={self.n_cores}, memory={self.memory}gb)"
+        )
 
     def health_check(self) -> None:
         assert shell.which(self.cmd), f"Cannot find {self.cmd}"
@@ -104,20 +107,15 @@ class OrcaCalculator(BaseCalculator):
         self.cmd = fullcmd
         self.orca_options["cmd"] = self.cmd
 
-    def calculate(self, molobj: Mol, options: dict) -> List[Optional[dict]]:
-
+    def calculate(self, molobj: Mol, options: dict) -> list[dict | None]:
         if self.n_cores > 1:
             return self.calculate_parallel(molobj, options)
 
         return self.calculate_serial(molobj, options)
 
-    def calculate_serial(self, molobj: Mol, options: dict) -> List[Optional[dict]]:
-
+    def calculate_serial(self, molobj: Mol, options: dict) -> list[dict | None]:
         # If not singlet "spin" is part of options
-        if "spin" in options.keys():
-            spin = int(options.pop("spin"))
-        else:
-            spin = int(1)
+        spin = int(options.pop("spin")) if "spin" in options else 1
 
         options_prime = dict(ChainMap(options, self.options))
 
@@ -135,7 +133,6 @@ class OrcaCalculator(BaseCalculator):
 
         properties_list = []
         for conf_idx in range(n_confs):
-
             coord = chembridge.get_coordinates(molobj, confid=conf_idx)
 
             properties = get_properties_from_axyzc(
@@ -157,15 +154,11 @@ class OrcaCalculator(BaseCalculator):
 
         return properties_list
 
-    def calculate_parallel(self, molobj: Mol, options: dict) -> List[Optional[dict]]:
-
+    def calculate_parallel(self, molobj: Mol, options: dict) -> list[dict | None]:
         _logger.debug("start orca multiprocessing pool")
 
         # If not singlet "spin" is part of options
-        if "spin" in options.keys():
-            spin = int(options.pop("spin"))
-        else:
-            spin = int(1)
+        spin = int(options.pop("spin")) if "spin" in options else 1
 
         options_prime = dict(ChainMap(options, self.options))
 
@@ -173,7 +166,8 @@ class OrcaCalculator(BaseCalculator):
         atoms, _, charge = chembridge.get_axyzc(molobj, atomfmt=str)
 
         coordinates_list = [
-            np.asarray(conformer.GetPositions()) for conformer in molobj.GetConformers()  # type: ignore[attr-defined]
+            np.asarray(conformer.GetPositions())
+            for conformer in molobj.GetConformers()  # type: ignore[attr-defined]
         ]
 
         # self.n_cores: how many cores are available (for parallel jobs + conformers)
@@ -216,29 +210,29 @@ class OrcaCalculator(BaseCalculator):
 
 
 def get_properties_from_acxyz(
-    atoms: Union[List[str], np.ndarray],
+    atoms: list[str] | np.ndarray,
     charge: int,
     spin: int,
     coordinates: np.ndarray,
     **kwargs: Any,
-) -> Optional[dict]:
+) -> dict | None:
     """get properties from atoms, charge and coordinates"""
     return get_properties_from_axyzc(atoms, coordinates, charge, spin, **kwargs)
 
 
 def get_properties_from_axyzc(
-    atoms_str: Union[List[str], np.ndarray],
+    atoms_str: list[str] | np.ndarray,
     coordinates: np.ndarray,
     charge: int,
     spin: int,
-    options: dict = {},
+    options: dict = None,
     scr: Path = constants.SCR,
     keep_files: bool = False,
     cmd: str = ORCA_CMD,
     filename: str = ORCA_FILENAME,
     n_cores: int = 1,
     memory: int = 2,
-) -> Optional[dict]:
+) -> dict | None:
     """
     Calculate orca properties from atoms, coord, charge
 
@@ -260,6 +254,8 @@ def get_properties_from_axyzc(
     """
     # make sure orca is called with its full path in case no OrcaCalculator
     # object has been created. Don't run into avoidable runtime errors.
+    if options is None:
+        options = {}
     fullcmd = shell.which(cmd)
     assert fullcmd is not None, f"Could not find {cmd}"
 
@@ -309,7 +305,7 @@ def get_properties_from_axyzc(
 
 
 def get_inputfile(
-    atom_strs: Union[List[str], np.ndarray],
+    atom_strs: list[str] | np.ndarray,
     coordinates: np.ndarray,
     charge: int,
     spin: int,
@@ -321,10 +317,8 @@ def get_inputfile(
 
     # charge, spin, and coordinate section
     inputstr += f"*xyz {charge} {spin} \n"
-    for atom_str, coord in zip(atom_strs, coordinates):
-        inputstr += (
-            f"{atom_str}".ljust(5) + " ".join(["{:.8f}".format(x).rjust(15) for x in coord]) + "\n"
-        )
+    for atom_str, coord in zip(atom_strs, coordinates, strict=False):
+        inputstr += f"{atom_str}".ljust(5) + " ".join([f"{x:.8f}".rjust(15) for x in coord]) + "\n"
     inputstr += "*\n"
     inputstr += "\n"  # magic line
 
@@ -350,13 +344,16 @@ def get_header(options: dict, n_cores: int = 1, memory: int = 2) -> str:
     return header
 
 
-def read_error(lines: List[str]) -> List[str]:
-    """Read the error message from orca log. So far I've only seen it between two headrules of exclamation marks"""
+def read_error(lines: list[str]) -> list[str]:
+    """Read the error message from orca log.
+
+    So far I've only seen it between two headrules of exclamation marks
+    """
 
     error_lines = "!!!!!!!"
     patterns = [error_lines, error_lines]
     hr2, hr1 = linesio.get_rev_indices_patterns(lines, patterns, maxiter=50)
-    errors: List[str] = []
+    errors: list[str] = []
 
     if hr1 is None or hr2 is None:
         return errors
@@ -368,11 +365,11 @@ def read_error(lines: List[str]) -> List[str]:
     return errors
 
 
-def read_properties(lines: List[str], atom_number: int, options: dict) -> Optional[dict]:
+def read_properties(lines: list[str], atom_number: int, options: dict) -> dict | None:
     """Extract values from output depending on calculation options"""
 
     # Collect readers
-    readers: List[Callable] = []
+    readers: list[Callable] = []
 
     if "Opt" in options:
         raise NotImplementedError("not implemented opt properties parser")
@@ -399,7 +396,7 @@ def read_properties(lines: List[str], atom_number: int, options: dict) -> Option
         readers.append(get_loewdin_charges)
 
     # get properties
-    properties = dict()
+    properties = {}
     for reader in readers:
         new_properties = reader(lines, atom_number)
         if isinstance(new_properties, dict):
@@ -421,11 +418,11 @@ def read_properties(lines: List[str], atom_number: int, options: dict) -> Option
     return properties
 
 
-def read_properties_sp(lines: List[str], atom_number: int) -> dict:
+def read_properties_sp(lines: list[str], atom_number: int) -> dict:
     """
     Read Singlepoint Energy
     """
-    properties = dict()
+    properties = {}
 
     for line in lines:
         if "FINAL SINGLE POINT ENERGY" in line:
@@ -436,7 +433,7 @@ def read_properties_sp(lines: List[str], atom_number: int) -> dict:
     return properties
 
 
-def get_mulliken_charges(lines: List[str], atom_number: int) -> Optional[dict]:
+def get_mulliken_charges(lines: list[str], atom_number: int) -> dict | None:
     """Read Mulliken charges"""
     pattern = "MULLIKEN ATOMIC CHARGES"
     start, stop = linesio.get_indices_pattern(lines, pattern, atom_number, 2)
@@ -446,7 +443,7 @@ def get_mulliken_charges(lines: List[str], atom_number: int) -> Optional[dict]:
     return {COLUMN_MULIKEN_CHARGES: mulliken_charges}
 
 
-def get_loewdin_charges(lines: List[str], atom_number: int) -> Optional[dict]:
+def get_loewdin_charges(lines: list[str], atom_number: int) -> dict | None:
     """Read Loewdin charges"""
     pattern = "LOEWDIN ATOMIC CHARGES"
     start, stop = linesio.get_indices_pattern(lines, pattern, atom_number, 2)
@@ -456,7 +453,7 @@ def get_loewdin_charges(lines: List[str], atom_number: int) -> Optional[dict]:
     return {COLUMN_LOEWDIN_CHARGES: loewdin_charges}
 
 
-def get_hirshfeld_charges(lines: List[str], atom_number: int) -> Optional[dict]:
+def get_hirshfeld_charges(lines: list[str], atom_number: int) -> dict | None:
     """Read Hirsfeld charges"""
     pattern = "HIRSHFELD ANALYSIS"
     start, stop = linesio.get_indices_pattern(lines, pattern, atom_number, 7)
@@ -467,7 +464,7 @@ def get_hirshfeld_charges(lines: List[str], atom_number: int) -> Optional[dict]:
     return {COLUMN_HIRSHFELD_CHARGES: hirshfeld_charges}
 
 
-def get_nmr_shielding_constants(lines: List[str], atom_number: int) -> Optional[dict]:
+def get_nmr_shielding_constants(lines: list[str], atom_number: int) -> dict | None:
     """Read GIAO NMR shielding constants"""
     pattern = "CHEMICAL SHIELDING SUMMARY (ppm)"
     start, stop = linesio.get_indices_pattern(lines, pattern, atom_number, 6)
@@ -478,7 +475,7 @@ def get_nmr_shielding_constants(lines: List[str], atom_number: int) -> Optional[
     return {COLUMN_SHIELDING_CONSTANTS: shielding_constants}
 
 
-def get_vibrational_frequencies(lines: List[str], atom_number: int) -> Optional[dict]:
+def get_vibrational_frequencies(lines: list[str], atom_number: int) -> dict | None:
     """Read vibrational frequencies"""
     pattern = "VIBRATIONAL FREQUENCIES"
     degrees_of_freedom = 3 * atom_number
@@ -490,7 +487,7 @@ def get_vibrational_frequencies(lines: List[str], atom_number: int) -> Optional[
     return {COLUMN_VIBRATIONAL_FREQUENCIES: vibrational_frequencies}
 
 
-def get_gibbs_free_energy(lines: List[str], atom_number: int) -> Optional[dict]:
+def get_gibbs_free_energy(lines: list[str], atom_number: int) -> dict | None:
     """Read Gibbs free energy"""
     gibbs_free_energy = None  # Return None by default
     for line in lines:
@@ -501,7 +498,7 @@ def get_gibbs_free_energy(lines: List[str], atom_number: int) -> Optional[dict]:
     return {COLUMN_GIBBS_FREE_ENERGY: gibbs_free_energy}
 
 
-def get_enthalpy(lines: List[str], atom_number: int) -> Optional[dict]:
+def get_enthalpy(lines: list[str], atom_number: int) -> dict | None:
     """Read enthalpy"""
     enthalpy = None  # Return None by default
     for line in lines:
@@ -512,7 +509,7 @@ def get_enthalpy(lines: List[str], atom_number: int) -> Optional[dict]:
     return {COLUMN_ENTHALPY: enthalpy}
 
 
-def get_entropy(lines: List[str], atom_number: int) -> Optional[dict]:
+def get_entropy(lines: list[str], atom_number: int) -> dict | None:
     """Read entropy"""
     entropy = None  # Return None by default
     for line in lines:

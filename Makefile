@@ -11,7 +11,7 @@ env: ${env}_uv
 ${env}_uv:
 	uv venv ${env}
 	uv pip install -e . --python ${env}/bin/python
-	uv pip install -e .[dev,test] --python ${env}/bin/python
+	uv pip install -e ".[dev,test]" --python ${env}/bin/python
 	${python} -m pre_commit install
 
 env_minimal: ${env}_uv_minimal

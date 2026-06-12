@@ -23,25 +23,23 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-interactive = [
-    "ipywidgets",
-    "nglview",
-    "ipython",
-    "pandas",
-    "matplotlib",
-]
 test = [
     "pytest",
     "pytest-cov",
 ]
 dev = [
-    "black",
     "build",
-    "flake8",
-    "isort",
-    "mypy",
+    "ipython",
+    "ipywidgets",
+    "jupytext",
+    "matplotlib",
+    "nglview",
+    "pandas",
+    "pip",
     "pre-commit",
+    "ruff",
     "twine",
+    "ty",
 ]
 
 [tool.setuptools.dynamic]
@@ -49,3 +47,42 @@ version = {attr = "ppqm.version.__version__"}
 
 [tool.setuptools.packages.find]
 where = ["."]
+
+[tool.ruff]
+line-length = 99
+target-version = "py310"
+exclude = [
+    ".git",
+    ".github",
+    "__pycache__",
+    "build",
+    "dist",
+    "*.egg-info",
+    "env",
+    "notebooks/",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "F",
+    "I",
+    "UP",
+    "B",
+    "C4",
+    "SIM",
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["ppqm"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B017", "B023", "E501"]
+"*/__init__.py" = ["F401"]
+"ppqm/calculator.py" = ["B024"]
+"ppqm/chembridge.py" = ["E501"]
+
+[tool.ty]
+
+[tool.ty.rules]
+unresolved-import = "ignore"

@@ -1,6 +1,4 @@
-""" Collection of common cheminfo tasks """
-
-from typing import Optional
+"""Collection of common cheminfo tasks"""
 
 import rdkit.Chem as Chem  # type: ignore[import-untyped]
 import rdkit.Chem.AllChem as AllChem  # type: ignore[import-untyped]
@@ -49,7 +47,7 @@ def generate_conformers_legacy(
 
 def generate_conformers(
     molobj: Mol,
-    n_conformers: Optional[int] = None,
+    n_conformers: int | None = None,
     max_conformers: int = 500,
     return_copy: bool = True,
     random_seed: int = 61453,
@@ -75,7 +73,7 @@ def generate_conformers(
     return molobj
 
 
-def optimize_molobj_uff(molobj: Mol, max_steps: int = 1000) -> Optional[Mol]:
+def optimize_molobj_uff(molobj: Mol, max_steps: int = 1000) -> Mol | None:
     """Optimize molobj with UFF"""
 
     status_embed = AllChem.EmbedMolecule(molobj)

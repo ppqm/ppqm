@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 import pytest
@@ -18,7 +18,6 @@ def _get_options(scr: Path) -> dict:
 
 
 def test_optimization(tmp_path: Path) -> None:
-
     gamess_options = _get_options(tmp_path)
 
     methane = """
@@ -65,8 +64,7 @@ $$$$
 
 
 def test_optimization_read() -> None:
-
-    with open("tests/resources/gamess/gamess_methane.log", "r") as f:
+    with open("tests/resources/gamess/gamess_methane.log") as f:
         output = f.readlines()
 
     properties = gamess.get_properties(output)
@@ -82,7 +80,6 @@ def test_optimization_read() -> None:
 
 
 def test_vibration(tmp_path: Path) -> None:
-
     gamess_options = _get_options(tmp_path)
 
     methane = """
@@ -153,8 +150,7 @@ $$$$
 
 
 def test_vibration_read() -> None:
-
-    with open("tests/resources/gamess/gamess_methane_vib.log", "r") as f:
+    with open("tests/resources/gamess/gamess_methane_vib.log") as f:
         output = f.readlines()
 
     properties = gamess.get_properties(output)
@@ -187,7 +183,6 @@ def test_vibration_read() -> None:
 
 
 def test_orbitals(tmp_path: Path) -> None:
-
     gamess_options = _get_options(tmp_path)
 
     methane = """
@@ -228,7 +223,7 @@ $$$$
     assert properties is not None
 
     orbitals = properties["orbitals"]
-    orbitals_ref: List[float] = [
+    orbitals_ref: list[float] = [
         -11.0303,
         -0.9085,
         -0.5177,
@@ -244,8 +239,7 @@ $$$$
 
 
 def test_orbitals_read() -> None:
-
-    with open("tests/resources/gamess/gamess_methane_orb.log", "r") as f:
+    with open("tests/resources/gamess/gamess_methane_orb.log") as f:
         output = f.readlines()
 
     properties = gamess.get_properties(output)
@@ -270,7 +264,6 @@ def test_orbitals_read() -> None:
 
 
 def test_solvation(tmp_path: Path) -> None:
-
     gamess_options = _get_options(tmp_path)
 
     methane = """
@@ -293,7 +286,7 @@ $$$$
     molobj = chembridge.sdfstr_to_molobj(methane)
     assert molobj is not None
 
-    options: Dict[str, Any] = dict()
+    options: dict[str, Any] = {}
     options["basis"] = {"gbasis": "pm3"}
     options["system"] = {"mwords": 125}
     options["pcm"] = {"solvnt": "water", "mxts": 15000, "icav": 1, "idisp": 1}
@@ -313,8 +306,7 @@ $$$$
 
 
 def test_solvation_read() -> None:
-
-    with open("tests/resources/gamess/gamess_methane_sol.log", "r") as f:
+    with open("tests/resources/gamess/gamess_methane_sol.log") as f:
         output = f.readlines()
 
     properties = gamess.get_properties(output)
@@ -328,7 +320,6 @@ def test_solvation_read() -> None:
 
 
 def test_water(tmp_path: Path) -> None:
-
     gamess_options = _get_options(tmp_path)
 
     smi = "O"
@@ -357,7 +348,6 @@ def test_water(tmp_path: Path) -> None:
 
 
 def test_fail_wrong_method(tmp_path: Path) -> None:
-
     gamess_options = _get_options(tmp_path)
 
     # Get molecule with three conformers
@@ -387,7 +377,6 @@ def test_fail_wrong_method(tmp_path: Path) -> None:
 
 
 def test_get_header() -> None:
-
     options = {
         "contrl": {"scftyp": "rhf", "runtyp": "energy"},
         "basis": {"gbasis": "sto", "ngauss": 3},
@@ -406,14 +395,12 @@ def test_get_header() -> None:
 
 
 def test_type() -> None:
-
     # TODO read properties from log files
 
     return
 
 
 def test_dinitrogen(tmp_path: Path) -> None:
-
     sdf = """
 
 

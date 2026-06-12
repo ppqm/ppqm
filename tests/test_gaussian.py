@@ -17,7 +17,7 @@ TEST_ENERGIES = [
 
 
 def _get_options(tmp_path: Path) -> dict:
-    g16_options = dict(scr=tmp_path, memory=2, keep_files=True)
+    g16_options = {"scr": tmp_path, "memory": 2, "keep_files": True}
     return g16_options
 
 
@@ -52,7 +52,6 @@ def test_parse_mulliken_charges() -> None:
 
 
 def test_parse_hirshfeld_charges() -> None:
-
     logfilename = RESOURCES / "gaussian/cnh5_pop.out"
     with open(logfilename) as f:
         lines = f.readlines()
@@ -71,7 +70,6 @@ def test_parse_hirshfeld_charges() -> None:
 
 
 def test_parse_cm5_charges() -> None:
-
     logfilename = RESOURCES / "gaussian/cnh5_pop.out"
     with open(logfilename) as f:
         lines = f.readlines()
@@ -90,7 +88,6 @@ def test_parse_cm5_charges() -> None:
 
 
 def test_nbo_bond_orders() -> None:
-
     logfilename = RESOURCES / "gaussian/c3nh11_extra.out"
     with open(logfilename) as f:
         lines = f.readlines()
@@ -107,7 +104,6 @@ def test_nbo_bond_orders() -> None:
 
 
 def test_nmr_shielding_constants() -> None:
-
     logfilename = RESOURCES / "gaussian/cnh5_nmr.out"
     with open(logfilename) as f:
         lines = f.readlines()
