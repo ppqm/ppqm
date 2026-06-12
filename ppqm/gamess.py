@@ -34,7 +34,7 @@ COLUMN_DIPOLE_TOTAL = "dipole_total"
 
 _logger = logging.getLogger(__name__)
 
-random_names = tempfile._get_candidate_names()  # type: ignore[attr-defined]
+random_names = tempfile._get_candidate_names()  # ty: ignore[unresolved-attribute]
 
 
 class GamessCalculator(BaseCalculator):
@@ -158,7 +158,7 @@ def properties_from_axyzc(
     coords: np.ndarray,
     charge: int,
     options: dict,
-    options_gamess: dict = None,
+    options_gamess: dict | None = None,
 ) -> dict | None:
     """ """
 
@@ -401,7 +401,7 @@ def get_errors(lines: list[str]) -> dict[str, str] | None:
     return msg
 
 
-def get_properties(lines: list[str], options: dict = None) -> dict | None:
+def get_properties(lines: list[str], options: dict | None = None) -> dict | None:
     """
     Read GAMESS output based on calculation options
     """

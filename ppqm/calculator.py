@@ -33,7 +33,7 @@ class BaseCalculator(abc.ABC):
     def calculate(self, molobj: Mol, options: dict) -> list[dict | None]:
         raise NotImplementedError
 
-    def optimize(self, molobj: Mol, options: dict = None, return_copy: bool = True) -> Mol:
+    def optimize(self, molobj: Mol, options: dict | None = None, return_copy: bool = True) -> Mol:
         """
 
         Parameters

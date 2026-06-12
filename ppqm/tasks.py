@@ -1,3 +1,4 @@
+# ty: ignore[unresolved-attribute]
 """Collection of common cheminfo tasks"""
 
 import rdkit.Chem as Chem  # type: ignore[import-untyped]

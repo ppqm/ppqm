@@ -5,6 +5,7 @@ import tempfile
 import weakref as _weakref
 from io import StringIO
 from pathlib import Path
+from types import TracebackType
 from typing import Any
 
 import numpy as np
@@ -30,9 +31,14 @@ class WorkDir(tempfile.TemporaryDirectory):
                 warn_message=f"Implicitly cleaning up {self!r}",
             )
 
-    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+    def __exit__(
+        self,
+        exc: type[BaseException] | None,
+        value: BaseException | None,
+        tb: TracebackType | None,
+    ) -> None:
         if not self.keep_directory:
-            super().__exit__(exc_type, exc_val, exc_tb)
+            super().__exit__(exc, value, tb)
 
     def get_path(self) -> Path:
         return Path(self.name)

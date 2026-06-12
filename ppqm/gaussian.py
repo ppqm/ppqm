@@ -128,7 +128,7 @@ def get_properties_from_axyzc(
     coordinates: np.ndarray,
     charge: int,
     spin: int,
-    options: dict = None,
+    options: dict | None = None,
     scr: Path = constants.SCR,
     cmd: str = G16_CMD,
     filename: str = G16_FILENAME,

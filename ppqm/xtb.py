@@ -146,7 +146,7 @@ class XtbCalculator(BaseCalculator):
 
         coordinates_list = [
             np.asarray(conformer.GetPositions())
-            for conformer in molobj.GetConformers()  # type: ignore[attr-defined]
+            for conformer in molobj.GetConformers()  # ty: ignore[unresolved-attribute]
         ]
 
         n_procs: int = min(n_cores, n_conformers)
@@ -200,7 +200,11 @@ def get_properties_from_axyzc(
     _logger.debug(f"xtb work dir {temp_scr}")
 
     # Write input file (XYZ format)
-    inputstr = rmsd.set_coordinates(atoms_str, coordinates, title="xtb input")
+    inputstr = rmsd.set_coordinates(
+        atoms_str,  # ty: ignore[invalid-argument-type]
+        coordinates,
+        title="xtb input",
+    )
 
     with open(temp_scr / filename, "w") as f:
         f.write(inputstr)

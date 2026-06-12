@@ -46,7 +46,7 @@ def stream(cmd: str, cwd: Path | None = None, shell: bool = True) -> Generator[s
         cwd=cwd,
     )
 
-    yield from iter(popen.stdout.readline, "")
+    yield from iter(popen.stdout.readline, "")  # ty: ignore[unresolved-attribute]
 
     # Yield errors
     stderr = popen.stderr.read()  # type: ignore

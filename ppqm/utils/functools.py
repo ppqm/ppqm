@@ -8,7 +8,7 @@ from typing import Any
 from tqdm import tqdm  # type: ignore[import-untyped]
 
 try:
-    import thread  # type: ignore
+    import thread
 except ImportError:
     import _thread as thread
 
@@ -102,7 +102,7 @@ def exit_after(sec: int) -> Any:
     """
 
     def outer(fn: Callable) -> Any:
-        def inner(*args, **kwargs):  # type: ignore
+        def inner(*args, **kwargs):
             timer = threading.Timer(sec, quit_function, args=[fn])
             timer.start()
             try:
@@ -119,7 +119,7 @@ def exit_after(sec: int) -> Any:
 def quit_function(func: Callable, reason: str = "took too long") -> None:
     """Raise KeyboardInterrupt"""
 
-    _logger.error(f"function '{func.__name__}' quit, because {reason}")
+    _logger.error(f"function '{getattr(func, '__name__', 'unknown')}' quit, because {reason}")
 
     sys.stderr.flush()  # Python 3 stderr is likely buffered.
     thread.interrupt_main()  # raises KeyboardInterrupt

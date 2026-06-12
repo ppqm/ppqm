@@ -1,7 +1,9 @@
+# ty: ignore[unresolved-attribute]
+
 import copy
 import gzip
 import logging
-from collections.abc import Callable, Iterable, Iterator
+from collections.abc import Iterable, Iterator
 from io import StringIO
 from pathlib import Path
 from typing import Any
@@ -24,6 +26,10 @@ _logger = logging.getLogger(__name__)
 
 lg = RDLogger.logger()
 lg.setLevel(RDLogger.ERROR)
+
+
+AtomFormatType = type[int] | type[str]
+
 
 # Get Van der Waals radii (angstrom)
 PTABLE = Chem.GetPeriodicTable()
@@ -172,10 +178,10 @@ def axyzc_to_molobj(atoms: list[str], coord: np.ndarray, charge: int) -> Mol:
     # Set coordinates / Conformer
     conformer = Chem.Conformer(n_atoms)
     conformer_set_coordinates(conformer, coord)
-    mol.AddConformer(conformer, assignId=True)  # type: ignore
+    mol.AddConformer(conformer, assignId=True)
 
     # Set charge on a random atom, just not hydrogen
-    rdatoms = list(mol.GetAtoms())  # type: ignore
+    rdatoms = list(mol.GetAtoms())
     rdatom = None
     for rdatom in rdatoms:
         if rdatom.GetAtomicNum() != 1:
@@ -240,7 +246,7 @@ def conformer_set_coordinates(conformer: Chem.Conformer, coordinates: np.ndarray
 def copy_molobj(molobj: Mol) -> Mol:
     """Copy molobj graph, without conformers"""
     # The boolean signifies a fast copy, e.g. no conformers
-    molobj = Chem.Mol(molobj, True)
+    molobj = Chem.Mol(molobj, True)  # ty: ignore[no-matching-overload]
     return molobj
 
 
@@ -347,22 +353,22 @@ def get_atom_str(iatm: int) -> str:
     return atom.capitalize()
 
 
-def get_atoms(mol: Mol, type: Callable = int) -> np.ndarray:
-    """Get atoms from molecule in either int or str format"""
+def get_atoms(mol: Mol, type: AtomFormatType = int) -> np.ndarray:
+    """Get atoms from molecule in either ATOMIC_NUMBER or SYMBOL format"""
 
     rdatoms = mol.GetAtoms()  # type: ignore[attr-defined]
     rdatoms = list(rdatoms)
 
     atoms: list | np.ndarray
 
-    if isinstance(type, int):
-        atoms = [a.GetAtomicNum() for a in rdatoms]
-
-    elif isinstance(type, str):
+    if type is str:
         atoms = [a.GetSymbol() for a in rdatoms]
 
+    elif type is int:
+        atoms = [a.GetAtomicNum() for a in rdatoms]
+
     else:
-        raise AssertionError("Unknown type")
+        raise AssertionError(f"Unknown AtomFormat: {type}")
 
     atoms = np.array(atoms)
 
@@ -370,7 +376,7 @@ def get_atoms(mol: Mol, type: Callable = int) -> np.ndarray:
 
 
 def get_axyzc(
-    molobj: Mol, confid: int = -1, atomfmt: Callable = int
+    molobj: Mol, confid: int = -1, atomfmt: AtomFormatType = int
 ) -> tuple[np.ndarray, np.ndarray, int]:
     """Get atoms, XYZ coordinates and formal charge of a molecule"""
     conformer = molobj.GetConformer(id=confid)  # type: ignore[attr-defined]
@@ -693,7 +699,7 @@ def get_torsions(mol: Mol) -> np.ndarray:
 
     atoms = get_atoms(mol, type=str)
 
-    idxs = mol.GetSubstructMatches(Chem.MolFromSmarts(smarts))  # type: ignore
+    idxs = mol.GetSubstructMatches(Chem.MolFromSmarts(smarts))
     idxs = [list(x) for x in idxs]
     idxs = np.array(idxs)
 
@@ -959,7 +965,7 @@ def molobj_to_sdfstr(mol: Mol, use_v3000: bool = False, include_properties: bool
         w = Chem.SDWriter(sio)
 
         if use_v3000:
-            w.SetForceV3000(1)
+            w.SetForceV3000(True)
 
         for i in range(n_confs):
             w.write(mol, confId=i)
@@ -1107,7 +1113,7 @@ def read(filename: Path, remove_hs: bool = False, sanitize: bool = True) -> Iter
     else:
         raise ValueError(f"Could not read {filename}")
 
-    return suppl  # type: ignore
+    return suppl
 
 
 def read_smi(f: Iterable[str]) -> Iterator[Mol]:

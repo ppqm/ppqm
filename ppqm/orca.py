@@ -167,7 +167,7 @@ class OrcaCalculator(BaseCalculator):
 
         coordinates_list = [
             np.asarray(conformer.GetPositions())
-            for conformer in molobj.GetConformers()  # type: ignore[attr-defined]
+            for conformer in molobj.GetConformers()  # ty: ignore[unresolved-attribute]
         ]
 
         # self.n_cores: how many cores are available (for parallel jobs + conformers)
@@ -225,7 +225,7 @@ def get_properties_from_axyzc(
     coordinates: np.ndarray,
     charge: int,
     spin: int,
-    options: dict = None,
+    options: dict | None = None,
     scr: Path = constants.SCR,
     keep_files: bool = False,
     cmd: str = ORCA_CMD,
@@ -402,11 +402,14 @@ def read_properties(lines: list[str], atom_number: int, options: dict) -> dict |
         if isinstance(new_properties, dict):
             properties.update(new_properties)
         else:
-            _logger.error(f"Parser failed to read properties for reader {reader.__name__}")
+            _logger.error(
+                "Parser failed to read properties for reader "
+                f"{getattr(reader, '__name__', 'unknown')}"
+            )
 
     if "Freq" in options or "NumFreq" in options:
         imaginary_frequencies = len(
-            [i for i in properties[COLUMN_VIBRATIONAL_FREQUENCIES] if i < 0]
+            [i for i in properties[COLUMN_VIBRATIONAL_FREQUENCIES] if float(i) < 0]
         )
         if imaginary_frequencies == 0:
             properties[COLUMN_STATIONARY_POINTS] = "local_minimum"

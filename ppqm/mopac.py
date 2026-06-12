@@ -88,7 +88,7 @@ class MopacCalculator(BaseCalculator):
 
     def _generate_options(
         self, optimize: bool = True, hessian: bool = False, gradient: bool = False
-    ) -> dict:  # type: ignore[override]
+    ) -> dict:  # ty: ignore[invalid-method-override]
         """Generate options for calculation types"""
 
         if optimize:
