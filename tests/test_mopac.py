@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 import pytest
@@ -14,12 +14,11 @@ if not which(mopac.MOPAC_CMD):
 
 
 def _get_options(scr: Path) -> dict:
-    mopac_options = dict(scr=scr, cmd=which(mopac.MOPAC_CMD))
+    mopac_options = {"scr": scr, "cmd": which(mopac.MOPAC_CMD)}
     return mopac_options
 
 
 def test_optimize_water_and_get_energy(tmp_path: Path) -> None:
-
     smi = "O"
 
     # Get molecule
@@ -50,7 +49,6 @@ def test_optimize_water_and_get_energy(tmp_path: Path) -> None:
 
 
 def test_multiple_molecules() -> None:
-
     return
 
 
@@ -63,7 +61,7 @@ def test_multiple_molecules_with_error(tmp_path: Path) -> None:
 
     method = "pm6"
 
-    options: Dict[str, Any] = {
+    options: dict[str, Any] = {
         "cmd": "mopac",
         "optimize": True,
         "filename": "mopac_error",
@@ -77,13 +75,12 @@ def test_multiple_molecules_with_error(tmp_path: Path) -> None:
     # Header
     header = f"{method} mullik precise charge={{charge}} \ntitle {{title}}\n"
 
-    atoms_list: List[List[str]] = []
+    atoms_list: list[list[str]] = []
     coords_list = []
     charge_list = []
     title_list = []
 
     for i, smi in enumerate(smis):
-
         molobj = chembridge.smiles_to_molobj(smi)
         assert molobj is not None
         molobj = tasks.generate_conformers(molobj, n_conformers=1)
@@ -115,7 +112,6 @@ def test_multiple_molecules_with_error(tmp_path: Path) -> None:
 
 
 def test_read_properties() -> None:
-
     filename = "tests/resources/mopac/output_with_error.txt"
     error_idx = 2
 
@@ -143,7 +139,6 @@ def test_read_properties() -> None:
 
 
 def test_xyz_usage(tmp_path: Path) -> None:
-
     mopac_options = _get_options(tmp_path)
 
     xyz_file = RESOURCES / "compounds/CHEMBL1234757.xyz"
@@ -169,7 +164,7 @@ def test_xyz_usage(tmp_path: Path) -> None:
 
 
 def test_options() -> None:
-    options: Dict[str, Any] = dict()
+    options: dict[str, Any] = {}
     options["pm6"] = None
     options["1scf"] = None
     options["charge"] = 1

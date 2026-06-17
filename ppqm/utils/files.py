@@ -5,7 +5,8 @@ import tempfile
 import weakref as _weakref
 from io import StringIO
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from types import TracebackType
+from typing import Any
 
 import numpy as np
 
@@ -15,9 +16,9 @@ class WorkDir(tempfile.TemporaryDirectory):
 
     def __init__(
         self,
-        suffix: Optional[str] = None,
-        prefix: Optional[str] = None,
-        dir: Optional[Union[str, Path]] = None,
+        suffix: str | None = None,
+        prefix: str | None = None,
+        dir: str | Path | None = None,
         keep: bool = False,
     ) -> None:
         self.keep_directory = keep
@@ -27,12 +28,17 @@ class WorkDir(tempfile.TemporaryDirectory):
                 self,
                 super()._cleanup,  # type: ignore
                 self.name,
-                warn_message="Implicitly cleaning up {!r}".format(self),
+                warn_message=f"Implicitly cleaning up {self!r}",
             )
 
-    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+    def __exit__(
+        self,
+        exc: type[BaseException] | None,
+        value: BaseException | None,
+        tb: TracebackType | None,
+    ) -> None:
         if not self.keep_directory:
-            super().__exit__(exc_type, exc_val, exc_tb)
+            super().__exit__(exc, value, tb)
 
     def get_path(self) -> Path:
         return Path(self.name)
@@ -60,7 +66,7 @@ def load_array(txt: str) -> np.ndarray:
     return arr
 
 
-def str_json(dictionary: Dict, indent: int = 4, translate_types: bool = False) -> str:
+def str_json(dictionary: dict, indent: int = 4, translate_types: bool = False) -> str:
     if translate_types:
         dictionary = json_friendly(dictionary)
     return json.dumps(dictionary, indent=indent)
@@ -77,7 +83,7 @@ def save_json(name: Path, obj: dict, indent: int = 4, translate_types: bool = Fa
     if translate_types:
         obj = json_friendly(obj)
 
-    if not name.suffix == ".json":
+    if name.suffix != ".json":
         name = name.with_suffix(".json")
 
     with open(name, "w") as f:
@@ -90,7 +96,6 @@ def json_friendly(dictionary: dict) -> dict:
     dictionary = copy.deepcopy(dictionary)
 
     for key, value in dictionary.items():
-
         if isinstance(value, dict):
             value = json_friendly(value)
             dictionary[key] = value
@@ -103,11 +108,10 @@ def json_friendly(dictionary: dict) -> dict:
 
 
 def load_json(name: Path) -> dict:
-
-    if not name.suffix == ".json":
+    if name.suffix != ".json":
         name = name.with_suffix(".json")
 
-    with open(name, "r") as f:
+    with open(name) as f:
         content: dict = json.loads(f.read())
 
     return content

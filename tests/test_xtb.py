@@ -28,7 +28,6 @@ def _get_options(tmp_path: Path) -> dict:
 
 @pytest.mark.parametrize("smiles, energy", TEST_ENERGIES)
 def test_axyzc_optimize(smiles: str, energy: float, tmp_path: Path) -> None:
-
     xtb_options = _get_options(tmp_path)
 
     molobj = chembridge.smiles_to_molobj(smiles)
@@ -55,7 +54,6 @@ def test_axyzc_optimize(smiles: str, energy: float, tmp_path: Path) -> None:
 
 @pytest.mark.parametrize("smiles, energy", TEST_ENERGIES)
 def test_calc_options(smiles: str, energy: float, tmp_path: Path) -> None:
-
     molobj = chembridge.smiles_to_molobj(smiles)
     assert molobj is not None
     molobj = tasks.generate_conformers(molobj, n_conformers=2)
@@ -77,10 +75,9 @@ def test_calc_options(smiles: str, energy: float, tmp_path: Path) -> None:
 
 
 def test_parseproperties() -> None:
-
     filename = RESOURCES / "xtb/water.log"
 
-    with open(filename, "r") as f:
+    with open(filename) as f:
         lines = f.readlines()
 
     properties = xtb.read_properties(lines)
@@ -131,7 +128,6 @@ def test_parallel() -> None:
 
 
 def test_parse_sum_table() -> None:
-
     sumtable = """
          :::::::::::::::::::::::::::::::::::::::::::::::::::::
          ::                     SUMMARY                     ::
@@ -162,7 +158,6 @@ def test_parse_sum_table() -> None:
 
 
 def test_multiple_solvents(tmp_path: Path) -> None:
-
     xtb_options = _get_options(tmp_path)
     calc = xtb.XtbCalculator(**xtb_options)
 
@@ -199,7 +194,6 @@ def test_multiple_solvents(tmp_path: Path) -> None:
 
 
 def test_read_orbitals() -> None:
-
     # 61        2.0000           -0.3707448             -10.0885
     # 62        2.0000           -0.3635471              -9.8926
     # 63        2.0000           -0.3540913              -9.6353 (HOMO)
@@ -213,7 +207,7 @@ def test_read_orbitals() -> None:
 
     # big molecule
     logfilename = RESOURCES / "xtb/chembl3586573.log"
-    with open(logfilename, "r") as f:
+    with open(logfilename) as f:
         lines = f.readlines()
     properties = xtb.read_properties_orbitals(lines)
     assert properties is not None
@@ -225,7 +219,7 @@ def test_read_orbitals() -> None:
 
     # small molecule
     logfilename = RESOURCES / "xtb/water.log"
-    with open(logfilename, "r") as f:
+    with open(logfilename) as f:
         lines = f.readlines()
     properties = xtb.read_properties_orbitals(lines)
     assert properties is not None
@@ -237,14 +231,13 @@ def test_read_orbitals() -> None:
 
 
 def test_read_fukui() -> None:
-
     # #        f(+)     f(-)     f(0)
     # 1O      -0.086   -0.598   -0.342
     # 2H      -0.457   -0.201   -0.329
     # 3H      -0.457   -0.201   -0.329
     logfilename = RESOURCES / "xtb/water_fukui.log"
 
-    with open(logfilename, "r") as f:
+    with open(logfilename) as f:
         lines = f.readlines()
 
     properties = xtb.read_properties_fukui(lines)
@@ -259,12 +252,11 @@ def test_read_fukui() -> None:
 
 
 def test_read_omega() -> None:
-
     # Global electrophilicity index (eV)->None:    0.0058
 
     logfilename = RESOURCES / "xtb/water_omega.log"
 
-    with open(logfilename, "r") as f:
+    with open(logfilename) as f:
         lines = f.readlines()
 
     properties = xtb.read_properties_omega(lines)
@@ -279,7 +271,6 @@ def test_read_omega() -> None:
 
 
 def test_calculate_fukui(tmp_path: Path) -> None:
-
     xtb_options = _get_options(tmp_path)
     calc = xtb.XtbCalculator(**xtb_options)
 
@@ -331,7 +322,6 @@ def test_calculate_fukui(tmp_path: Path) -> None:
 
 
 def test_calculate_electrophilicity(tmp_path: Path) -> None:
-
     xtb_options = _get_options(tmp_path)
     calc = xtb.XtbCalculator(**xtb_options)
 
@@ -388,14 +378,13 @@ def test_calculate_electrophilicity(tmp_path: Path) -> None:
 
 
 def test_read_covalent() -> None:
-
     #  #   Z          covCN         q      C6AA      alpha
     #  1   6 C        3.743    -0.105    22.589     6.780
     #  2   6 C        3.731     0.015    20.411     6.449
     #  3   7 N        2.732    -0.087    22.929     7.112
 
     logfilename = RESOURCES / "xtb/chembl3586573.log"
-    with open(logfilename, "r") as f:
+    with open(logfilename) as f:
         lines = f.readlines()
 
     properties = xtb.read_covalent_coordination(lines)
@@ -417,9 +406,8 @@ def test_read_covalent() -> None:
 
 
 def test_read_CM5_charges() -> None:
-
     logfilename = RESOURCES / "xtb/chembl3586573_gfn1.log"
-    with open(logfilename, "r") as f:
+    with open(logfilename) as f:
         gfn1_lines = f.readlines()
 
     calc_props = xtb.get_cm5_charges(gfn1_lines)
@@ -432,7 +420,7 @@ def test_read_CM5_charges() -> None:
 
     # Test if GFN2 and no charges it should not break
     logfilename = RESOURCES / "xtb/chembl3586573.log"
-    with open(logfilename, "r") as f:
+    with open(logfilename) as f:
         gfn2_lines = f.readlines()
 
     calc_props_gfn2 = xtb.get_cm5_charges(gfn2_lines)

@@ -3,7 +3,7 @@ import os
 import tempfile
 from collections import ChainMap
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 import numpy as np
 
@@ -34,14 +34,14 @@ COLUMN_DIPOLE_TOTAL = "dipole_total"
 
 _logger = logging.getLogger(__name__)
 
-random_names = tempfile._get_candidate_names()  # type: ignore[attr-defined]
+random_names = tempfile._get_candidate_names()  # ty: ignore[unresolved-attribute]
 
 
 class GamessCalculator(BaseCalculator):
     def __init__(
         self,
         cmd: str = GAMESS_CMD,
-        filename: Optional[str] = None,
+        filename: str | None = None,
         gamess_scr: Path = GAMESS_SCR,
         gamess_userscr: Path = GAMESS_USERSCR,
         n_cores: int = 1,
@@ -57,7 +57,7 @@ class GamessCalculator(BaseCalculator):
         self.gamess_scr = gamess_scr.expanduser()
         self.gamess_userscr = gamess_userscr.expanduser()
 
-        self.gamess_options: Dict[str, Any] = {
+        self.gamess_options: dict[str, Any] = {
             "cmd": self.cmd,
             "scr": self.scr,
             "gamess_scr": gamess_scr.expanduser(),
@@ -92,7 +92,9 @@ class GamessCalculator(BaseCalculator):
     #
     #     return
 
-    # def _generate_options(self, optimize:bool=True, hessian:bool=False, gradient:bool=False)->dict:
+    # def _generate_options(
+    #     self, optimize: bool = True, hessian: bool = False, gradient: bool = False
+    # ) -> dict:
     #
     #     if optimize:
     #         calculation = "optimize"
@@ -115,7 +117,7 @@ class GamessCalculator(BaseCalculator):
     #
     #     return options
 
-    def calculate(self, molobj: Mol, options: dict) -> List[Optional[dict]]:
+    def calculate(self, molobj: Mol, options: dict) -> list[dict | None]:
         """ """
 
         # TODO Parallel wrapper
@@ -125,7 +127,7 @@ class GamessCalculator(BaseCalculator):
         options_prime = dict(ChainMap(options, {}))
 
         if "contrl" not in options_prime:
-            options_prime["contrl"] = dict()
+            options_prime["contrl"] = {}
 
         options_prime["contrl"]["icharg"] = GAMESS_KEYWORD_CHARGE
 
@@ -135,7 +137,6 @@ class GamessCalculator(BaseCalculator):
         atoms, _, charge = chembridge.get_axyzc(molobj, atomfmt=str)
 
         for conf_idx in range(n_confs):
-
             coord = chembridge.get_coordinates(molobj, confid=conf_idx)
             properties = properties_from_axyzc(
                 atoms, coord, charge, options_prime, options_gamess=self.gamess_options
@@ -146,19 +147,24 @@ class GamessCalculator(BaseCalculator):
         return properties_list
 
     def __repr__(self) -> str:
-        return f"GamessCalc(cmd={self.cmd},scr={self.scr},gamess_scr={self.gamess_scr},gamess_userscr={self.gamess_userscr})"
+        return (
+            f"GamessCalc(cmd={self.cmd},scr={self.scr},"
+            f"gamess_scr={self.gamess_scr},gamess_userscr={self.gamess_userscr})"
+        )
 
 
 def properties_from_axyzc(
-    atoms: Union[List[str], np.ndarray],
+    atoms: list[str] | np.ndarray,
     coords: np.ndarray,
     charge: int,
     options: dict,
-    options_gamess: dict = {},
-) -> Optional[dict]:
+    options_gamess: dict | None = None,
+) -> dict | None:
     """ """
 
     # Prepare input
+    if options_gamess is None:
+        options_gamess = {}
     header = get_header(options)
 
     # set charge
@@ -177,12 +183,11 @@ def properties_from_axyzc(
     return properties
 
 
-def prepare_atoms(atoms: Union[List[str], np.ndarray], coordinates: np.ndarray) -> str:
-
+def prepare_atoms(atoms: list[str] | np.ndarray, coordinates: np.ndarray) -> str:
     lines = []
     line = "{:2s}    {:2.1f}    {:f}     {:f}    {:f}"
 
-    for atom, coord in zip(atoms, coordinates):
+    for atom, coord in zip(atoms, coordinates, strict=False):
         iat = chembridge.get_atom_int(atom)
         lines.append(line.format(atom, iat, *coord))
 
@@ -191,8 +196,7 @@ def prepare_atoms(atoms: Union[List[str], np.ndarray], coordinates: np.ndarray) 
     return "\n".join(lines)
 
 
-def get_input(atoms: Union[List[str], np.ndarray], coords: np.ndarray, header: str) -> str:
-
+def get_input(atoms: list[str] | np.ndarray, coords: np.ndarray, header: str) -> str:
     lines = header
 
     if lines[-1] != "\n":
@@ -228,12 +232,12 @@ def run_gamess(
     input_text: str,
     cmd: str = GAMESS_CMD,
     scr: Path = constants.SCR,
-    filename: Optional[str] = None,
+    filename: str | None = None,
     gamess_scr: Path = GAMESS_SCR,
     gamess_userscr: Path = GAMESS_USERSCR,
     post_clean: bool = True,
     pre_clean: bool = True,
-) -> Tuple[str, str]:
+) -> tuple[str, str]:
     """"""
 
     # important! Gamess is super sensitive to filename, because it will create
@@ -271,15 +275,9 @@ def run_gamess(
 
     stdout_, stderr_ = shell.execute(command_, cwd=scr)
 
-    if stdout_ is not None:
-        stdout = stdout_
-    else:
-        stdout = ""
+    stdout = stdout_ if stdout_ is not None else ""
 
-    if stderr_ is not None:
-        stderr = stderr_
-    else:
-        stderr = ""
+    stderr = stderr_ if stderr_ is not None else ""
 
     if post_clean:
         clean(gamess_scr, filename)
@@ -290,7 +288,6 @@ def run_gamess(
 
 
 def clean(scr: Path, filename: str) -> None:
-
     _logger.debug(f"removing {scr} {filename}")
 
     scr = scr.expanduser().absolute()
@@ -304,7 +301,7 @@ def clean(scr: Path, filename: str) -> None:
         os.remove(f)
 
 
-def check_output(output: List[str]) -> bool:
+def check_output(output: list[str]) -> bool:
     raise NotImplementedError
 
     # TODO ELECTRONS, WITH CHARGE ICHARG=
@@ -321,7 +318,7 @@ def check_output(output: List[str]) -> bool:
     # grep "IMAGINARY FREQUENCY VIBRATION" *.log
 
 
-def get_errors(lines: List[str]) -> Optional[Dict[str, str]]:
+def get_errors(lines: list[str]) -> dict[str, str] | None:
     """
     ddikick.x: Execution terminated due to error(s)
     """
@@ -336,7 +333,7 @@ def get_errors(lines: List[str]) -> Optional[Dict[str, str]]:
     if has_safeword:
         return None
 
-    line: Union[str, List[str]]
+    line: str | list[str]
 
     key = "CHECK YOUR INPUT CHARGE AND MULTIPLICITY"
     idx = linesio.get_rev_index(lines, key, stoppattern=safeword)
@@ -404,7 +401,7 @@ def get_errors(lines: List[str]) -> Optional[Dict[str, str]]:
     return msg
 
 
-def get_properties(lines: List[str], options: dict = {}) -> Optional[dict]:
+def get_properties(lines: list[str], options: dict | None = None) -> dict | None:
     """
     Read GAMESS output based on calculation options
     """
@@ -414,12 +411,13 @@ def get_properties(lines: List[str], options: dict = {}) -> Optional[dict]:
     # TODO Move SQM Specific properties
     # TODO Solvation
 
+    if options is None:
+        options = {}
     reader = None
 
     runtyp = read_type(lines)
 
     if runtyp is None:
-
         errors = get_errors(lines)
         if errors is not None:
             return None
@@ -451,33 +449,24 @@ def get_properties(lines: List[str], options: dict = {}) -> Optional[dict]:
     return properties
 
 
-def has_failed(lines: List[str]) -> bool:
-
+def has_failed(lines: list[str]) -> bool:
     msg = "Execution terminated due to error"
     idx = linesio.get_rev_index(lines, msg, stoppattern="TOTAL WALL TIME")
-    if idx is not None:
-        return True
-
-    return False
+    return idx is not None
 
 
-def read_solvation(lines: List[str]) -> bool:
-
+def read_solvation(lines: list[str]) -> bool:
     keyword = "INPUT FOR PCM SOLVATION CALCULATION"
     stoppattern = "ELECTRON INTEGRALS"
 
     idx = linesio.get_index(lines, keyword, stoppattern=stoppattern)
-    if idx is not None:
-        return True
-
-    return False
+    return idx is not None
 
 
-def read_type(lines: List[str]) -> Optional[str]:
-
+def read_type(lines: list[str]) -> str | None:
     idx = linesio.get_index(lines, "CONTRL OPTIONS")
 
-    line: Union[List[str], str]
+    line: list[str] | str
 
     if idx is None:
         return None
@@ -494,8 +483,7 @@ def read_type(lines: List[str]) -> Optional[str]:
     return runtyp
 
 
-def read_method(lines: List[str]) -> Optional[str]:
-
+def read_method(lines: list[str]) -> str | None:
     # TODO Add disperion reader
 
     idx = linesio.get_index(lines, "BASIS OPTIONS")
@@ -503,7 +491,7 @@ def read_method(lines: List[str]) -> Optional[str]:
     if idx is None:
         return None
 
-    line: Union[List[str], str]
+    line: list[str] | str
 
     idx += 2
     line = lines[idx]
@@ -514,23 +502,19 @@ def read_method(lines: List[str]) -> Optional[str]:
     basis = line[-1]
     basis = basis.lower()
 
-    if basis.upper() in GAMESS_SQM_METHODS:
-        method = "SQM"
-    else:
-        method = "HF"
+    method = "SQM" if basis.upper() in GAMESS_SQM_METHODS else "HF"
 
     return method
 
 
-def get_properties_coordinates(lines: List[str]) -> dict:
-
-    properties: Dict[str, Any] = {}
+def get_properties_coordinates(lines: list[str]) -> dict:
+    properties: dict[str, Any] = {}
 
     idx = linesio.get_index(lines, "TOTAL NUMBER OF ATOMS")
     if idx is None:
         return {}
 
-    line: Union[List[str], str]
+    line: list[str] | str
 
     line = lines[idx]
     line = line.split("=")
@@ -570,7 +554,7 @@ def get_properties_coordinates(lines: List[str]) -> dict:
     for i in range(n_atoms):
         line = lines[idx + i]
         line = line.split()
-        atom: Union[str, int] = line[1].replace(".0", "")
+        atom: str | int = line[1].replace(".0", "")
         atom = int(atom)
         x = line[2]
         y = line[3]
@@ -596,11 +580,10 @@ def get_properties_coordinates(lines: List[str]) -> dict:
     return properties
 
 
-def get_properties_vibration(lines: List[str]) -> dict:
+def get_properties_vibration(lines: list[str]) -> dict:
+    properties: dict[str, Any] = {}
 
-    properties: Dict[str, Any] = {}
-
-    line: Union[List[str], str]
+    line: list[str] | str
 
     idx = linesio.get_rev_index(
         lines, "SCF DOES NOT CONVERGE AT VIB", stoppattern="END OF PROPERTY EVALUATION"
@@ -680,10 +663,9 @@ def get_properties_vibration(lines: List[str]) -> dict:
     return properties
 
 
-def get_properties_orbitals(lines: List[str]) -> dict:
-
-    properties: Dict[str, Any] = {}
-    line: Union[List[str], str]
+def get_properties_orbitals(lines: list[str]) -> dict:
+    properties: dict[str, Any] = {}
+    line: list[str] | str
 
     # Get number of atoms
     idx = linesio.get_index(lines, "TOTAL NUMBER OF ATOMS")
@@ -702,7 +684,6 @@ def get_properties_orbitals(lines: List[str]) -> dict:
     wait = False
     j = idx_start
     while j < idx_end:
-
         line = lines[j].strip()
 
         if wait:
@@ -725,10 +706,9 @@ def get_properties_orbitals(lines: List[str]) -> dict:
     return properties
 
 
-def get_properties_solvation(lines: List[str]) -> dict:
-
-    properties: Dict[str, Any] = {}
-    line: Union[List[str], str]
+def get_properties_solvation(lines: list[str]) -> dict:
+    properties: dict[str, Any] = {}
+    line: list[str] | str
 
     # Check for common errors
     if has_failed(lines):

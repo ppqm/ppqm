@@ -1,5 +1,3 @@
-from typing import List
-
 import IPython
 import ipywidgets  # type: ignore[import-untyped]
 import nglview  # type: ignore[import-untyped]
@@ -44,7 +42,7 @@ def show_molobj(molobj: Mol, align_conformers: bool = True, show_properties: boo
 
 
 def show_molobjs(
-    molobjs: List[Mol], align_conformers: bool = True, show_properties: bool = False
+    molobjs: list[Mol], align_conformers: bool = True, show_properties: bool = False
 ) -> None:
     """ """
 

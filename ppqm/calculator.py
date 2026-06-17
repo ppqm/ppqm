@@ -3,7 +3,7 @@ import copy
 import logging
 from collections import ChainMap
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any
 
 from ppqm import chembridge, constants
 from ppqm.chembridge import Mol
@@ -30,10 +30,10 @@ class BaseCalculator(abc.ABC):
         """to be implemented by individual programs"""
         raise NotImplementedError
 
-    def calculate(self, molobj: Mol, options: dict) -> List[Optional[dict]]:
+    def calculate(self, molobj: Mol, options: dict) -> list[dict | None]:
         raise NotImplementedError
 
-    def optimize(self, molobj: Mol, options: dict = {}, return_copy: bool = True) -> Mol:
+    def optimize(self, molobj: Mol, options: dict | None = None, return_copy: bool = True) -> Mol:
         """
 
         Parameters
@@ -64,16 +64,17 @@ class BaseCalculator(abc.ABC):
         # TODO Embed properties into conformres
 
         # Merge options
+        if options is None:
+            options = {}
         options_ = self._generate_options(optimize=True)
         options_prime = dict(ChainMap(options, options_))
 
         if return_copy:
             molobj = copy.deepcopy(molobj)
 
-        result_properties: List[dict] = self.calculate(molobj, options_prime)  # type: ignore
+        result_properties: list[dict] = self.calculate(molobj, options_prime)  # type: ignore
 
         for i, properties in enumerate(result_properties):
-
             # TODO Check if unconverged
             # TODO Check number of steps?
 

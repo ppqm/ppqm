@@ -2,12 +2,13 @@ import logging
 import multiprocessing
 import sys
 import threading
-from typing import Any, Callable, List, Optional, Sequence
+from collections.abc import Callable, Sequence
+from typing import Any
 
 from tqdm import tqdm  # type: ignore[import-untyped]
 
 try:
-    import thread  # type: ignore
+    import thread
 except ImportError:
     import _thread as thread
 
@@ -21,9 +22,9 @@ def func_parallel(
     arg_list: Sequence,
     show_progress: bool = True,
     n_cores: int = 1,
-    n_jobs: Optional[int] = None,
+    n_jobs: int | None = None,
     title: str = "Parallel",
-) -> List[Any]:
+) -> list[Any]:
     """
     Start pool of procs for function with arg_list.
 
@@ -42,7 +43,6 @@ def func_parallel(
     pbar = None
 
     if show_progress:
-
         if n_jobs is None:
             n_jobs = len(arg_list)
 
@@ -60,7 +60,6 @@ def func_parallel(
         results_iter = p.imap(func, arg_list, chunksize=1)
 
         for result in results_iter:
-
             if pbar:
                 pbar.update(1)
 
@@ -69,12 +68,12 @@ def func_parallel(
     except KeyboardInterrupt:
         _logger.error("got ^C while running pool of workers...")
         p.terminate()
-        raise KeyboardInterrupt
+        raise KeyboardInterrupt from None
 
     except Exception as e:
         _logger.error(f"got exception: {e}, terminating the pool")
         p.terminate()
-        raise e
+        raise e from None
 
     finally:
         p.terminate()
@@ -103,7 +102,7 @@ def exit_after(sec: int) -> Any:
     """
 
     def outer(fn: Callable) -> Any:
-        def inner(*args, **kwargs):  # type: ignore
+        def inner(*args, **kwargs):
             timer = threading.Timer(sec, quit_function, args=[fn])
             timer.start()
             try:
@@ -120,7 +119,7 @@ def exit_after(sec: int) -> Any:
 def quit_function(func: Callable, reason: str = "took too long") -> None:
     """Raise KeyboardInterrupt"""
 
-    _logger.error(f"function '{func.__name__}' quit, because {reason}")
+    _logger.error(f"function '{getattr(func, '__name__', 'unknown')}' quit, because {reason}")
 
     sys.stderr.flush()  # Python 3 stderr is likely buffered.
     thread.interrupt_main()  # raises KeyboardInterrupt

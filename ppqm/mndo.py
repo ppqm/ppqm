@@ -1,6 +1,7 @@
 import logging
+from collections.abc import Generator
 from pathlib import Path
-from typing import Any, Dict, Generator, List, Optional, Union
+from typing import Any
 
 import numpy as np
 
@@ -23,7 +24,6 @@ class MndoCalculator(BaseCalculator):
         n_cores: int = 1,
         show_progress: bool = False,
     ) -> None:
-
         super().__init__(scr=scr)
 
         self.cmd = cmd
@@ -39,7 +39,7 @@ class MndoCalculator(BaseCalculator):
         self.show_progress = show_progress
 
         # "{self.method} MULLIK PRECISE charge={charge} " "jprint=5\nnextmol=-1\nTITLE {title}"
-        self.default_options: Dict[str, Any] = {
+        self.default_options: dict[str, Any] = {
             "mullik": None,
             "precise": None,
             "jprint": 5,
@@ -87,10 +87,7 @@ class MndoCalculator(BaseCalculator):
     #
     #     return properties_
 
-    def calculate(
-        self, molobj: Mol, options: dict, optimize: bool = False
-    ) -> List[Optional[dict]]:
-
+    def calculate(self, molobj: Mol, options: dict, optimize: bool = False) -> list[dict | None]:
         # TODO Parallel interface
 
         input_string = self._get_input_from_molobj(
@@ -108,14 +105,13 @@ class MndoCalculator(BaseCalculator):
 
         calculations = self._run_mndo_file(filename, scr=self.scr)
 
-        result: List[Optional[dict]] = [get_properties(lines) for lines in calculations]
+        result: list[dict | None] = [get_properties(lines) for lines in calculations]
 
         return result
 
     def _run_mndo_file(
-        self, filename: Path, scr: Optional[Path] = None
-    ) -> Generator[List[str], None, None]:
-
+        self, filename: Path, scr: Path | None = None
+    ) -> Generator[list[str], None, None]:
         runcmd = f"{self.cmd} < {filename}"
 
         _logger.debug(f"Running mndo: {runcmd} in {scr}")
@@ -128,7 +124,6 @@ class MndoCalculator(BaseCalculator):
         molecule_lines = []
 
         for line in lines:
-
             molecule_lines.append(line.strip("\n"))
 
             if "STATISTICS FOR RUNS WITH MANY MOLECULES" in line:
@@ -183,17 +178,13 @@ def get_header(options: dict) -> str:
     if "title" in options:
         del options["title"]
 
-    header: List[Any] = [""] * 4
-    header[0] = list()
+    header: list[Any] = [""] * 4
+    header[0] = []
     header[1] = "nnextmol=-1"
     header[2] = title
 
     for key, val in options.items():
-
-        if val is not None:
-            keyword = f"{key}={val}"
-        else:
-            keyword = f"{key}"
+        keyword = f"{key}={val}" if val is not None else f"{key}"
 
         header[0].append(keyword)
 
@@ -202,7 +193,7 @@ def get_header(options: dict) -> str:
 
 
 def get_input(
-    atoms: Union[List[str], np.ndarray],
+    atoms: list[str] | np.ndarray,
     coords: np.ndarray,
     header: str,
     read_params: bool = False,
@@ -234,7 +225,7 @@ def get_input(
     if optimize:
         opt_flag = 1
 
-    for atom, coord in zip(atoms, coords):
+    for atom, coord in zip(atoms, coords, strict=False):
         fmt = {
             "atom": atom,
             "x": coord[0],
@@ -251,7 +242,7 @@ def get_input(
 
 
 def get_internal_coordinates(
-    atoms: Union[List[str], np.ndarray], coord: np.ndarray, optimize: bool = False
+    atoms: list[str] | np.ndarray, coord: np.ndarray, optimize: bool = False
 ) -> str:
     """Get MNDO input in internal coordinates format"""
 
@@ -264,7 +255,6 @@ def get_internal_coordinates(
     output = ""
 
     if n_atoms == 3:
-
         ba = coord[1] - coord[0]
         bc = coord[1] - coord[2]
         cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
@@ -278,20 +268,18 @@ def get_internal_coordinates(
         output += f"{atoms[2]} {norm_bc} {opt_flag} {angle} {opt_flag}\n"
 
     elif n_atoms == 2:
-
         ba = coord[1] - coord[0]
         norm_ba = np.linalg.norm(ba)
         output += f"{atoms[0]}\n"
         output += f"{atoms[1]} {norm_ba} {opt_flag}\n"
 
     elif n_atoms == 1:
-
         output += f"{atoms[0]}\n"
 
     return output
 
 
-def get_properties(output: List[str]) -> Optional[dict]:
+def get_properties(output: list[str]) -> dict | None:
     """"""
 
     if isinstance(output, str):
@@ -306,8 +294,7 @@ def get_properties(output: List[str]) -> Optional[dict]:
     return result
 
 
-def get_properties_1scf(lines: List[str]) -> Optional[dict]:
-
+def get_properties_1scf(lines: list[str]) -> dict | None:
     properties = {}
 
     # Check if input coordiantes is internal
@@ -364,7 +351,7 @@ def get_properties_1scf(lines: List[str]) -> Optional[dict]:
         properties["e_nuc"] = e_nuc  # ev
 
     # eisol
-    eisol = dict()
+    eisol = {}
     idxs = linesio.get_rev_indices(lines, "EISOL", stoppattern="IDENTIFICATION")
     for idx in idxs:
         line = lines[idx]
@@ -409,7 +396,6 @@ def get_properties_1scf(lines: List[str]) -> Optional[dict]:
     coord = []
 
     if is_internal:
-
         idx_atm = 1
         idx_x = 2
         idx_y = 3
@@ -435,7 +421,6 @@ def get_properties_1scf(lines: List[str]) -> Optional[dict]:
             j += 1
 
     else:
-
         idx_atm = 1
         idx_x = 2
         idx_y = 3
@@ -467,14 +452,14 @@ def get_properties_1scf(lines: List[str]) -> Optional[dict]:
     return properties
 
 
-def get_properties_optimize(lines: List[str]) -> Optional[dict]:
+def get_properties_optimize(lines: list[str]) -> dict | None:
     """
 
     TODO Read how many steps
 
     """
 
-    properties: Dict[str, Any] = {}
+    properties: dict[str, Any] = {}
 
     # # Enthalpy of formation
     idx_hof = linesio.get_index(lines, "SCF HEAT OF FORMATION")

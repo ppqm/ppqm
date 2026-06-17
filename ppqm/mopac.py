@@ -1,8 +1,9 @@
 import logging
 import os
 from collections import ChainMap
+from collections.abc import Generator
 from pathlib import Path
-from typing import Any, Dict, Generator, List, Optional, Union
+from typing import Any
 
 import numpy as np
 
@@ -62,8 +63,7 @@ class MopacCalculator(BaseCalculator):
         self.n_cores = n_cores
         self.show_progress = show_progress
 
-    def calculate(self, molobj: Mol, options: dict) -> List[Optional[dict]]:
-
+    def calculate(self, molobj: Mol, options: dict) -> list[dict | None]:
         # Merge options
         options_prime = dict(ChainMap(options, self.options))
         options_prime["charge"] = MOPAC_KEYWORD_CHARGE
@@ -80,13 +80,15 @@ class MopacCalculator(BaseCalculator):
         self._run_file()
 
         calculations = self._read_file()
-        results: List[Optional[dict]] = [
+        results: list[dict | None] = [
             get_properties(output_lines) for output_lines in calculations
         ]
 
         return results
 
-    def _generate_options(self, optimize: bool = True, hessian: bool = False, gradient: bool = False) -> dict:  # type: ignore[override]
+    def _generate_options(
+        self, optimize: bool = True, hessian: bool = False, gradient: bool = False
+    ) -> dict:  # ty: ignore[invalid-method-override]
         """Generate options for calculation types"""
 
         if optimize:
@@ -96,7 +98,7 @@ class MopacCalculator(BaseCalculator):
         else:
             calculation = "1scf"
 
-        options: Dict[str, Any] = dict()
+        options: dict[str, Any] = {}
         options[calculation] = None
 
         return options
@@ -113,7 +115,6 @@ class MopacCalculator(BaseCalculator):
 
         txt = []
         for i in range(n_confs):
-
             coord = chembridge.get_coordinates(molobj, confid=i)
             header_prime = header.format(charge=charge, title=f"{title}_Conf_{i}")
             tx = get_input(atoms, coord, header_prime, opt_flag=opt_flag)
@@ -122,7 +123,6 @@ class MopacCalculator(BaseCalculator):
         return "".join(txt)
 
     def _run_file(self) -> None:
-
         runcmd = f"{self.cmd} {self.filename}"
 
         stdout, stderr = shell.execute(runcmd, cwd=self.scr)
@@ -131,12 +131,11 @@ class MopacCalculator(BaseCalculator):
 
         return
 
-    def _read_file(self) -> Generator[List[str], None, None]:
-
+    def _read_file(self) -> Generator[list[str], None, None]:
         filename = str(self.scr / self.filename)
         filename = filename.replace(".mop", ".out")
 
-        with open(filename, "r") as f:
+        with open(filename) as f:
             lines = f.readlines()
 
         # Check for erros
@@ -146,7 +145,6 @@ class MopacCalculator(BaseCalculator):
         molecule_lines = []
 
         for line in lines:
-
             molecule_lines.append(line.strip("\n"))
 
             if "TOTAL JOB TIME" in line:
@@ -163,7 +161,7 @@ class MopacCalculator(BaseCalculator):
         return f"MopacCalc(scr={self.scr}, cmd={self.cmd})"
 
 
-def run_mopac(filename: str, cmd: str = MOPAC_CMD, scr: Optional[Path] = None) -> bool:
+def run_mopac(filename: str, cmd: str = MOPAC_CMD, scr: Path | None = None) -> bool:
     """Run mopac on filename, inside scr directory"""
 
     command = " ".join([cmd, filename])
@@ -182,16 +180,12 @@ def get_header(options: dict) -> str:
     if "title" in options:
         del options["title"]
 
-    header: List[Any] = [""] * 3
+    header: list[Any] = [""] * 3
     header[1] = title
-    header[0] = list()
+    header[0] = []
 
     for key, val in options.items():
-
-        if val is not None:
-            keyword = f"{key}={val}"
-        else:
-            keyword = f"{key}"
+        keyword = f"{key}={val}" if val is not None else f"{key}"
 
         header[0].append(keyword)
 
@@ -200,7 +194,7 @@ def get_header(options: dict) -> str:
 
 
 def get_input(
-    atoms: Union[List[str], np.ndarray], coords: np.ndarray, header: str, opt_flag: bool = False
+    atoms: list[str] | np.ndarray, coords: np.ndarray, header: str, opt_flag: bool = False
 ) -> str:
     """Generate input text for MOPAC calculation"""
 
@@ -209,7 +203,7 @@ def get_input(
     txt = header
     txt += "\n"
 
-    for atom, coord in zip(atoms, coords):
+    for atom, coord in zip(atoms, coords, strict=False):
         line = MOPAC_ATOMLINE.format(atom=atom, x=coord[0], y=coord[1], z=coord[2], opt_flag=flag)
 
         txt += line + "\n"
@@ -220,12 +214,12 @@ def get_input(
 
 
 def properties_from_axyzc(
-    atoms: Union[List[str], np.ndarray],
+    atoms: list[str] | np.ndarray,
     coords: np.ndarray,
     charge: int,
     header: str,
     **kwargs: Any,
-) -> Optional[dict]:
+) -> dict | None:
     """Calculate properties for atoms, coord and charge"""
 
     properties_list = properties_from_many_axyzc(
@@ -238,31 +232,32 @@ def properties_from_axyzc(
 
 
 def properties_from_many_axyzc(
-    atoms_list: Union[List[List[str]], np.ndarray],
-    coords_list: List[np.ndarray],
-    charge_list: List[int],
+    atoms_list: list[list[str]] | np.ndarray,
+    coords_list: list[np.ndarray],
+    charge_list: list[int],
     header: str,
-    titles: Optional[List[str]] = None,
+    titles: list[str] | None = None,
     optimize: bool = False,
     cmd: str = MOPAC_CMD,
     filename: str = MOPAC_FILENAME,
-    scr: Optional[Path] = None,
-) -> List[Optional[dict]]:
+    scr: Path | None = None,
+) -> list[dict | None]:
     """
-    Calculate properties from a series of atoms, coord and charges. Written as one input file for MOPAC.
+    Calculate properties from a series of atoms, coord and charges.
+
+    Written as one input file for MOPAC.
+
 
     NOTE: header requires {charge} in string for formatting
 
     """
 
-    input_texts = list()
+    input_texts = []
 
-    for i, (atoms, coords, charge) in enumerate(zip(atoms_list, coords_list, charge_list)):
-
-        if titles is None:
-            title = ""
-        else:
-            title = titles[i]
+    for i, (atoms, coords, charge) in enumerate(
+        zip(atoms_list, coords_list, charge_list, strict=False)
+    ):
+        title = "" if titles is None else titles[i]
 
         header_prime = header.format(charge=charge, title=title)
         input_text = get_input(atoms, coords, header_prime, opt_flag=optimize)
@@ -292,9 +287,8 @@ def properties_from_many_axyzc(
 
 
 def read_output(
-    filename: str, scr: Optional[Path] = None, translate_filename: bool = True
-) -> Generator[List[str], None, None]:
-
+    filename: str, scr: Path | None = None, translate_filename: bool = True
+) -> Generator[list[str], None, None]:
     if scr is None:
         scr = Path("")
 
@@ -303,13 +297,12 @@ def read_output(
         filename = filename.replace("." + MOPAC_INPUT_EXTENSION, "")
         filename += "." + MOPAC_OUTPUT_EXTENSION
 
-    with open(filename, "r") as f:
+    with open(filename) as f:
         lines = f.readlines()
 
     molecule_lines = []
 
     for line in lines:
-
         molecule_lines.append(line.strip("\n"))
 
         if "TOTAL JOB TIME" in line:
@@ -323,7 +316,7 @@ def read_output(
     return
 
 
-def has_error(lines: List[str]) -> bool:
+def has_error(lines: list[str]) -> bool:
     #
     #  *  Errors detected in keywords.  Job stopped here to avoid wasting time.
     #  *
@@ -352,7 +345,6 @@ def has_error(lines: List[str]) -> bool:
     idxs = linesio.get_rev_indices_patterns(lines, keywords, maxiter=50)
 
     for idx in idxs:
-
         if idx is None:
             continue
 
@@ -361,13 +353,10 @@ def has_error(lines: List[str]) -> bool:
         msg = msg.strip()
         _logger.error(msg)
 
-    if any(idxs):
-        return True
-
-    return False
+    return bool(any(idxs))
 
 
-def get_properties(lines: List[str]) -> Optional[dict]:
+def get_properties(lines: list[str]) -> dict | None:
     """
     TODO Check common errors
 
@@ -376,18 +365,14 @@ def get_properties(lines: List[str]) -> Optional[dict]:
 
     """
 
-    properties: Optional[dict]
+    properties: dict | None
 
-    if is_1scf(lines):
-        properties = get_properties_1scf(lines)
-
-    else:
-        properties = get_properties_optimize(lines)
+    properties = get_properties_1scf(lines) if is_1scf(lines) else get_properties_optimize(lines)
 
     return properties
 
 
-def is_1scf(lines: List[str]) -> bool:
+def is_1scf(lines: list[str]) -> bool:
     """
 
     Check if output is a single point or optimization
@@ -399,17 +384,14 @@ def is_1scf(lines: List[str]) -> bool:
 
     idx = linesio.get_indices(lines, keyword, stoppattern=stoppattern)
 
-    if idx is None or len(idx) == 0:
-        return False
-
-    return True
+    return not (idx is None or len(idx) == 0)
 
 
-def get_properties_optimize(lines: List[str]) -> Optional[dict]:
+def get_properties_optimize(lines: list[str]) -> dict | None:
     """"""
 
-    properties: Dict[str, Any] = {}
-    line: Union[List[str], str]
+    properties: dict[str, Any] = {}
+    line: list[str] | str
 
     # Enthalpy of formation
     idx_hof = linesio.get_rev_index(lines, "FINAL HEAT OF FORMATION")
@@ -434,7 +416,7 @@ def get_properties_optimize(lines: List[str]) -> Optional[dict]:
     if i is not None and "ATOM LIST" in line:
         i = None
 
-    coord: Optional[Union[list, np.ndarray]]
+    coord: list | np.ndarray | None
 
     if i is None:
         coord = None
@@ -472,11 +454,11 @@ def get_properties_optimize(lines: List[str]) -> Optional[dict]:
     return properties
 
 
-def get_properties_1scf(lines: List[str]) -> dict:
+def get_properties_1scf(lines: list[str]) -> dict:
     """"""
 
-    properties: Dict[str, Any] = {}
-    line: Union[List[str], str]
+    properties: dict[str, Any] = {}
+    line: list[str] | str
 
     # Enthalpy of formation
     idx_hof = linesio.get_rev_index(lines, "FINAL HEAT OF FORMATION")

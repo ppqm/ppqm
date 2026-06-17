@@ -1,0 +1,32 @@
+name: Publish to PyPI
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  deploy:
+    name: Build & Publish
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.12"
+
+      - name: Install build dependencies
+        run: uv pip install build twine
+
+      - name: Build package
+        run: make build python=python3
+
+      - name: Check distribution
+        run: make test-dist python=python3
+
+      - name: Publish to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        run: make upload python=python3

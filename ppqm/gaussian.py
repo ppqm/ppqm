@@ -1,7 +1,8 @@
 import logging
 from collections import ChainMap
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any
 
 import numpy as np
 from tqdm import tqdm  # type: ignore[import-untyped]
@@ -35,7 +36,6 @@ class GaussianCalculator(BaseCalculator):
         memory: int = 2,
         **kwargs: Any,
     ):
-
         super().__init__(**kwargs)
 
         self.cmd = cmd
@@ -44,27 +44,30 @@ class GaussianCalculator(BaseCalculator):
         self.memory = memory
         self.show_progress = show_progress
 
-        self.g16_options: Dict[str, Any] = {
+        self.g16_options: dict[str, Any] = {
             "cmd": self.cmd,
             "scr": self.scr,
             "filename": self.filename,
             "memory": self.memory,
         }
 
-        self.options: Dict[str, Any] = {}
+        self.options: dict[str, Any] = {}
 
         self.health_check()
 
     def __repr__(self) -> str:
-        return f"G16Calc(cmd={self.cmd}, scr={self.scr}, n_cores={self.n_cores}, memory={self.memory}gb)"
+        return (
+            f"G16Calc(cmd={self.cmd}, scr={self.scr},"
+            f" n_cores={self.n_cores}, memory={self.memory}gb)"
+        )
 
     def health_check(self) -> None:
         """ """
         # TODO Check version
 
     def calculate(
-        self, molobj: Mol, options: dict, footer: Optional[str] = None
-    ) -> List[Optional[dict]]:
+        self, molobj: Mol, options: dict, footer: str | None = None
+    ) -> list[dict | None]:
         """ """
 
         if self.n_cores > 1:
@@ -75,15 +78,12 @@ class GaussianCalculator(BaseCalculator):
         return results
 
     def calculate_serial(
-        self, molobj: Mol, options: dict, footer: Optional[str] = None
-    ) -> List[Optional[dict]]:
+        self, molobj: Mol, options: dict, footer: str | None = None
+    ) -> list[dict | None]:
         """ """
 
         # If not singlet "spin" is part of options
-        if "spin" in options.keys():
-            spin = int(options.pop("spin"))
-        else:
-            spin = int(1)
+        spin = int(options.pop("spin")) if "spin" in options else 1
 
         options_prime = dict(ChainMap(options, self.options))
 
@@ -100,7 +100,6 @@ class GaussianCalculator(BaseCalculator):
 
         properties_list = []
         for conf_idx in range(n_confs):
-
             coord = chembridge.get_coordinates(molobj, confid=conf_idx)
 
             properties = get_properties_from_axyzc(
@@ -125,19 +124,20 @@ class GaussianCalculator(BaseCalculator):
 
 
 def get_properties_from_axyzc(
-    atoms_str: Union[List[str], np.ndarray],
+    atoms_str: list[str] | np.ndarray,
     coordinates: np.ndarray,
     charge: int,
     spin: int,
-    options: dict = {},
+    options: dict | None = None,
     scr: Path = constants.SCR,
     cmd: str = G16_CMD,
     filename: str = G16_FILENAME,
-    footer: Optional[str] = None,
+    footer: str | None = None,
     keep_files: bool = False,
     memory: int = 2,
-) -> Optional[dict]:
-
+) -> dict | None:
+    if options is None:
+        options = {}
     if not filename.endswith(".com"):
         filename += ".com"
 
@@ -171,7 +171,7 @@ def get_properties_from_axyzc(
     lines = stdout.split() + stderr.split()
 
     if not len(lines):
-        with open((scr / filename).with_suffix(".log"), "r") as f:
+        with open((scr / filename).with_suffix(".log")) as f:
             lines = f.readlines()
 
     termination_pattern = "Normal termination of Gaussian"
@@ -187,12 +187,12 @@ def get_properties_from_axyzc(
 
 
 def get_inputfile(
-    atom_strs: Union[List[str], np.ndarray],
+    atom_strs: list[str] | np.ndarray,
     coordinates: np.ndarray,
     charge: int,
     spin: int,
     header: str,
-    footer: Optional[str] = None,
+    footer: str | None = None,
     title: str = "title",
 ) -> str:
     """ """
@@ -201,7 +201,7 @@ def get_inputfile(
     inputstr += f"  {title}" + 2 * "\n"
 
     inputstr += f"{charge}  {spin} \n"
-    for atom_str, coord in zip(atom_strs, coordinates):
+    for atom_str, coord in zip(atom_strs, coordinates, strict=False):
         inputstr += f"{atom_str}  " + " ".join([str(x) for x in coord]) + "\n"
     inputstr += "\n"  # magic line
 
@@ -233,11 +233,11 @@ def get_header(options: dict, memory: int = 2) -> str:
     return header
 
 
-def read_properties(lines: List[str], options: dict) -> Optional[dict]:
+def read_properties(lines: list[str], options: dict) -> dict | None:
     """Extract values from output depending on calculation options"""
 
     # Collect readers
-    readers: List[Callable] = []
+    readers: list[Callable] = []
 
     if "opt" in options:
         raise NotImplementedError("not implemented opt properties parser")
@@ -257,7 +257,7 @@ def read_properties(lines: List[str], options: dict) -> Optional[dict]:
         readers.append(get_nmr_shielding_constants)
 
     # Get properties
-    properties = dict()
+    properties = {}
     for reader in readers:
         new_properties = reader(lines)
         assert isinstance(new_properties, dict)
@@ -267,9 +267,9 @@ def read_properties(lines: List[str], options: dict) -> Optional[dict]:
     return properties
 
 
-def read_properties_sp(lines: List[str]) -> Optional[dict]:
+def read_properties_sp(lines: list[str]) -> dict | None:
     """Read Mulliken charges"""
-    properties = dict()
+    properties = {}
 
     for line in lines:
         if "SCF Done:  E(" in line:
@@ -285,12 +285,12 @@ def read_properties_sp(lines: List[str]) -> Optional[dict]:
     return properties
 
 
-def read_properties_opt(lines: List[str]) -> dict:
+def read_properties_opt(lines: list[str]) -> dict:
     """ """
     raise NotImplementedError
 
 
-def get_mulliken_charges(lines: List[str]) -> Optional[dict]:
+def get_mulliken_charges(lines: list[str]) -> dict | None:
     """Read Mulliken charges"""
     keywords = ["Mulliken charges:", "Sum of Mulliken charges"]
     start, stop = linesio.get_rev_indices_patterns(lines, keywords)
@@ -300,7 +300,7 @@ def get_mulliken_charges(lines: List[str]) -> Optional[dict]:
     return {COLUMN_MULIKEN_CHARGES: mulliken_charges}
 
 
-def get_hirsfeld_charges(lines: List[str]) -> Optional[dict]:
+def get_hirsfeld_charges(lines: list[str]) -> dict | None:
     """Read Hirsfeld charges - run a NBO calculation"""
     keywords = ["Hirshfeld charges,", "Hirshfeld charges with"]
     start, stop = linesio.get_indices_patterns(lines, keywords)
@@ -311,7 +311,7 @@ def get_hirsfeld_charges(lines: List[str]) -> Optional[dict]:
     return {COLUMN_HIRSHFELD_CHARGES: hirshfeld_charges}
 
 
-def get_cm5_charges(lines: List[str]) -> Optional[dict]:
+def get_cm5_charges(lines: list[str]) -> dict | None:
     """Read CM5 charges - run a NBO calculation"""
     keywords = ["Hirshfeld charges,", "Hirshfeld charges with"]
     start, stop = linesio.get_indices_patterns(lines, keywords)
@@ -322,7 +322,7 @@ def get_cm5_charges(lines: List[str]) -> Optional[dict]:
     return {COLUMN_CM5_CHARGES: cm5_charges}
 
 
-def get_nbo_bond_orders(lines: List[str]) -> Optional[dict]:
+def get_nbo_bond_orders(lines: list[str]) -> dict | None:
     """
     Read Wiberg index - run a NBOread calculation.
     N.B. add $nbo bndidx $end to the footer.
@@ -336,7 +336,7 @@ def get_nbo_bond_orders(lines: List[str]) -> Optional[dict]:
         return None
 
     # Extract Bond order matrix
-    bond_idx_blocks: List[List[List[float]]] = []
+    bond_idx_blocks: list[list[list[float]]] = []
     block_idx = 0
     for line in lines[start + 1 : stop]:
         line_ = line.strip().split()
@@ -360,7 +360,7 @@ def get_nbo_bond_orders(lines: List[str]) -> Optional[dict]:
     return {COLUMN_NBO_BONDORDER: bond_order_matrix}
 
 
-def get_nmr_shielding_constants(lines: List[str]) -> dict:
+def get_nmr_shielding_constants(lines: list[str]) -> dict:
     """Read GIAO NMR shielding constants"""
     keywords = ["Magnetic shielding tensor (ppm):", "************"]
     start, stop = linesio.get_rev_indices_patterns(lines, keywords)

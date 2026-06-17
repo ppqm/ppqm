@@ -1,6 +1,6 @@
 import sys
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from ppqm.utils import shell
 
@@ -16,7 +16,7 @@ COLUMN_ENTHALPY = ""
 
 
 # tqdm default view
-TQDM_OPTIONS: Dict[str, Any] = {
+TQDM_OPTIONS: dict[str, Any] = {
     "ncols": 80,
 }
 
