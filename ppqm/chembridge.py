@@ -344,7 +344,7 @@ def get_atom_charges(molobj: Mol) -> np.ndarray:
 def get_atom_int(atmstr: str) -> int:
     """Get atom number from atom label"""
     atom = atmstr.strip().lower()
-    return ATOM_LIST.index(atom) + 1
+    return ATOM_LIST.index(atom) + 1  # ty: ignore[invalid-argument-type]
 
 
 def get_atom_str(iatm: int) -> str:

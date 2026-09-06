@@ -1,10 +1,55 @@
-# Psi Phi Package
+# Psi Phi Quantum Mechanics (ppqm)
 
-Do you need RDKit? Do you need quantum chemistry? We got you.
-This package is a simple bridge between RDKit and quantum chemistry (QC) packages
-that lack Python interfaces.
+Simple bridge between RDKit and quantum chemistry (QC)
+packages.
 
-Current version has calculator wrappers for
+## Installation
+
+```bash
+pip install ppqm
+```
+
+## Example
+
+All examples assume an RDKit molecule object with hydrogens and a 3D conformer:
+
+```python
+from rdkit import Chem
+from rdkit.Chem import AllChem
+
+molecule = Chem.MolFromSmiles("O")
+molecule = Chem.AddHs(molecule)
+AllChem.EmbedMolecule(molecule)
+AllChem.UFFOptimizeMolecule(molecule)
+```
+
+Create a calculator instance. Here using xTB with 4 cores:
+
+```python
+from ppqm import XtbCalculator
+
+xtb = XtbCalculator(cmd="xtb", cores=4)
+```
+
+Calculation options are plain dicts, translated into the right input format.
+To run a GFN2 optimization in water:
+
+```python
+optimize_options = {
+    "gfn": 2,
+    "alpb": "h2o",
+    "opt": None,
+}
+
+results = xtb.calculate(molecule, optimize_options)
+
+for i, properties in enumerate(results):
+    print(f"Conformer {i} properties: {properties}")
+```
+
+More examples in the `notebooks/` directory.
+
+## Supported calculators
 
 - GAMESS
 - Gaussian
@@ -13,69 +58,29 @@ Current version has calculator wrappers for
 - Orca
 - xTB
 
-## Example
+## Related projects
 
-Assume all codesnippets below are using RDKit molecule objs.
+The interface might be too niche, but there are other cool molecular interfaces to explore;
 
-```python
-molecule = Chem.MolFromSmiles("O")
-Chem.AddHydrogens(molecule)
-AllChem.UFFOptimizeMolecule(molecule)
-```
-
-The simple usage is to make an instance of a QC software.
-For example, using the popular package xTB, you can define the amount of cores
-to allocate and the exact path to the executable.
-
-```python
-from ppqm import XtbCalculator
-
-xtb = XtbCalculator(cmd="xtb", cores=4)
-```
-
-The format for running calculations are based on Python dictionaries, which are
-translated into the right format. So for example running a GFN2 optimization in
-water, the input would be
-
-```python
-# Define the calculation
-optimize_options = {
-    "gfn": 2,
-    "alpb": "h2o",
-    "opt": None,
-}
-
-# Run the calculation
-results = xtb.calculate(molecule, optimize_options)
-
-# Results is a List of Dict properties
-for i, propeties in enumerate(results):
-    print(f"Conformer {i} properties: {properties}")
-```
-
-For more documentation by example, checkout the `notebooks/` directory.
-
-## Contributions
-
-Fork, branch and use pre-commit.
-
-## Other code bases
-
-"is this the first python wrapper for quantum chemistry?" No, check the others
-and find the one right for your project. Know one, not on the list? Add it. In
-alphabetic order.
-
-- [Moleculekit](https://github.com/Acellera/moleculekit)
-- [stko](https://github.com/JelfsMaterialsGroup/stko)
-- [MolSSI](https://github.com/MolSSI)
-- [cclib](https://github.com/cclib/cclib)
-- [datamol](https://github.com/datamol-org/datamol)
+- [ASE](https://gitlab.com/ase/ase)
 - [autodE](https://github.com/duartegroup/autodE/)
+- [cclib](https://github.com/cclib/cclib)
 - [cctk](https://github.com/ekwan/cctk)
+- [datamol](https://github.com/datamol-org/datamol)
+- [Moleculekit](https://github.com/Acellera/moleculekit)
+- [MolSSI](https://github.com/MolSSI)
 - [pygamess](https://github.com/kzfm/pygamess)
 - [stk](https://github.com/lukasturcani/stk)
-- [ASE](https://gitlab.com/ase/ase)
+- [stko](https://github.com/JelfsMaterialsGroup/stko)
 
-## Future work
+## Future Work
 
-- Separation of concern. The ppqm package should adapt to using `cclib` or similar to collect quantum output.
+- Would really love to seperate the parsers out and use `cclib` instead.
+
+## Contributing
+
+Fork, branch, and use pre-commit.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
