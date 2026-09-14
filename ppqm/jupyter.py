@@ -1,7 +1,7 @@
-import IPython
 import ipywidgets  # type: ignore[import-untyped]
 import nglview  # type: ignore[import-untyped]
 import pandas as pd  # type: ignore[import-untyped]
+from IPython.display import display
 from ipywidgets import Layout, interact
 from rdkit.Chem import rdMolAlign  # type: ignore[import-untyped]
 
@@ -34,11 +34,11 @@ def show_molobj(molobj: Mol, align_conformers: bool = True, show_properties: boo
     else:
         _view_conformer(0)
 
-    IPython.core.display.display(view)
+    display(view)
     if show_properties:
         properties: dict = molobj.GetPropsAsDict()  # type: ignore
         pdf = pd.DataFrame([properties]).transpose()
-        IPython.core.display.display(pdf)
+        display(pdf)
 
 
 def show_molobjs(
